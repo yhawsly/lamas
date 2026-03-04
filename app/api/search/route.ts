@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
             ...resources.map(r => ({ ...r, category: "Resource", href: r.url }))
         ];
 
+        return NextResponse.json(results);
     } catch {
         return NextResponse.json({ error: "Search failed" }, { status: 500 });
     }

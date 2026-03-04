@@ -59,6 +59,12 @@ export async function POST(req: NextRequest) {
         },
     });
 
+    await logAction({
+        userId: userId,
+        action: 'SUBMISSION_CREATED',
+        details: `Submitted new ${type}: "${title}"`,
+    });
+
     // Save version snapshot
     await prisma.submissionVersion.create({
         data: {
