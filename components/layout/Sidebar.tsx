@@ -64,6 +64,23 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         if (pathname !== prevPath) onClose?.();
     }, [pathname]); // eslint-disable-line
 
+    const [searchQ, setSearchQ] = useState("");
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [showResults, setShowResults] = useState(false);
+
+    useEffect(() => {
+        const t = setTimeout(() => {
+            if (searchQ.length < 2) {
+                setSearchResults([]);
+                return;
+            }
+            fetch(`/api/search?q=${searchQ}`)
+                .then(r => r.json())
+                .then(setSearchResults);
+        }, 300);
+        return () => clearTimeout(t);
+    }, [searchQ]);
+
     useEffect(() => {
         fetch("/api/notifications")
             .then((r) => r.json())
@@ -124,6 +141,51 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                         </svg>
                     </button>
                 </div>
+            </div>
+
+            {/* Search Bar */}
+            <div className="px-4 py-3 relative">
+                <div className="relative">
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input
+                        value={searchQ}
+                        onChange={e => { setSearchQ(e.target.value); setShowResults(true); }}
+                        onFocus={() => setShowResults(true)}
+                        placeholder="Search LAMAS..."
+                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-[13px] text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-white/10 transition-all"
+                    />
+                </div>
+
+                {/* Search Results Dropdown */}
+                {showResults && searchResults.length > 0 && (
+                    <div className="absolute left-4 right-4 mt-2 bg-slate-900 border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden max-h-[300px] overflow-y-auto">
+                        <div className="p-2 space-y-1">
+                            {searchResults.map((res, i) => (
+                                <Link
+                                    key={i}
+                                    href={res.href}
+                                    onClick={() => { setShowResults(false); setSearchQ(""); }}
+                                    className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors"
+                                >
+                                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-xs">
+                                        {res.category === 'Resource' ? '📚' : res.category === 'Lecturer' ? '👤' : '📋'}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="text-white text-xs font-bold truncate">{res.title}</div>
+                                        <div className="text-[10px] text-white/30 uppercase tracking-widest">{res.category}</div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                {showResults && searchQ.length >= 2 && searchResults.length === 0 && (
+                    <div className="absolute left-4 right-4 mt-2 bg-slate-900 border border-white/10 rounded-2xl p-4 text-center z-50 shadow-2xl">
+                        <div className="text-xs text-white/30">No results for &quot;{searchQ}&quot;</div>
+                    </div>
+                )}
             </div>
 
             {/* User info */}

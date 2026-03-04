@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import OnboardingCard from "@/components/ui/OnboardingCard";
 
 interface Submission { id: number; type: string; title: string; status: string; submittedAt: string | null; deadlineId: number | null; deadline: { label: string; dueDate: string } | null; }
 interface Deadline { id: number; label: string; dueDate: string; type: string; }
@@ -69,6 +70,21 @@ export default function LecturerDashboard() {
                     </Link>
                 </div>
             </div>
+
+            {/* Role-Aware Onboarding (Shows if compliance is low or no submissions) */}
+            {(submissions.length < 3 || compliance < 50) && (
+                <div className="animate-in slide-in-from-top-4 duration-700 delay-100">
+                    <OnboardingCard
+                        role="Lecturer"
+                        steps={[
+                            { title: "Course Outline", description: "Submit your semester course outline for departmental review.", actionLabel: "Submit Outline", href: "/lecturer/submissions", completed: submissions.some(s => s.type === 'SEMESTER_CALENDAR') },
+                            { title: "Weekly Topics", description: "Plan your weekly teaching topics using the calendar view.", actionLabel: "Add Topics", href: "/lecturer/submissions?mode=weekly", completed: submissions.some(s => s.type === 'COURSE_TOPICS') },
+                            { title: "Upload Resources", description: "Share lecture notes or slides with your students.", actionLabel: "Upload File", href: "/lecturer/resources", completed: submissions.length > 5 }, // Mock heuristic
+                            { title: "Department Sync", description: "Connect with colleagues and stay updated on department news.", actionLabel: "Go to Department", href: "/lecturer/department", completed: true }
+                        ]}
+                    />
+                </div>
+            )}
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
