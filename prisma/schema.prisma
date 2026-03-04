@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         String    @default("LECTURER") // LECTURER | HOD | ADMIN | SUPER_ADMIN
+  phone        String?
+  isActive     Boolean   @default(true)
+  lastLogin    DateTime?
+  departmentId Int?
+
+  department     Department? @relation("UserDepartment", fields: [departmentId], references: [id])
+  hodDepartments Department[] @relation("HoDepartment")
+
+  submissions   Submission[]
+  notifications Notification[]
+  activityLogs  ActivityLog[]
+  classSessions ClassSession[]
+  observedBy    Observation[]  @relation("ObservedLecturer")
+  observing     Observation[]  @relation("ObserverUser")
+  resources     Resource[]     @relation("LecturerResources")
+
+  createdAt DateTime @default(now())
+}
+
+model Department {
+  id    Int    @id @default(autoincrement())
+  name  String
+  code  String @unique
+  hodId Int?
+
+  hod       User?      @relation("HoDepartment", fields: [hodId], references: [id])
+  users     User[]     @relation("UserDepartment")
+  resources Resource[] @relation("DepartmentResources")
+}
+
+model Resource {
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String?
+  type         String   // PDF | SLIDES | CODE | OTHER
+  url          String   // Storage path or external link
+  status       String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  lecturerId   Int
+  departmentId Int?
+
+  lecturer   User        @relation("LecturerResources", fields: [lecturerId], references: [id])
+  department Department? @relation("DepartmentResources", fields: [departmentId], references: [id])
+  createdAt  DateTime    @default(now())
+}
+
+model Deadline {
+  id          Int          @id @default(autoincrement())
+  type        String       // SEMESTER_CALENDAR | COURSE_TOPICS | OBSERVATION_REPORT
+  label       String
+  dueDate     DateTime
+  createdBy   Int
+  submissions Submission[]
+  createdAt   DateTime     @default(now())
+}
+
+model Submission {
+  id          Int      @id @default(autoincrement())
+  lecturerId  Int
+  type        String   // SEMESTER_CALENDAR | COURSE_TOPICS | OBSERVATION_REPORT
+  title       String
+  content     String?  // JSON string
+  filePath    String?
+  deadlineId  Int?
+  status      String   @default("PENDING") // PENDING | SUBMITTED | LATE | DRAFT
+  submittedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  lecturer User      @relation(fields: [lecturerId], references: [id])
+  deadline Deadline? @relation(fields: [deadlineId], references: [id])
+  versions SubmissionVersion[]
+}
+
+model SubmissionVersion {
+  id           Int      @id @default(autoincrement())
+  submissionId Int
+  snapshot     String   // JSON string
+  isDraft      Boolean  @default(true)
+  savedAt      DateTime @default(now())
+
+  submission Submission @relation(fields: [submissionId], references: [id])
+}
+
+model Observation {
+  id           Int      @id @default(autoincrement())
+  lecturerId   Int
+  observerId   Int
+  sessionDate  DateTime
+  courseCode   String
+  strengths    String?  // JSON string
+  improvements String?  // JSON string
+  rating       Int?
+  status       String   @default("PENDING") // PENDING | COMPLETED | REVIEWED
+  createdAt    DateTime @default(now())
+
+  lecturer User @relation("ObservedLecturer", fields: [lecturerId], references: [id])
+  observer User @relation("ObserverUser", fields: [observerId], references: [id])
+}
+
+model ClassSession {
+  id          Int      @id @default(autoincrement())
+  lecturerId  Int
+  courseCode  String
+  topic       String
+  sessionDate DateTime
+  qrToken     String   @unique @default(uuid())
+  qrExpiresAt DateTime
+  createdAt   DateTime @default(now())
+
+  lecturer   User         @relation(fields: [lecturerId], references: [id])
+  attendance Attendance[]
+}
+
+model Attendance {
+  id            Int      @id @default(autoincrement())
+  sessionId     Int
+  studentMatric String
+  method        String   @default("qr")
+  checkedInAt   DateTime @default(now())
+
+  session ClassSession @relation(fields: [sessionId], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model ActivityLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  action    String
+  detail    String?  // JSON string
+  ip        String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Report {
+  id          Int      @id @default(autoincrement())
+  generatedBy Int
+  type        String   // lecturer_summary | department_compliance | audit_report
+  filePath    String
+  filters     String?  // JSON string
+  generatedAt DateTime @default(now())
+}
