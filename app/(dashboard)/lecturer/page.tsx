@@ -20,24 +20,18 @@ export default function LecturerDashboard() {
     const [submissions, setSubmissions] = useState<Submission[]>([]);
     const [deadlines, setDeadlines] = useState<Deadline[]>([]);
     const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [colleagues, setColleagues] = useState<{ id: number; name: string; email: string }[]>([]);
     const [loading, setLoading] = useState(true);
     const [now, setNow] = useState<number | null>(null);
-
-    // Notice form state
-    const [notice, setNotice] = useState({ message: "", targetId: "ALL", sent: false });
 
     useEffect(() => {
         Promise.all([
             fetch("/api/submissions").then(r => r.json()),
             fetch("/api/deadlines").then(r => r.json()),
             fetch("/api/notifications").then(r => r.json()),
-            fetch("/api/department/colleagues").then(r => r.json()),
-        ]).then(([subs, dls, notifs, colls]) => {
+        ]).then(([subs, dls, notifs]) => {
             setSubmissions(Array.isArray(subs) ? subs : []);
             setDeadlines(Array.isArray(dls) ? dls : []);
             setNotifications(Array.isArray(notifs) ? notifs : []);
-            setColleagues(Array.isArray(colls) ? colls : []);
             setLoading(false);
         }).catch(err => {
             console.error("Dashboard fetch error:", err);
@@ -49,20 +43,7 @@ export default function LecturerDashboard() {
         return () => clearTimeout(t);
     }, []);
 
-    async function sendNotice() {
-        const res = await fetch("/api/notifications", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                message: notice.message,
-                userId: notice.targetId === "ALL" ? undefined : notice.targetId
-            }),
-        });
-        if (res.ok) {
-            setNotice(prev => ({ ...prev, sent: true }));
-            setTimeout(() => setNotice({ message: "", targetId: "ALL", sent: false }), 4000);
-        }
-    }
+
 
     if (loading) return <div className="flex items-center justify-center min-h-[400px]"><div className="animate-spin w-10 h-10 border-2 border-blue-600 border-t-transparent rounded-full" /></div>;
 
@@ -165,46 +146,15 @@ export default function LecturerDashboard() {
                         </div>
                     </div>
 
-                    {/* Department Notices / Notify Colleagues */}
+                    {/* Department Quick Link */}
                     <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
-                        <h3 className="text-white font-bold mb-5 flex items-center gap-2">
-                            <span className="text-blue-400">📢</span> Department Notices
+                        <h3 className="text-white font-bold mb-3 flex items-center gap-2">
+                            <span className="text-blue-400">📢</span> My Department
                         </h3>
-                        {notice.sent ? (
-                            <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30 text-green-300 text-sm font-medium">
-                                ✅ Message sent to your colleagues!
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">Recipient</label>
-                                    <select
-                                        value={notice.targetId}
-                                        onChange={e => setNotice(n => ({ ...n, targetId: e.target.value }))}
-                                        className="w-full px-3 py-2 rounded-xl bg-slate-900/50 border border-white/5 text-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                                    >
-                                        <option value="ALL">Entire Department (Broadcast)</option>
-                                        {colleagues.map(c => (
-                                            <option key={c.id} value={c.id}>{c.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <textarea
-                                    value={notice.message}
-                                    onChange={e => setNotice(n => ({ ...n, message: e.target.value }))}
-                                    placeholder="Share information with colleagues..."
-                                    rows={3}
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-white/5 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-xs resize-none"
-                                />
-                                <button
-                                    onClick={sendNotice}
-                                    disabled={!notice.message}
-                                    className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition disabled:opacity-50"
-                                >
-                                    Send Notice
-                                </button>
-                            </div>
-                        )}
+                        <p className="text-white/40 text-xs mb-4">Notify colleagues or search for departmental resources.</p>
+                        <Link href="/lecturer/department" className="block w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-white text-xs font-bold text-center transition">
+                            Go to Department →
+                        </Link>
                     </div>
                 </div>
 

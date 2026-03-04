@@ -1,27 +1,23 @@
-import { prisma } from './prisma';
+import { prisma } from "./prisma";
 
-export async function logAction({
-    userId,
-    action,
-    details,
-    ipAddress = null,
-}: {
+interface LogParams {
     userId: number;
     action: string;
     details?: string;
-    ipAddress?: string | null;
-}) {
+    ip?: string;
+}
+
+export async function logAction({ userId, action, details, ip }: LogParams) {
     try {
         await prisma.activityLog.create({
             data: {
                 userId,
                 action,
-                detail: details || null,
-                ip: ipAddress,
-            },
+                detail: details,
+                ip
+            }
         });
     } catch (error) {
-        console.error("Failed to write to audit log:", error);
-        // We shouldn't crash the main process if logging fails, so we just catch it.
+        console.error("Audit log failure:", error);
     }
 }

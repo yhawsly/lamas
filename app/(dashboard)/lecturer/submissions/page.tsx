@@ -272,8 +272,8 @@ export default function CourseOutlinePage() {
                                 <div className="bg-slate-900/40 border border-white/5 rounded-3xl p-6">
                                     <CalendarView
                                         topics={calendarTopics}
-                                        onTopicClick={(t) => {
-                                            setExpandedWeek(t.week);
+                                        onTopicClick={(topic) => {
+                                            setExpandedWeek(topic.week);
                                             setViewMode("edit");
                                         }}
                                     />

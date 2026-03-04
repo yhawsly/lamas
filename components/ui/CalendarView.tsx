@@ -1,10 +1,10 @@
-import React from 'react';
+"use client";
 
 export interface WeeklyTopic {
     week: number;
     title: string;
-    description: string;
-    status: string; // PENDING | IN_PROGRESS | COMPLETED
+    description?: string;
+    status: "PENDING" | "COMPLETED" | "IN_PROGRESS";
 }
 
 interface CalendarViewProps {
@@ -12,86 +12,55 @@ interface CalendarViewProps {
     onTopicClick?: (topic: WeeklyTopic) => void;
 }
 
-const statusColors: Record<string, string> = {
-    PENDING: "bg-slate-800/50 border-white/5 text-white/40",
-    IN_PROGRESS: "bg-blue-500/10 border-blue-500/30 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.15)]",
-    COMPLETED: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400",
-};
-
-const statusIcons: Record<string, string> = {
-    PENDING: "⏳",
-    IN_PROGRESS: "🚀",
-    COMPLETED: "✅",
-};
-
 export default function CalendarView({ topics, onTopicClick }: CalendarViewProps) {
-    // Academic calendar is usually 18 weeks long
-    const totalWeeks = 18;
-    const calendarGrid = Array.from({ length: totalWeeks }, (_, i) => {
-        const weekNum = i + 1;
-        return topics.find(t => t.week === weekNum) || {
-            week: weekNum,
-            title: "No Topic Scheduled",
-            description: "",
-            status: "PENDING"
-        };
-    });
+    const statusColors: Record<string, string> = {
+        COMPLETED: "bg-green-500/20 text-green-300 border-green-500/30",
+        PENDING: "bg-blue-500/10 text-blue-300 border-blue-500/20",
+        IN_PROGRESS: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+    };
 
     return (
-        <div className="w-full">
-            <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-white font-bold flex items-center gap-2">
-                    <span className="text-blue-400">📅</span> Academic Calendar View
-                </h3>
-                <div className="flex gap-4 text-xs">
-                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-600"></span> <span className="text-white/50">Pending</span></div>
-                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> <span className="text-white/50">In Progress</span></div>
-                    <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> <span className="text-white/50">Completed</span></div>
-                </div>
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 p-1">
+            {Array.from({ length: 18 }, (_, i) => i + 1).map((weekNum) => {
+                const topic = topics.find(t => t.week === weekNum);
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {calendarGrid.map((topic, index) => {
-                    const isEmpty = topic.title === "No Topic Scheduled";
-
-                    return (
-                        <div
-                            key={index}
-                            onClick={() => !isEmpty && onTopicClick?.(topic as WeeklyTopic)}
-                            className={`
-                                relative p-4 rounded-2xl border transition-all duration-300
-                                ${statusColors[topic.status]}
-                                ${!isEmpty ? "hover:-translate-y-1 hover:border-white/20 cursor-pointer group" : "opacity-40"}
-                            `}
-                        >
-                            <div className="flex justify-between items-start mb-2">
-                                <span className={`text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full ${!isEmpty ? 'bg-white/10 text-white/70' : 'bg-white/5 text-white/30'}`}>
-                                    Week {topic.week}
-                                </span>
-                                {!isEmpty && (
-                                    <span className="text-sm" title={topic.status.replace("_", " ")}>
-                                        {statusIcons[topic.status]}
-                                    </span>
-                                )}
-                            </div>
-
-                            <h4 className={`font-semibold text-sm leading-tight mb-1.5 line-clamp-2 ${!isEmpty ? 'text-white group-hover:text-blue-300 transition-colors' : ''}`}>
-                                {topic.title}
-                            </h4>
-
-                            {!isEmpty && topic.description && (
-                                <p className="text-xs text-white/40 line-clamp-2 leading-relaxed">
-                                    {topic.description}
-                                </p>
-                            )}
-
-                            {isEmpty && (
-                                <div className="h-4 w-1/2 bg-white/5 rounded mt-2"></div>
+                return (
+                    <div
+                        key={weekNum}
+                        onClick={() => topic && onTopicClick?.(topic)}
+                        className={`
+                            relative h-40 rounded-2xl border p-4 transition-all cursor-pointer group
+                            ${topic?.title ? statusColors[topic.status] : "bg-white/5 border-white/5 hover:border-white/20 hover:bg-white/10"}
+                        `}
+                    >
+                        <div className="flex justify-between items-start mb-3">
+                            <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">Week {weekNum}</span>
+                            {topic?.title && (
+                                <div className="w-1.5 h-1.5 rounded-full bg-current" />
                             )}
                         </div>
-                    );
-                })}
-            </div>
+
+                        {topic?.title ? (
+                            <div className="space-y-1.5">
+                                <div className="text-xs font-bold leading-snug line-clamp-2">
+                                    {topic.title}
+                                </div>
+                                <div className="text-[10px] opacity-40 line-clamp-2 group-hover:line-clamp-none transition-all">
+                                    {topic.description}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-[10px] italic opacity-20">No data planned</div>
+                        )}
+
+                        <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <svg className="w-4 h-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                        </div>
+                    </div>
+                );
+            })}
         </div>
     );
 }

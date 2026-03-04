@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { logAction } from "@/lib/audit";
 
 // GET /api/notifications
 export async function GET() {
@@ -83,6 +84,12 @@ export async function POST(req: NextRequest) {
 
     await prisma.notification.createMany({
         data: users.map((u) => ({ userId: u.id, message })),
+    });
+
+    await logAction({
+        userId: senderId,
+        action: targetUserId ? "DIRECT_NOTIFICATION" : "DEPARTMENT_BROADCAST",
+        details: `Sent notification to ${targetUserId ? `User #${targetUserId}` : "Department members"}: "${message.substring(0, 50)}..."`
     });
 
     return NextResponse.json({ sent: users.length });

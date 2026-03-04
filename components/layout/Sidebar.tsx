@@ -9,6 +9,7 @@ import { useTheme } from "@/components/ThemeProvider";
 const navByRole: Record<string, { label: string; href: string; icon: string }[]> = {
     LECTURER: [
         { label: "Dashboard", href: "/lecturer", icon: "🏠" },
+        { label: "My Department", href: "/lecturer/department", icon: "📢" },
         { label: "Course Outline", href: "/lecturer/submissions", icon: "📋" },
         { label: "Weekly Topics", href: "/lecturer/submissions", icon: "📅" },
         { label: "Observations", href: "/lecturer/observations", icon: "👁️" },
