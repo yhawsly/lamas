@@ -1,6 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
+import { z } from "zod";
+import Pagination from "@/components/ui/Pagination";
 import CalendarView, { WeeklyTopic } from "@/components/ui/CalendarView";
+import { ValidationErrorAlert, parseValidationErrors, ValidationError } from "@/lib/validation-errors";
 
 const TOTAL_WEEKS = 18;
 
@@ -28,13 +31,31 @@ const statusConfig = {
 interface Submission {
     id: number;
     title: string;
+    type: string;
     status: string;
     submittedAt: string | null;
     content: string | null;
 }
 
+// Validation schemas
+const courseOutlineSchema = z.object({
+    courseName: z.string().min(3, "Course name must be at least 3 characters"),
+    courseCode: z.string().min(2, "Course code required"),
+    credits: z.string(),
+    semester: z.string(),
+    objectives: z.string().min(10, "Objectives must be at least 10 characters"),
+    textbook: z.string().optional(),
+    assessment: z.string().optional(),
+});
+
+const weeklyTopicSchema = z.object({
+    topic: z.string().min(3, "Topic must be at least 3 characters"),
+    description: z.string().optional(),
+});
+
 export default function CourseOutlinePage() {
     const [mode, setMode] = useState<"outline" | "weekly">("outline");
+    const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
 
     // ── Course Outline fields ──────────────────────────────
     const [outline, setOutline] = useState({
@@ -57,6 +78,7 @@ export default function CourseOutlinePage() {
     const [submitting, setSubmitting] = useState(false);
     const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
     const [history, setHistory] = useState<Submission[]>([]);
+    const [pagination, setPagination] = useState({ page: 1, totalPages: 1 });
     const [expandedWeek, setExpandedWeek] = useState<number | null>(1);
 
     // Map internal WeekEntry to CalendarView's WeeklyTopic
@@ -67,16 +89,21 @@ export default function CourseOutlinePage() {
         status: w.status === "planned" ? "PENDING" : w.status === "delivered" ? "COMPLETED" : "IN_PROGRESS"
     }));
 
-    useEffect(() => {
-        fetch("/api/submissions")
+    const fetchHistory = (page: number) => {
+        fetch(`/api/submissions?page=${page}&limit=5`)
             .then(r => r.json())
             .then(d => {
-                const arr = Array.isArray(d) ? d : [];
+                const arr = Array.isArray(d.data) ? d.data : [];
                 setHistory(arr.filter((s: Submission) =>
-                    s.title?.includes("Course Outline") || s.title?.includes("Weekly Topics")
+                    s.title?.includes("Course Outline") || s.title?.includes("Weekly Topics") || s.type === "SEMESTER_CALENDAR" || s.type === "COURSE_TOPICS"
                 ));
+                setPagination({ page, totalPages: d.meta?.totalPages || 1 });
             });
-    }, []);
+    };
+
+    useEffect(() => {
+        fetchHistory(pagination.page);
+    }, [pagination.page]);
 
     function showMsg(text: string, ok: boolean) {
         setMsg({ text, ok });
@@ -89,6 +116,15 @@ export default function CourseOutlinePage() {
 
     async function submitOutline(e: React.FormEvent) {
         e.preventDefault();
+        setValidationErrors([]);
+        
+        // Validate form
+        const result = courseOutlineSchema.safeParse(outline);
+        if (!result.success) {
+            setValidationErrors(parseValidationErrors(result.error));
+            return;
+        }
+
         setSubmitting(true);
         const res = await fetch("/api/submissions", {
             method: "POST",
@@ -112,8 +148,25 @@ export default function CourseOutlinePage() {
 
     async function submitWeeklyTopics(e: React.FormEvent) {
         e.preventDefault();
+        setValidationErrors([]);
+
+        // Validate at least one week filled
         const filled = weeks.filter(w => w.topic.trim());
-        if (filled.length === 0) { showMsg("❌ Please fill in at least one week's topic.", false); return; }
+        if (filled.length === 0) {
+            setValidationErrors([{ field: "weekly_topics", message: "Please fill in at least one week's topic" }]);
+            return;
+        }
+
+        // Validate individual weeks
+        for (const week of filled) {
+            const result = weeklyTopicSchema.safeParse({ topic: week.topic, description: week.description });
+            if (!result.success) {
+                const errors = parseValidationErrors(result.error);
+                setValidationErrors(errors.map(e => ({ ...e, field: `Week ${week.week}: ${e.field}` })));
+                return;
+            }
+        }
+
         setSubmitting(true);
         const res = await fetch("/api/submissions", {
             method: "POST",
@@ -142,21 +195,30 @@ export default function CourseOutlinePage() {
         <div className="max-w-6xl mx-auto animate-in fade-in duration-400">
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-white tracking-tight">Academic Planning</h1>
-                <p className="text-white/50 mt-1">Submit your course outline or weekly topic plan for the semester</p>
+                <h1 className="text-3xl font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>Academic Planning</h1>
+                <p className="mt-1" style={{ color: "var(--text-secondary)" }}>Submit your course outline or weekly topic plan for the semester</p>
             </div>
 
+            {/* Validation Errors */}
+            {validationErrors.length > 0 && (
+                <div className="mb-6">
+                    <ValidationErrorAlert errors={validationErrors} />
+                </div>
+            )}
+
             {/* Mode Switcher */}
-            <div className="flex gap-1 p-1 bg-white/5 rounded-2xl mb-8 w-fit border border-white/10">
+            <div className="flex gap-1 p-1 rounded-2xl mb-8 w-fit border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
                 <button
                     onClick={() => setMode("outline")}
-                    className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${mode === "outline" ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25" : "text-white/50 hover:text-white"}`}
+                    className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${mode === "outline" ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25" : "hover:text-blue-300 text-white"}`}
+                    style={mode !== "outline" ? { color: "var(--text-secondary)" } : {}}
                 >
                     📋 Course Outline
                 </button>
                 <button
                     onClick={() => setMode("weekly")}
-                    className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${mode === "weekly" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25" : "text-white/50 hover:text-white"}`}
+                    className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${mode === "weekly" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25" : "hover:text-indigo-300 text-white"}`}
+                    style={mode !== "weekly" ? { color: "var(--text-secondary)" } : {}}
                 >
                     📅 Weekly Topics
                 </button>
@@ -173,67 +235,67 @@ export default function CourseOutlinePage() {
                 {/* ─── COURSE OUTLINE FORM ─── */}
                 {mode === "outline" && (
                     <div className="lg:col-span-2">
-                        <form onSubmit={submitOutline} className="bg-white/5 border border-white/10 rounded-3xl p-8 space-y-6">
-                            <h2 className="text-white font-bold text-lg flex items-center gap-2">
+                        <form onSubmit={submitOutline} className="border rounded-3xl p-8 space-y-6" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
+                            <h2 className="font-bold text-lg flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
                                 <span className="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-300">📋</span>
                                 Course Outline Form
                             </h2>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-white/40 uppercase tracking-widest mb-2">Course Code *</label>
+                                    <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Course Code *</label>
                                     <input value={outline.courseCode} onChange={e => setOutline({ ...outline, courseCode: e.target.value })} required
                                         placeholder="e.g. CS301"
-                                        className="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/10 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                                        className="w-full px-4 py-3 rounded-xl text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-white/40 uppercase tracking-widest mb-2">Course Name *</label>
+                                    <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Course Name *</label>
                                     <input value={outline.courseName} onChange={e => setOutline({ ...outline, courseName: e.target.value })} required
                                         placeholder="e.g. Data Structures & Algorithms"
-                                        className="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/10 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                                        className="w-full px-4 py-3 rounded-xl text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-white/40 uppercase tracking-widest mb-2">Credit Hours</label>
+                                    <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Credit Hours</label>
                                     <select value={outline.credits} onChange={e => setOutline({ ...outline, credits: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                                        className="w-full px-4 py-3 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }}>
                                         {["1", "2", "3", "4", "6"].map(v => <option key={v} value={v}>{v} Credits</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-white/40 uppercase tracking-widest mb-2">Semester</label>
+                                    <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Semester</label>
                                     <div className="grid grid-cols-2 gap-2">
                                         <select value={outline.semester} onChange={e => setOutline({ ...outline, semester: e.target.value })}
-                                            className="px-4 py-3 rounded-xl bg-slate-900/60 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                                            className="px-4 py-3 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }}>
                                             <option value="1">Semester 1</option>
                                             <option value="2">Semester 2</option>
                                             <option value="3">Short Sem</option>
                                         </select>
                                         <input type="number" value={outline.year} onChange={e => setOutline({ ...outline, year: e.target.value })}
                                             min="2024" max="2030"
-                                            className="px-4 py-3 rounded-xl bg-slate-900/60 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                                            className="px-4 py-3 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
                                     </div>
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-white/40 uppercase tracking-widest mb-2">Course Objectives *</label>
+                                <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Course Objectives *</label>
                                 <textarea value={outline.objectives} onChange={e => setOutline({ ...outline, objectives: e.target.value })} required rows={4}
                                     placeholder="List the main learning objectives of this course, one per line..."
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/10 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none" />
+                                    className="w-full px-4 py-3 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-white/40 uppercase tracking-widest mb-2">Primary Textbook</label>
+                                    <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Primary Textbook</label>
                                     <input value={outline.textbook} onChange={e => setOutline({ ...outline, textbook: e.target.value })}
                                         placeholder="Author, Title, Edition, Year"
-                                        className="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/10 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                                        className="w-full px-4 py-3 rounded-xl text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-white/40 uppercase tracking-widest mb-2">Assessment Breakdown</label>
+                                    <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Assessment Breakdown</label>
                                     <input value={outline.assessment} onChange={e => setOutline({ ...outline, assessment: e.target.value })}
                                         placeholder="e.g. Assignments 30%, Midterm 30%, Final 40%"
-                                        className="w-full px-4 py-3 rounded-xl bg-slate-900/60 border border-white/10 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                                        className="w-full px-4 py-3 rounded-xl text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
                                 </div>
                             </div>
 
@@ -249,27 +311,27 @@ export default function CourseOutlinePage() {
                 {mode === "weekly" && (
                     <div className="lg:col-span-2">
                         <form onSubmit={submitWeeklyTopics} className="space-y-4">
-                            <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                            <div className="border rounded-3xl p-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
                                 <div className="flex-1">
-                                    <label className="block text-xs font-bold text-white/40 uppercase tracking-widest mb-2">Course Code *</label>
+                                    <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Course Code *</label>
                                     <input value={courseCodeForWeekly} onChange={e => setCourseCodeForWeekly(e.target.value)} required
                                         placeholder="e.g. CS301"
-                                        className="w-full sm:w-48 px-4 py-2.5 rounded-xl bg-slate-900/60 border border-white/10 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50" />
+                                        className="w-full sm:w-48 px-4 py-2.5 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
                                 </div>
                                 <div className="flex flex-col items-end gap-1">
-                                    <div className="text-white/30 text-xs">{filled} / {TOTAL_WEEKS} weeks filled</div>
-                                    <div className="w-48 h-1.5 bg-white/10 rounded-full overflow-hidden mb-2">
+                                    <div className="text-xs" style={{ color: "var(--text-muted)" }}>{filled} / {TOTAL_WEEKS} weeks filled</div>
+                                    <div className="w-48 h-1.5 rounded-full overflow-hidden mb-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)" }}>
                                         <div className="h-full bg-indigo-500 transition-all duration-300 rounded-full" style={{ width: `${(filled / TOTAL_WEEKS) * 100}%` }} />
                                     </div>
-                                    <div className="flex bg-white/5 rounded-lg p-0.5 border border-white/10">
-                                        <button type="button" onClick={() => setViewMode("edit")} className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${viewMode === "edit" ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white"}`}>Edit</button>
-                                        <button type="button" onClick={() => setViewMode("calendar")} className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${viewMode === "calendar" ? "bg-indigo-500 text-white" : "text-white/40 hover:text-white"}`}>Calendar</button>
+                                    <div className="flex rounded-lg p-0.5 border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
+                                        <button type="button" onClick={() => setViewMode("edit")} className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${viewMode === "edit" ? "bg-indigo-500 text-white" : "hover:text-indigo-400 text-white"}`} style={viewMode !== "edit" ? { color: "var(--text-secondary)" } : {}}>Edit</button>
+                                        <button type="button" onClick={() => setViewMode("calendar")} className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${viewMode === "calendar" ? "bg-indigo-500 text-white" : "hover:text-indigo-400 text-white"}`} style={viewMode !== "calendar" ? { color: "var(--text-secondary)" } : {}}>Calendar</button>
                                     </div>
                                 </div>
                             </div>
 
                             {viewMode === "calendar" ? (
-                                <div className="bg-slate-900/40 border border-white/5 rounded-3xl p-6">
+                                <div className="border rounded-3xl p-6" style={{ backgroundColor: "var(--bg-hover)", borderColor: "var(--bg-border)" }}>
                                     <CalendarView
                                         topics={calendarTopics}
                                         onTopicClick={(topic) => {
@@ -281,18 +343,18 @@ export default function CourseOutlinePage() {
                             ) : (
                                 <div className="space-y-2">
                                     {weeks.map((w, i) => (
-                                        <div key={w.week} className={`border rounded-2xl overflow-hidden transition-all duration-200 ${expandedWeek === w.week ? "border-indigo-500/40 bg-indigo-500/5" : "border-white/8 bg-white/3 hover:border-white/15"}`}>
+                                        <div key={w.week} className="border rounded-2xl overflow-hidden transition-all duration-200" style={{ borderColor: expandedWeek === w.week ? "rgb(79, 70, 229)" : "var(--bg-border)", backgroundColor: expandedWeek === w.week ? "rgb(79, 70, 229, 0.05)" : "var(--bg-hover)" }}>
                                             <button type="button"
                                                 onClick={() => setExpandedWeek(expandedWeek === w.week ? null : w.week)}
                                                 className="w-full flex items-center gap-4 px-5 py-4 text-left">
-                                                <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0 ${w.topic ? "bg-indigo-500/30 text-indigo-300" : "bg-white/5 text-white/30"}`}>
+                                                <span className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0" style={{ backgroundColor: w.topic ? "rgb(79, 70, 229, 0.3)" : "var(--bg-hover)", color: w.topic ? "rgb(165, 180, 252)" : "var(--text-muted)" }}>
                                                     {w.week}
                                                 </span>
                                                 <div className="flex-1 min-w-0">
-                                                    <div className={`font-medium text-sm truncate ${w.topic ? "text-white" : "text-white/30"}`}>
+                                                    <div className="font-medium text-sm truncate" style={{ color: w.topic ? "var(--text-primary)" : "var(--text-muted)" }}>
                                                         {w.topic || "Click to add topic for this week"}
                                                     </div>
-                                                    {w.description && <div className="text-white/30 text-[11px] truncate mt-0.5">{w.description}</div>}
+                                                    {w.description && <div className="text-[11px] truncate mt-0.5" style={{ color: "var(--text-muted)" }}>{w.description}</div>}
                                                 </div>
                                                 {w.topic && (
                                                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0 ${statusConfig[w.status].color}`}>
@@ -306,21 +368,21 @@ export default function CourseOutlinePage() {
                                             {expandedWeek === w.week && (
                                                 <div className="px-5 pb-5 pt-0 grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                     <div className="sm:col-span-2">
-                                                        <label className="block text-[10px] font-bold text-white/30 uppercase tracking-widest mb-1.5">Week {w.week} Topic *</label>
+                                                        <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "var(--text-muted)" }}>Week {w.week} Topic *</label>
                                                         <input value={w.topic} onChange={e => updateWeek(i, "topic", e.target.value)}
                                                             placeholder={`e.g. Introduction to ${w.week === 1 ? "the Course" : "Advanced Concepts"}`}
-                                                            className="w-full px-4 py-2.5 rounded-xl bg-slate-900/60 border border-white/10 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm" />
+                                                            className="w-full px-4 py-2.5 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-[10px] font-bold text-white/30 uppercase tracking-widest mb-1.5">Details / Sub-topics</label>
+                                                        <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "var(--text-muted)" }}>Details / Sub-topics</label>
                                                         <textarea value={w.description} onChange={e => updateWeek(i, "description", e.target.value)} rows={2}
                                                             placeholder="Key points, lab exercises, readings..."
-                                                            className="w-full px-4 py-2.5 rounded-xl bg-slate-900/60 border border-white/10 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm resize-none" />
+                                                            className="w-full px-4 py-2.5 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm resize-none" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-[10px] font-bold text-white/30 uppercase tracking-widest mb-1.5">Status</label>
+                                                        <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "var(--text-muted)" }}>Status</label>
                                                         <select value={w.status} onChange={e => updateWeek(i, "status", e.target.value)}
-                                                            className="w-full px-4 py-2.5 rounded-xl bg-slate-900/60 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm">
+                                                            className="w-full px-4 py-2.5 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }}>
                                                             <option value="planned">Planned</option>
                                                             <option value="delivered">Delivered</option>
                                                             <option value="postponed">Postponed</option>
@@ -345,23 +407,23 @@ export default function CourseOutlinePage() {
 
                 {/* Right column: Submission History */}
                 <div className="lg:col-span-1">
-                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 sticky top-8">
-                        <h3 className="text-white font-semibold mb-5 flex items-center gap-2">
+                    <div className="border rounded-3xl p-6 sticky top-8" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
+                        <h3 className="font-semibold mb-5 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
                             <span className="text-indigo-400">📜</span> Submission History
                         </h3>
                         {history.length === 0 ? (
-                            <div className="text-center py-10 text-white/20">
+                            <div className="text-center py-10" style={{ color: "var(--text-muted)" }}>
                                 <div className="text-4xl mb-3">📄</div>
                                 <p className="text-sm">No submissions yet.</p>
                             </div>
                         ) : (
                             <div className="space-y-3">
-                                {history.slice(0, 8).map(s => (
-                                    <div key={s.id} className="p-4 rounded-2xl bg-white/3 border border-white/5 hover:bg-white/5 transition">
+                                {history.map(s => (
+                                    <div key={s.id} className="p-4 rounded-2xl border transition" style={{ backgroundColor: "var(--bg-hover)", borderColor: "var(--bg-border)" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "var(--bg-surface)"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "var(--bg-hover)"}>
                                         <div className="flex items-start justify-between gap-2">
                                             <div className="min-w-0 flex-1">
-                                                <div className="text-white font-medium text-sm truncate">{s.title}</div>
-                                                <div className="text-white/30 text-[11px] mt-0.5">{s.submittedAt ? new Date(s.submittedAt).toLocaleDateString() : "Draft"}</div>
+                                                <div className="font-medium text-sm truncate" style={{ color: "var(--text-primary)" }}>{s.title}</div>
+                                                <div className="text-[11px] mt-0.5" style={{ color: "var(--text-muted)" }}>{s.submittedAt ? new Date(s.submittedAt).toLocaleDateString() : "Draft"}</div>
                                             </div>
                                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${s.status === "SUBMITTED" ? "bg-green-500/20 text-green-300" : "bg-yellow-500/20 text-yellow-300"}`}>
                                                 {s.status}
@@ -369,6 +431,12 @@ export default function CourseOutlinePage() {
                                         </div>
                                     </div>
                                 ))}
+
+                                <Pagination
+                                    currentPage={pagination.page}
+                                    totalPages={pagination.totalPages}
+                                    onPageChange={(p: number) => setPagination(prev => ({ ...prev, page: p }))}
+                                />
                             </div>
                         )}
                     </div>

@@ -31,3 +31,30 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
 
     return NextResponse.json(resource);
 }
+
+export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+    const session = await auth();
+    if (!session || !session.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const userId = parseInt(session.user.id!);
+    const role = (session.user as any).role;
+    const { id } = await context.params;
+    const resId = parseInt(id);
+
+    const resource = await prisma.resource.findUnique({
+        where: { id: resId },
+    });
+
+    if (!resource) return NextResponse.json({ error: "Resource not found" }, { status: 404 });
+
+    // Authorization check: Only owner or ADMIN can delete
+    if (resource.lecturerId !== userId && !["ADMIN", "SUPER_ADMIN"].includes(role)) {
+        return NextResponse.json({ error: "Forbidden: You can only delete your own resources" }, { status: 403 });
+    }
+
+    await prisma.resource.delete({
+        where: { id: resId },
+    });
+
+    return NextResponse.json({ success: true, message: "Resource deleted successfully" });
+}

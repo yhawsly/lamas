@@ -1,7 +1,7 @@
 "use client";
-import { createContext, useContext, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
-const ThemeContext = createContext<{ theme: "dark"; toggle: () => void }>({
+const ThemeContext = createContext<{ theme: "light" | "dark"; toggle: () => void }>({
     theme: "dark",
     toggle: () => { },
 });
@@ -11,14 +11,33 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    // Always force dark mode — the UI uses hardcoded dark-mode Tailwind classes
+    const [theme, setTheme] = useState<"light" | "dark">("dark");
+    const [mounted, setMounted] = useState(false);
+
+    // Initialize theme from localStorage on mount
     useEffect(() => {
-        document.documentElement.classList.add("dark");
-        localStorage.setItem("lamas-theme", "dark");
+        const savedTheme = localStorage.getItem("lamas-theme") as "light" | "dark" | null;
+        const initialTheme = savedTheme || "dark";
+        
+        setTheme(initialTheme);
+        document.documentElement.classList.toggle("dark", initialTheme === "dark");
+        setMounted(true);
     }, []);
 
+    const toggle = () => {
+        const newTheme = theme === "dark" ? "light" : "dark";
+        setTheme(newTheme);
+        localStorage.setItem("lamas-theme", newTheme);
+        document.documentElement.classList.toggle("dark", newTheme === "dark");
+    };
+
+    // Prevent flash of wrong theme
+    if (!mounted) {
+        return <>{children}</>;
+    }
+
     return (
-        <ThemeContext.Provider value={{ theme: "dark", toggle: () => { } }}>
+        <ThemeContext.Provider value={{ theme, toggle }}>
             {children}
         </ThemeContext.Provider>
     );

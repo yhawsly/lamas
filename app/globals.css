@@ -147,3 +147,15 @@ textarea:focus {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* Placeholder styling for light/dark modes */
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+  color: var(--text-muted);
+}

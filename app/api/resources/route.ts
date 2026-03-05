@@ -3,6 +3,8 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { logAction } from "@/lib/audit";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/resources?shared=true  → admin-shared resources for download
 // GET /api/resources               → my own uploaded resources
 export async function GET(req: NextRequest) {
@@ -15,47 +17,55 @@ export async function GET(req: NextRequest) {
     const shared = url.searchParams.get("shared") === "true";
     const status = url.searchParams.get("status");
 
+    // Pagination Params
+    const page = parseInt(url.searchParams.get("page") || "1");
+    const limit = parseInt(url.searchParams.get("limit") || "10");
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
     if (shared) {
-        // Return APPROVED resources shared by admin/HOD/super-admin (any dept or same dept)
+        // Shared context
         const currentUser = await prisma.user.findUnique({ where: { id: userId } });
-        const resources = await prisma.resource.findMany({
-            where: {
-                status: "APPROVED",
-                lecturer: { role: { in: ["ADMIN", "SUPER_ADMIN", "HOD"] } },
-                OR: [
-                    { departmentId: null },                         // institution-wide
-                    { departmentId: currentUser?.departmentId ?? undefined }, // same dept
-                ],
-            },
+        where.status = "APPROVED";
+        where.lecturer = { role: { in: ["ADMIN", "SUPER_ADMIN", "HOD"] } };
+        where.OR = [
+            { departmentId: null },
+            { departmentId: currentUser?.departmentId ?? undefined },
+        ];
+    } else {
+        // Private context
+        if (role === "LECTURER") {
+            where.lecturerId = userId;
+        } else if (role === "HOD") {
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (user?.departmentId) where.departmentId = user.departmentId;
+        }
+        if (status) where.status = status;
+    }
+
+    const [resources, totalCount] = await Promise.all([
+        prisma.resource.findMany({
+            where,
             include: {
-                lecturer: { select: { name: true, role: true } },
+                lecturer: { select: { name: true, email: true, role: true } },
                 department: { select: { name: true } },
             },
             orderBy: { createdAt: "desc" },
-        });
-        return NextResponse.json(resources);
-    }
+            skip,
+            take: limit,
+        }),
+        prisma.resource.count({ where })
+    ]);
 
-    const where: any = {};
-    if (role === "LECTURER") {
-        where.lecturerId = userId;
-    } else if (role === "HOD") {
-        const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (user?.departmentId) where.departmentId = user.departmentId;
-    }
-
-    if (status) where.status = status;
-
-    const resources = await prisma.resource.findMany({
-        where,
-        include: {
-            lecturer: { select: { name: true, email: true } },
-            department: true,
-        },
-        orderBy: { createdAt: "desc" },
+    return NextResponse.json({
+        data: resources,
+        meta: {
+            totalCount,
+            page,
+            limit,
+            totalPages: Math.ceil(totalCount / limit)
+        }
     });
-
-    return NextResponse.json(resources);
 }
 
 // POST /api/resources

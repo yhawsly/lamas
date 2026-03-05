@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -11,20 +12,44 @@ export async function GET(req: NextRequest) {
 
     if (q.length < 2) return NextResponse.json([]);
 
+    const userId = parseInt(session.user.id!);
+    const role = (session.user as any).role;
+    const departmentId = (session.user as any).departmentId;
+
     try {
+        const submissionWhere: any = { title: { contains: q, lte: undefined } }; // Basic search
+        const lecturerWhere: any = { name: { contains: q }, role: "LECTURER", isActive: true };
+        const resourceWhere: any = { title: { contains: q }, status: "APPROVED" };
+
+        if (role === "LECTURER") {
+            submissionWhere.lecturerId = userId;
+            // Lecturers can search all approved resources, keep resourceWhere as is
+            // Lecturers can search colleagues in their department
+            if (departmentId) {
+                lecturerWhere.departmentId = departmentId;
+            }
+        } else if (role === "HOD" && departmentId) {
+            submissionWhere.lecturer = { departmentId };
+            lecturerWhere.departmentId = departmentId;
+            resourceWhere.OR = [
+                { status: "APPROVED" },
+                { departmentId: departmentId } // HOD can see pending resources in their department
+            ];
+        }
+
         const [submissions, lecturers, resources] = await Promise.all([
             prisma.submission.findMany({
-                where: { title: { contains: q } },
+                where: submissionWhere,
                 take: 5,
                 select: { id: true, title: true, type: true }
             }),
             prisma.user.findMany({
-                where: { name: { contains: q }, role: "LECTURER" },
+                where: lecturerWhere,
                 take: 5,
                 select: { id: true, name: true, role: true }
             }),
             prisma.resource.findMany({
-                where: { title: { contains: q }, status: "APPROVED" },
+                where: resourceWhere,
                 take: 5,
                 select: { id: true, title: true, type: true, url: true }
             })

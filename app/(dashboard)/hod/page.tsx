@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import OnboardingCard from "@/components/ui/OnboardingCard";
 
 interface LecturerScore {
     lecturerId: number; lecturerName: string; email: string;
@@ -56,134 +57,183 @@ export default function HoDDashboard() {
     const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b.score, 0) / scores.length) : 0;
 
     return (
-        <div className="max-w-6xl mx-auto">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-white">Head of Department</h1>
-                <p className="text-white/50 mt-1">Department compliance and observation management</p>
+        <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
+            <div className="mb-4">
+                <h1 className="text-3xl font-bold tracking-tight text-center sm:text-left" style={{ color: "var(--text-primary)" }}>Head of Department</h1>
+                <p className="mt-1 text-center sm:text-left" style={{ color: "var(--text-muted)" }}>Department compliance and observation management</p>
             </div>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                    { label: "Dept. Lecturers", value: scores.length, icon: "👥", color: "text-blue-400" },
-                    { label: "Avg Compliance", value: `${avgScore}%`, icon: "📊", color: avgScore >= 70 ? "text-green-400" : "text-red-400" },
-                    { label: "At Risk", value: atRisk.length, icon: "⚠️", color: "text-red-400" },
-                    { label: "Total Submissions", value: scores.reduce((a, b) => a + b.submitted, 0), icon: "📋", color: "text-purple-400" },
+                    { label: "Dept. Lecturers", value: scores.length, icon: "👥", color: "#3b82f6" },
+                    { label: "Avg Compliance", value: `${avgScore}%`, icon: "📊", color: avgScore >= 70 ? "#10b981" : "#ef4444" },
+                    { label: "At Risk", value: atRisk.length, icon: "⚠️", color: "#ef4444" },
+                    { label: "Total Submissions", value: scores.reduce((a, b) => a + b.submitted, 0), icon: "📋", color: "#a855f7" },
                 ].map(k => (
-                    <div key={k.label} className="bg-white/5 border border-white/10 rounded-2xl p-5">
-                        <div className="text-2xl mb-2">{k.icon}</div>
-                        <div className={`text-3xl font-bold ${k.color}`}>{k.value}</div>
-                        <div className="text-white/40 text-sm mt-1">{k.label}</div>
+                    <div key={k.label} className="rounded-3xl p-6 transition-all" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
+                        <div className="text-2xl mb-3">{k.icon}</div>
+                        <div className="text-4xl font-bold" style={{ color: k.color }}>{k.value}</div>
+                        <div className="text-[10px] font-bold uppercase tracking-widest mt-1" style={{ color: "var(--text-muted)" }}>{k.label}</div>
                     </div>
                 ))}
             </div>
 
+            {/* HOD Onboarding */}
+            <OnboardingCard 
+                role="HOD"
+                steps={[
+                    { title: "Review Resources", description: "Review and approve pending resources from your department lecturers.", actionLabel: "Review Resources", href: "/lecturer/resources", completed: scores.length > 0 },
+                    { title: "Departmental Broadcast", description: "Send a welcome message or important update to your team.", actionLabel: "Send Broadcast", href: "#", completed: false },
+                    { title: "Assign Observations", description: "Schedule peer observations for effective academic monitoring.", actionLabel: "Schedule Now", href: "#", completed: false },
+                    { title: "Compliance Check", description: "Audit the overall submission rates of your department.", actionLabel: "Check Analytics", href: "#", completed: true }
+                ]}
+            />
+
             {/* Tabs */}
-            <div className="flex gap-1 p-1 bg-white/5 rounded-xl mb-6 w-fit flex-wrap">
+            <div className="flex gap-1 p-1 rounded-2xl w-fit flex-wrap" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
                 {(["overview", "observations", "notify"] as const).map(t => (
                     <button key={t} onClick={() => setTab(t)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition ${tab === t ? "bg-amber-600 text-white" : "text-white/50 hover:text-white"}`}>
-                        {t === "overview" ? "👥 Lecturer Scores" : t === "notify" ? "📢 Department Broadcast" : "👁️ Assign Observation"}
+                        className="px-6 py-2.5 rounded-xl text-sm font-semibold capitalize transition-all duration-300"
+                        style={{
+                          backgroundColor: tab === t ? "var(--primary)" : "transparent",
+                          color: tab === t ? "white" : "var(--text-muted)"
+                        }}>
+                        {t === "overview" ? "Lecturer Scores" : t === "notify" ? "Broadcast" : "Assign Observation"}
                     </button>
                 ))}
             </div>
 
-            {/* Lecturer Scores */}
-            {tab === "overview" && (
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-                    <h3 className="text-white font-semibold mb-4">Lecturer Compliance Rankings</h3>
-                    <div className="space-y-3">
-                        {scores.sort((a, b) => b.score - a.score).map((s, i) => (
-                            <div key={s.lecturerId} className="flex items-center gap-4 p-4 rounded-xl bg-white/3 hover:bg-white/5 transition">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${i === 0 ? "bg-yellow-500/20 text-yellow-400" : i === 1 ? "bg-slate-400/20 text-slate-400" : i === 2 ? "bg-orange-600/20 text-orange-400" : "bg-white/5 text-white/30"}`}>
-                                    {i + 1}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="text-white font-medium truncate">{s.lecturerName}</div>
-                                    <div className="text-white/40 text-xs">{s.email}</div>
-                                    <div className="mt-2 h-1.5 rounded-full bg-white/10 w-full">
-                                        <div className={`h-1.5 rounded-full transition-all ${s.score >= 70 ? "bg-green-500" : "bg-red-500"}`} style={{ width: `${s.score}%` }} />
-                                    </div>
-                                </div>
-                                <div className="text-right shrink-0">
-                                    <div className={`text-xl font-bold ${s.score >= 70 ? "text-green-400" : "text-red-400"}`}>{s.score}%</div>
-                                    <div className="text-white/30 text-xs">{s.submitted} submitted</div>
-                                </div>
-                                {s.isAtRisk && <span className="text-xs px-2 py-1 rounded-full bg-red-500/20 text-red-300 shrink-0">At Risk</span>}
-                            </div>
-                        ))}
-                        {scores.length === 0 && <p className="text-white/40 text-sm text-center py-8">No lecturers in your department yet.</p>}
-                    </div>
-                </div>
-            )}
-
-            {/* Assign Observation */}
-            {tab === "observations" && (
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 max-w-xl">
-                    <h3 className="text-white font-semibold mb-6">👁️ Assign Peer Observation</h3>
-                    {obsMsg && (
-                        <div className={`mb-4 p-3 rounded-xl text-sm border ${obsMsg.startsWith("✅") ? "bg-green-500/10 border-green-500/30 text-green-300" : "bg-red-500/10 border-red-500/30 text-red-300"}`}>
-                            {obsMsg}
-                        </div>
-                    )}
-                    <form onSubmit={assignObservation} className="space-y-4">
-                        <div>
-                            <label className="block text-sm text-white/60 mb-1.5">Lecturer to be Observed (User ID)</label>
-                            <input type="number" value={obsForm.lecturerId} onChange={e => setObsForm({ ...obsForm, lecturerId: e.target.value })} required placeholder="e.g. 5"
-                                className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
-                        </div>
-                        <div>
-                            <label className="block text-sm text-white/60 mb-1.5">Assigned Observer (User ID)</label>
-                            <input type="number" value={obsForm.observerId} onChange={e => setObsForm({ ...obsForm, observerId: e.target.value })} required placeholder="e.g. 6"
-                                className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
-                        </div>
-                        <div>
-                            <label className="block text-sm text-white/60 mb-1.5">Session Date</label>
-                            <input type="date" value={obsForm.sessionDate} onChange={e => setObsForm({ ...obsForm, sessionDate: e.target.value })} required
-                                className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
-                        </div>
-                        <div>
-                            <label className="block text-sm text-white/60 mb-1.5">Course Code</label>
-                            <input type="text" value={obsForm.courseCode} onChange={e => setObsForm({ ...obsForm, courseCode: e.target.value })} required placeholder="e.g. CS101"
-                                className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
-                        </div>
-                        <button type="submit"
-                            className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-semibold text-sm transition shadow-lg shadow-amber-500/10">
-                            Assign Observation
-                        </button>
-                    </form>
-                </div>
-            )}
-
-            {/* Department Broadcast */}
-            {tab === "notify" && (
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 max-w-2xl">
-                    <h3 className="text-white font-semibold mb-4">📢 Notify Department</h3>
-                    <p className="text-white/50 text-sm mb-6">Send an instant alert to all active lecturers in your department. They will receive it via the notification bell on their dashboards.</p>
-
-                    {notify.sent ? (
-                        <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30 text-green-300 font-medium">✅ Broadcast sent successfully!</div>
-                    ) : (
+            {/* Content Sections */}
+            <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
+                {/* Lecturer Scores */}
+                {tab === "overview" && (
+                    <div className="p-8">
+                        <h3 className="font-bold text-lg mb-6 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+                            <span>📊</span> Lecturer Compliance Rankings
+                        </h3>
                         <div className="space-y-4">
-                            <textarea
-                                value={notify.message}
-                                onChange={e => setNotify(n => ({ ...n, message: e.target.value }))}
-                                placeholder="Type your broadcast message here..."
-                                rows={4}
-                                className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-amber-500/50 resize-none text-sm"
-                            />
-                            <div className="flex justify-end">
+                            {scores.sort((a, b) => b.score - a.score).map((s, i) => (
+                                <div key={s.lecturerId} className="flex items-center gap-4 p-5 rounded-2xl hover:translate-x-1 transition-all" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)" }}>
+                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shadow-lg" style={{
+                                      backgroundColor: i === 0 ? "rgba(251, 191, 36, 0.1)" : i === 1 ? "rgba(148, 163, 184, 0.1)" : i === 2 ? "rgba(234, 88, 12, 0.1)" : "var(--bg-border)",
+                                      color: i === 0 ? "#fbbf24" : i === 1 ? "#94a3b8" : i === 2 ? "#ea580c" : "var(--text-muted)"
+                                    }}>
+                                        #{i + 1}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="font-bold truncate" style={{ color: "var(--text-primary)" }}>{s.lecturerName}</div>
+                                        <div className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{s.email}</div>
+                                        <div className="mt-3 h-1.5 rounded-full w-full overflow-hidden" style={{ backgroundColor: "var(--bg-border)" }}>
+                                            <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${s.score}%`, backgroundColor: s.score >= 70 ? "#10b981" : "#ef4444" }} />
+                                        </div>
+                                    </div>
+                                    <div className="text-right shrink-0">
+                                        <div className="text-2xl font-black" style={{ color: s.score >= 70 ? "#10b981" : "#ef4444" }}>{s.score}%</div>
+                                        <div className="text-[10px] font-bold uppercase" style={{ color: "var(--text-muted)" }}>{s.submitted} SUBMITTED</div>
+                                    </div>
+                                    {s.isAtRisk && <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/20 uppercase tracking-tighter">AT RISK</span>}
+                                </div>
+                            ))}
+                            {scores.length === 0 && (
+                                <div className="text-center py-16">
+                                    <div className="text-4xl mb-4">🏜️</div>
+                                    <p className="text-sm font-medium italic" style={{ color: "var(--text-muted)" }}>No lecturers in your department yet.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Assign Observation */}
+                {tab === "observations" && (
+                    <div className="p-8 max-w-2xl mx-auto">
+                        <div className="text-center mb-8">
+                            <h3 className="font-bold text-xl mb-2" style={{ color: "var(--text-primary)" }}>👁️ Assign Peer Observation</h3>
+                            <p className="text-sm" style={{ color: "var(--text-muted)" }}>Schedule a mandatory session observation between two lecturers.</p>
+                        </div>
+                        
+                        {obsMsg && (
+                            <div className={`mb-6 p-4 rounded-2xl text-sm border animate-in slide-in-from-top-2 duration-300 ${obsMsg.startsWith("✅") ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-rose-500/10 border-rose-500/20 text-rose-400"}`}>
+                                {obsMsg}
+                            </div>
+                        )}
+                        
+                        <form onSubmit={assignObservation} className="space-y-5">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Lecturer to Observe *</label>
+                                    <input type="number" value={obsForm.lecturerId} onChange={e => setObsForm({ ...obsForm, lecturerId: e.target.value })} required 
+                                        placeholder="User ID (e.g. 5)"
+                                        className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)", focusColor: "var(--primary)" }} />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Assigned Observer *</label>
+                                    <input type="number" value={obsForm.observerId} onChange={e => setObsForm({ ...obsForm, observerId: e.target.value })} required 
+                                        placeholder="User ID (e.g. 6)"
+                                        className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Session Date *</label>
+                                    <input type="date" value={obsForm.sessionDate} onChange={e => setObsForm({ ...obsForm, sessionDate: e.target.value })} required
+                                        className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Course Code *</label>
+                                    <input type="text" value={obsForm.courseCode} onChange={e => setObsForm({ ...obsForm, courseCode: e.target.value })} required 
+                                        placeholder="e.g. CS101"
+                                        className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
+                                </div>
+                            </div>
+                            <button type="submit"
+                                className="w-full py-4 rounded-xl text-white font-bold text-sm transition-all shadow-xl active:scale-[0.98]"
+                                style={{ backgroundColor: "var(--primary)" }}>
+                                Assign Observation Notification
+                            </button>
+                        </form>
+                    </div>
+                )}
+
+                {/* Department Broadcast */}
+                {tab === "notify" && (
+                    <div className="p-8 max-w-2xl mx-auto">
+                        <div className="text-center mb-8">
+                            <h3 className="font-bold text-xl mb-2" style={{ color: "var(--text-primary)" }}>📢 Departmental Broadcast</h3>
+                            <p className="text-sm" style={{ color: "var(--text-muted)" }}>Send a priority alert to all lecturers in your department.</p>
+                        </div>
+
+                        {notify.sent ? (
+                            <div className="p-8 rounded-3xl border text-center animate-in zoom-in duration-300" style={{ backgroundColor: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.3)" }}>
+                                <div className="text-4xl mb-4">🚀</div>
+                                <h4 className="font-bold mb-1" style={{ color: "#10b981" }}>Broadcast Sent!</h4>
+                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>All colleagues have been notified via their dashboards.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                <div className="relative">
+                                    <textarea
+                                        value={notify.message}
+                                        onChange={e => setNotify(n => ({ ...n, message: e.target.value }))}
+                                        placeholder="Write your announcement here..."
+                                        rows={6}
+                                        className="w-full px-6 py-5 rounded-3xl text-sm focus:outline-none focus:ring-2 resize-none" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
+                                    <div className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-tighter" style={{ color: "var(--text-muted)" }}>Department Alert</div>
+                                </div>
                                 <button
                                     onClick={sendBroadcast}
                                     disabled={!notify.message}
-                                    className="px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-medium text-sm transition shadow-lg shadow-amber-500/20 disabled:opacity-50">
-                                    Send Notification
+                                    className="w-full py-4 rounded-xl text-white font-bold text-sm transition-all shadow-xl disabled:opacity-50 active:scale-[0.98]"
+                                    style={{ backgroundColor: "var(--primary)" }}>
+                                    Push Notification to Department
                                 </button>
+                                <p className="text-[10px] text-center" style={{ color: "var(--text-muted)" }}>Note: This action is permanent and logged in the audit trail.</p>
                             </div>
-                        </div>
-                    )}
-                </div>
-            )}
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

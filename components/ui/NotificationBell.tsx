@@ -22,8 +22,8 @@ export default function NotificationBell() {
             try {
                 const res = await fetch("/api/notifications");
                 if (res.ok) {
-                    const data = await res.json();
-                    if (mounted) setNotifications(data);
+                    const json = await res.json();
+                    if (mounted) setNotifications(Array.isArray(json.data) ? json.data : []);
                 }
             } catch {
                 console.error("Failed to fetch notifications");
@@ -89,13 +89,15 @@ export default function NotificationBell() {
             {/* Dropdown menu */}
             {isOpen && (
                 <div
-                    className="absolute right-0 mt-2 w-80 rounded-2xl shadow-2xl z-50 overflow-hidden border"
-                    style={{ background: "var(--bg-card)", borderColor: "var(--bg-border)" }}
+                    className="absolute right-0 mt-2 w-80 rounded-2xl shadow-2xl z-50 overflow-hidden"
+                    style={{ background: "var(--bg-surface)" }}
                 >
-                    <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: "var(--bg-border)" }}>
+                    <div className="px-4 py-3 border-b flex items-center justify-between">
                         <h3 className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>Notifications</h3>
                         {unreadCount > 0 && (
-                            <span className="text-xs text-blue-400 font-medium">Marked as read</span>
+                            <span className="text-xs font-medium" style={{ color: "var(--primary)" }}>
+                                Marked as read
+                            </span>
                         )}
                     </div>
 
@@ -106,11 +108,14 @@ export default function NotificationBell() {
                                 <p className="text-sm">No notifications yet</p>
                             </div>
                         ) : (
-                            <div className="divide-y" style={{ borderColor: "var(--bg-border)" }}>
+                            <div className="divide-y">
                                 {notifications.map((n) => (
                                     <div
                                         key={n.id}
-                                        className={`px-4 py-3 transition-colors ${!n.read ? 'bg-blue-500/5' : ''}`}
+                                        className="px-4 py-3 transition-colors"
+                                        style={{
+                                            background: !n.read ? "var(--bg-hover)" : "transparent",
+                                        }}
                                     >
                                         <p className="text-sm leading-relaxed" style={{ color: "var(--text-primary)" }}>
                                             {n.message}

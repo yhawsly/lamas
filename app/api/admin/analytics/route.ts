@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
 import { auth } from "@/auth";
 import {
     computeComplianceScores,
@@ -33,9 +34,17 @@ export async function GET() {
             : 0;
 
     // Summary stats
+    const userWhere: any = { role: { in: ["LECTURER", "HOD"] }, isActive: true };
+    const submissionWhere: any = { status: { in: ["SUBMITTED", "LATE"] } };
+
+    if (deptId) {
+        userWhere.departmentId = deptId;
+        submissionWhere.lecturer = { departmentId: deptId };
+    }
+
     const [totalLecturers, totalSubmissions, totalDeadlines] = await Promise.all([
-        prisma.user.count({ where: { role: { in: ["LECTURER", "HOD"] }, isActive: true } }),
-        prisma.submission.count({ where: { status: { in: ["SUBMITTED", "LATE"] } } }),
+        prisma.user.count({ where: userWhere }),
+        prisma.submission.count({ where: submissionWhere }),
         prisma.deadline.count(),
     ]);
 

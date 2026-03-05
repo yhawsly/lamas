@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { auth } from "@/auth";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -12,19 +14,20 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth();
+
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
-        {/* Always enforce dark mode — all UI components use hardcoded dark classes */}
-        <script dangerouslySetInnerHTML={{
-          __html: `document.documentElement.classList.add('dark');localStorage.setItem('lamas-theme','dark');`
-        }} />
+        {/* Theme is managed by ThemeProvider and ThemeToggle */}
       </head>
       <body className={inter.className}>
-        <SessionProvider>
-          <ThemeProvider>{children}</ThemeProvider>
-        </SessionProvider>
+        <ErrorBoundary>
+          <SessionProvider session={session}>
+            <ThemeProvider>{children}</ThemeProvider>
+          </SessionProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

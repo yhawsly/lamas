@@ -1,81 +1,182 @@
 "use client";
+
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import Pagination from "@/components/ui/Pagination";
+
+interface AuditLog {
+    id: number;
+    userId: number;
+    action: string;
+    details: string;
+    createdAt: string;
+    user: {
+        name: string;
+        role: string;
+        department?: { name: string };
+    };
+}
+
+const ACTION_COLORS: Record<string, string> = {
+    SUBMISSION_CREATED: "#10b981",
+    SUBMISSION_UPDATED: "#3b82f6",
+    OBSERVATION_ASSIGNED: "#f59e0b",
+    OBSERVATION_COMPLETED: "#8b5cf6",
+    DEPARTMENT_BROADCAST: "#ec4899",
+    DIRECT_NOTIFICATION: "#06b6d4",
+    LOGIN: "#6366f1",
+    LOGOUT: "#64748b",
+    ADMIN_ACTION: "#ef4444",
+};
 
 export default function AdminAuditPage() {
-    const [logs, setLogs] = useState<any[]>([]);
+    const { data: session } = useSession();
+    const [logs, setLogs] = useState<AuditLog[]>([]);
     const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState("");
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [actionFilter, setActionFilter] = useState("ALL");
+    const [userFilter, setUserFilter] = useState("");
+    const LIMIT = 20;
 
-    useEffect(() => {
-        fetch("/api/submissions").then(r => r.json()).then(() => {
-            // Pull activity from audit endpoint if available, fallback to recent submissions for demo
-            setLoading(false);
-            setLogs([]); // Will populate once audit API is live
-        });
-    }, []);
+    const loadLogs = (pageNum = 1) => {
+        setLoading(true);
+        let url = `/api/audit?page=${pageNum}&limit=${LIMIT}`;
+        if (actionFilter !== "ALL") url += `&action=${actionFilter}`;
+        if (userFilter) url += `&userId=${userFilter}`;
 
-    // For demo: generate mock audit events from submissions in the DB
-    useEffect(() => {
-        fetch("/api/submissions").then(r => r.json()).then(subs => {
-            if (Array.isArray(subs)) {
-                setLogs(subs.map((s: any) => ({
-                    id: s.id,
-                    action: s.status === "DRAFT" ? "save_draft" : "submit",
-                    user: s.lecturer?.name ?? `Lecturer #${s.lecturerId}`,
-                    email: s.lecturer?.email ?? "",
-                    detail: s.title,
-                    createdAt: s.submittedAt ?? s.createdAt,
-                })));
-            }
-            setLoading(false);
-        });
-    }, []);
-
-    const filtered = logs.filter(l =>
-        l.user?.toLowerCase().includes(search.toLowerCase()) ||
-        l.action?.toLowerCase().includes(search.toLowerCase()) ||
-        l.detail?.toLowerCase().includes(search.toLowerCase())
-    );
-
-    const actionColors: Record<string, string> = {
-        submit: "bg-green-500/20 text-green-300",
-        save_draft: "bg-blue-500/20 text-blue-300",
-        login: "bg-purple-500/20 text-purple-300",
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                if (data.data) {
+                    setLogs(Array.isArray(data.data) ? data.data : []);
+                    setTotalPages(data.meta?.totalPages || 1);
+                    setPage(pageNum);
+                } else {
+                    setLogs(Array.isArray(data) ? data : []);
+                }
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error("Failed to load audit logs:", err);
+                setLoading(false);
+            });
     };
 
+    useEffect(() => {
+        loadLogs(1);
+    }, [actionFilter, userFilter]);
+
+    const actions = Array.from(new Set(logs.map(l => l.action)));
+
     return (
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto space-y-8">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-white">Audit Log</h1>
-                <p className="text-white/50 mt-1">Immutable record of all system activities</p>
+                <h1 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>Audit Logs</h1>
+                <p className="mt-1" style={{ color: "var(--text-muted)" }}>Track all system activities and user actions for compliance monitoring</p>
             </div>
-            <div className="mb-4">
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search actions, users or details..."
-                    className="w-full max-w-md px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm" />
+
+            {/* Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>Filter by Action</label>
+                    <select
+                        value={actionFilter}
+                        onChange={e => setActionFilter(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2"
+                        style={{
+                            backgroundColor: "var(--bg-surface)",
+                            border: "1px solid var(--bg-border)",
+                            color: "var(--text-primary)"
+                        }}
+                    >
+                        <option value="ALL">All Actions</option>
+                        {actions.map(action => (
+                            <option key={action} value={action}>{action}</option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>Filter by User ID</label>
+                    <input
+                        type="text"
+                        value={userFilter}
+                        onChange={e => setUserFilter(e.target.value)}
+                        placeholder="Enter user ID..."
+                        className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2"
+                        style={{
+                            backgroundColor: "var(--bg-surface)",
+                            border: "1px solid var(--bg-border)",
+                            color: "var(--text-primary)"
+                        }}
+                    />
+                </div>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-                {loading ? <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" /></div> :
-                    filtered.length === 0 ? <div className="text-center py-12 text-white/40">No activity logs found.</div> :
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead><tr className="text-white/40 text-left border-b border-white/5">
-                                    <th className="pb-3 pr-4">Timestamp</th><th className="pb-3 pr-4">User</th>
-                                    <th className="pb-3 pr-4">Action</th><th className="pb-3">Detail</th>
-                                </tr></thead>
-                                <tbody className="divide-y divide-white/5">
-                                    {filtered.map(l => (
-                                        <tr key={l.id} className="text-white/70 hover:bg-white/3">
-                                            <td className="py-3 pr-4 text-white/40 text-xs whitespace-nowrap">{l.createdAt ? new Date(l.createdAt).toLocaleString() : "—"}</td>
-                                            <td className="py-3 pr-4"><div className="text-white">{l.user}</div><div className="text-white/30 text-xs">{l.email}</div></td>
-                                            <td className="py-3 pr-4"><span className={`text-xs px-2 py-1 rounded-full ${actionColors[l.action] ?? "bg-white/10 text-white/60"}`}>{l.action}</span></td>
-                                            <td className="py-3 text-white/50 max-w-xs truncate">{l.detail}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                }
+
+            {/* Logs Table */}
+            <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
+                {loading ? (
+                    <div className="flex justify-center py-12">
+                        <div className="animate-spin w-8 h-8 border-2" style={{ borderColor: "var(--primary)", borderTopColor: "transparent" }} />
+                    </div>
+                ) : logs.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+                        <div className="text-6xl mb-4">📋</div>
+                        <h4 className="font-semibold" style={{ color: "var(--text-primary)" }}>No audit logs found</h4>
+                        <p className="text-sm max-w-xs mx-auto mt-1" style={{ color: "var(--text-muted)" }}>
+                            Try adjusting your filters to find what you're looking for.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr style={{ backgroundColor: "var(--bg-hover)", borderBottom: "1px solid var(--bg-border)" }}>
+                                    <th className="px-6 py-4 text-left" style={{ color: "var(--text-secondary)" }}>Timestamp</th>
+                                    <th className="px-6 py-4 text-left" style={{ color: "var(--text-secondary)" }}>User</th>
+                                    <th className="px-6 py-4 text-left" style={{ color: "var(--text-secondary)" }}>Action</th>
+                                    <th className="px-6 py-4 text-left" style={{ color: "var(--text-secondary)" }}>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody style={{ borderColor: "var(--bg-border)" }} className="divide-y">
+                                {logs.map(log => (
+                                    <tr
+                                        key={log.id}
+                                        style={{ color: "var(--text-secondary)" }}
+                                        onMouseEnter={e => e.currentTarget.style.backgroundColor = "var(--bg-hover)"}
+                                        onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+                                    >
+                                        <td className="px-6 py-4" style={{ color: "var(--text-muted)" }}>
+                                            <div className="text-xs">{new Date(log.createdAt).toLocaleString()}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="font-medium" style={{ color: "var(--text-primary)" }}>{log.user?.name}</div>
+                                            <div className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+                                                {log.user?.department?.name || "No Dept."} · {log.user?.role}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span
+                                                className="px-3 py-1 rounded-full text-xs font-semibold text-white"
+                                                style={{
+                                                    backgroundColor: ACTION_COLORS[log.action] || "var(--primary)"
+                                                }}
+                                            >
+                                                {log.action}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 max-w-xs truncate" title={log.details}>
+                                            {log.details}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
+
+            {!loading && logs.length > 0 && <Pagination currentPage={page} totalPages={totalPages} onPageChange={loadLogs} />}
         </div>
     );
 }

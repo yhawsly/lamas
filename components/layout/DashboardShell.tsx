@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import NotificationBell from "@/components/ui/NotificationBell";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -37,8 +38,14 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => setSidebarOpen(true)}
-                            className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:bg-white/10"
+                            className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center transition-all"
                             style={{ color: "var(--text-primary)" }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "var(--bg-hover)";
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "transparent";
+                            }}
                             aria-label="Open menu"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -60,6 +67,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
                     {/* Right side global actions */}
                     <div className="flex items-center gap-3">
+                        <ThemeToggle />
                         <NotificationBell />
                     </div>
                 </header>

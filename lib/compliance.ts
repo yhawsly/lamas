@@ -30,21 +30,24 @@ export async function computeComplianceScores(
     const totalRequired = deadlines.length;
 
     return lecturers.map((l) => {
-        const submitted = l.submissions.filter((s) =>
-            ["SUBMITTED"].includes(s.status)
-        ).length;
-        const late = l.submissions.filter((s) => s.status === "LATE").length;
-        const onTime = submitted - late;
-        const missing = Math.max(0, totalRequired - submitted - late);
-        const score =
-            totalRequired > 0 ? Math.round(((onTime) / totalRequired) * 100) : 100;
+        const submittedOnTime = l.submissions.filter((s) => s.status === "SUBMITTED").length;
+        const submittedLate = l.submissions.filter((s) => s.status === "LATE").length;
+        const totalSubmitted = submittedOnTime + submittedLate;
+
+        const missing = Math.max(0, totalRequired - totalSubmitted);
+
+        // Score is based on on-time submissions relative to requirements
+        const score = totalRequired > 0
+            ? Math.round((submittedOnTime / totalRequired) * 100)
+            : 100;
+
         const isAtRisk =
             score < 70 ||
             l.submissions.some(
                 (s) =>
                     s.deadline &&
                     s.deadline.dueDate < new Date() &&
-                    s.status === "PENDING"
+                    (s.status === "PENDING" || s.status === "DRAFT")
             );
 
         return {
@@ -54,8 +57,8 @@ export async function computeComplianceScores(
             department: l.department?.name ?? "N/A",
             score,
             totalRequired,
-            submitted,
-            late,
+            submitted: totalSubmitted,
+            late: submittedLate,
             missing,
             isAtRisk,
         };

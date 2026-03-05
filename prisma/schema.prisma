@@ -30,6 +30,11 @@ model User {
   resources     Resource[]     @relation("LecturerResources")
 
   createdAt DateTime @default(now())
+
+  // Indexes for frequently queried fields
+  @@index([departmentId])
+  @@index([role])
+  @@index([isActive])
 }
 
 model Department {
@@ -56,6 +61,11 @@ model Resource {
   lecturer   User        @relation("LecturerResources", fields: [lecturerId], references: [id])
   department Department? @relation("DepartmentResources", fields: [departmentId], references: [id])
   createdAt  DateTime    @default(now())
+
+  // Indexes for frequently queried fields
+  @@index([lecturerId])
+  @@index([departmentId])
+  @@index([status])
 }
 
 model Deadline {
@@ -83,6 +93,12 @@ model Submission {
   lecturer User      @relation(fields: [lecturerId], references: [id])
   deadline Deadline? @relation(fields: [deadlineId], references: [id])
   versions SubmissionVersion[]
+
+  // Indexes for frequently queried fields
+  @@index([lecturerId])
+  @@index([status])
+  @@index([deadlineId])
+  @@index([lecturerId, status])
 }
 
 model SubmissionVersion {
@@ -109,6 +125,11 @@ model Observation {
 
   lecturer User @relation("ObservedLecturer", fields: [lecturerId], references: [id])
   observer User @relation("ObserverUser", fields: [observerId], references: [id])
+
+  // Indexes for frequently queried fields
+  @@index([lecturerId])
+  @@index([observerId])
+  @@index([status])
 }
 
 model ClassSession {
@@ -123,6 +144,10 @@ model ClassSession {
 
   lecturer   User         @relation(fields: [lecturerId], references: [id])
   attendance Attendance[]
+
+  // Indexes for frequently queried fields
+  @@index([lecturerId])
+  @@index([qrToken])
 }
 
 model Attendance {
@@ -143,6 +168,11 @@ model Notification {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
+
+  // Indexes for frequently queried fields
+  @@index([userId])
+  @@index([read])
+  @@index([userId, read])
 }
 
 model ActivityLog {
@@ -154,6 +184,11 @@ model ActivityLog {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
+
+  // Indexes for frequently queried fields
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
 }
 
 model Report {

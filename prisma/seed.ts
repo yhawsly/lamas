@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcryptjs";
+import { hashPassword } from "@/lib/password";
 
 async function main() {
     console.log("🌱 Seeding database...");
@@ -21,7 +21,7 @@ async function main() {
         create: { name: "Business Administration", code: "BIZ" },
     });
 
-    const hash = await bcrypt.hash("password123", 12);
+    const hash = await hashPassword("password123");
 
     // Super Admin
     await prisma.user.upsert({
