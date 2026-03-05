@@ -4,6 +4,7 @@ export const authConfig = {
     pages: {
         signIn: "/login",
     },
+    secret: process.env.AUTH_SECRET,
     session: {
         maxAge: 30 * 60, // 30 minutes session timeout
         updateAge: 5 * 60, // Update session every 5 minutes of activity
@@ -35,7 +36,7 @@ export const authConfig = {
             return token;
         },
         async session({ session, token }) {
-            if (token) {
+            if (token && session.user) {
                 session.user.id = token.id as string;
                 (session.user as any).role = token.role;
                 (session.user as any).departmentId = token.departmentId;

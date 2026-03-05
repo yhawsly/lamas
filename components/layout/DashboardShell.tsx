@@ -27,11 +27,11 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 />
             )}
 
-            {/* ── Sidebar ── */}
+            {/* ── Sidebar (fixed on all screens) ── */}
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-            {/* ── Main content area ── */}
-            <div className="flex-1 flex flex-col min-w-0">
+            {/* ── Main content area (pushed right by fixed sidebar on desktop) ── */}
+            <div className="flex-1 flex flex-col min-w-0 lg:ml-64">
                 {/* Top bar (Visible on all screens, but hamburger is mobile-only) */}
                 <header className="flex items-center justify-between px-4 lg:px-8 py-3 lg:py-4 border-b sticky top-0 z-20"
                     style={{ background: "var(--bg-base)", borderColor: "var(--bg-border)" }}>

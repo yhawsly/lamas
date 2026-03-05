@@ -106,9 +106,9 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         <aside
             className={[
                 // Base styles
-                "w-64 h-screen flex flex-col shrink-0 z-40 transition-transform duration-300 overflow-hidden",
-                // On mobile: fixed overlay drawer
-                "fixed lg:static top-0 left-0 lg:h-auto",
+                "w-64 h-screen flex flex-col shrink-0 z-40 transition-transform duration-300",
+                // Fixed on all screens
+                "fixed top-0 left-0",
                 // Show/hide on mobile via translate
                 isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
             ].join(" ")}
@@ -242,7 +242,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-3 space-y-0.5">
+            <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
                 {nav.map((item) => {
                     const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
                     return (

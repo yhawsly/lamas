@@ -7,7 +7,7 @@ const { auth } = NextAuth(authConfig);
 export default auth((req) => {
     const { nextUrl } = req;
     const isLoggedIn = !!req.auth;
-    const userRole = (req.auth?.user as any)?.role;
+    const userRole = (req.auth?.user as any)?.role || null;
 
     const isAdminPath = nextUrl.pathname.startsWith("/admin");
     const isHodPath = nextUrl.pathname.startsWith("/hod");
@@ -15,6 +15,9 @@ export default auth((req) => {
 
     // 1. Authorization check: Role-based path protection
     if (isLoggedIn) {
+        if (!userRole && (isAdminPath || isHodPath || isLecturerPath)) {
+            return NextResponse.redirect(new URL("/login", nextUrl));
+        }
         if (isAdminPath && !["ADMIN", "SUPER_ADMIN"].includes(userRole)) {
             return NextResponse.redirect(new URL("/", nextUrl));
         }
