@@ -165,7 +165,7 @@ export default function HoDDashboard() {
                                     <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Lecturer to Observe *</label>
                                     <input type="number" value={obsForm.lecturerId} onChange={e => setObsForm({ ...obsForm, lecturerId: e.target.value })} required 
                                         placeholder="User ID (e.g. 5)"
-                                        className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)", focusColor: "var(--primary)" }} />
+                                        className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Assigned Observer *</label>

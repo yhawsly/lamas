@@ -3,12 +3,27 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { logAction } from "@/lib/audit";
 import { handleApiError } from "@/lib/api-error";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/notifications
 export async function GET(req: NextRequest) {
     try {
+        // Rate limiting: 20 requests per 15 minutes
+        const rateLimit = checkRateLimit(req, 'general');
+        if (!rateLimit.allowed) {
+            return NextResponse.json(
+                { error: "Rate limit exceeded. Please try again later." },
+                { 
+                    status: 429,
+                    headers: {
+                        'Retry-After': String(rateLimit.retryAfter || 900),
+                    }
+                }
+            );
+        }
+
         const session = await auth();
         if (!session || !session.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -78,6 +93,20 @@ export async function PATCH() {
 // POST /api/notifications — Broadcast or specific notify
 export async function POST(req: NextRequest) {
     try {
+        // Rate limiting: 20 requests per 15 minutes
+        const rateLimit = checkRateLimit(req, 'general');
+        if (!rateLimit.allowed) {
+            return NextResponse.json(
+                { error: "Rate limit exceeded. Please try again later." },
+                { 
+                    status: 429,
+                    headers: {
+                        'Retry-After': String(rateLimit.retryAfter || 900),
+                    }
+                }
+            );
+        }
+
         const session = await auth();
         if (!session || !session.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

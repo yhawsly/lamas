@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Pagination from "@/components/ui/Pagination";
 
@@ -16,7 +16,7 @@ export default function LecturerObservationsPage() {
     const [totalPages, setTotalPages] = useState(1);
     const LIMIT = 10;
 
-    const load = (pageNum = 1) => {
+    const load = useCallback((pageNum = 1) => {
         setLoading(true);
         fetch(`/api/observations?page=${pageNum}&limit=${LIMIT}`)
             .then(r => r.json())
@@ -34,9 +34,12 @@ export default function LecturerObservationsPage() {
                 console.error("Failed to load observations:", err);
                 setLoading(false);
             });
-    };
+    }, []);
 
-    useEffect(() => { load(1); }, []);
+    useEffect(() => { 
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        load(1); 
+    }, [load]);
 
     async function submitReport(e: React.FormEvent) {
         e.preventDefault();

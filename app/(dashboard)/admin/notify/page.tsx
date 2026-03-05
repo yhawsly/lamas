@@ -21,42 +21,46 @@ export default function AdminNotifyPage() {
     return (
         <div className="max-w-2xl mx-auto">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-white">Broadcast Notification</h1>
-                <p className="text-white/50 mt-1">Send a message to all lecturers or a specific group</p>
+                <h1 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>Broadcast Notification</h1>
+                <p className="mt-1" style={{ color: "var(--text-muted)" }}>Send a message to all lecturers or a specific group</p>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
+            <div className="rounded-2xl p-8" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
                 {result ? (
                     <div className="text-center py-8">
                         <div className="text-5xl mb-4">📢</div>
-                        <h2 className="text-white font-bold text-2xl mb-2">Notification Sent!</h2>
-                        <p className="text-green-300 text-lg">Delivered to <span className="font-bold">{result.sent}</span> recipients</p>
+                        <h2 className="font-bold text-2xl mb-2" style={{ color: "var(--text-primary)" }}>Notification Sent!</h2>
+                        <p style={{ color: "#10b981" }} className="text-lg">Delivered to <span className="font-bold">{result.sent}</span> recipients</p>
                         <button onClick={() => setResult(null)}
-                            className="mt-6 px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-sm transition">
+                            className="mt-6 px-6 py-2.5 rounded-xl text-sm transition"
+                            style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }}>
                             Send Another
                         </button>
                     </div>
                 ) : (
                     <form onSubmit={handleSend} className="space-y-5">
-                        {error && <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-sm">{error}</div>}
+                        {error && <div className="p-3 rounded-xl text-sm" style={{ backgroundColor: "rgba(239, 68, 68, 0.1)", borderColor: "rgba(239, 68, 68, 0.3)", color: "#ef4444" }}>{error}</div>}
                         <div>
-                            <label className="block text-sm font-medium text-white/60 mb-1.5">Target Audience</label>
+                            <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-muted)" }}>Target Audience</label>
                             <select value={form.targetRole} onChange={e => setForm(f => ({ ...f, targetRole: e.target.value }))}
-                                className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2"
+                                style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }}>
                                 <option value="">All Lecturers & HoDs</option>
                                 <option value="LECTURER">Lecturers Only</option>
                                 <option value="HOD">Heads of Department Only</option>
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-white/60 mb-1.5">Message</label>
+                            <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-muted)" }}>Message</label>
                             <textarea value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} required rows={5}
                                 placeholder="Type your broadcast message here..."
-                                className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none text-sm" />
+                                className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 resize-none"
+                                style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
                         </div>
                         <div className="flex items-center justify-between pt-2">
-                            <p className="text-white/30 text-xs">Recipients will see this in their Notifications panel</p>
+                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Recipients will see this in their Notifications panel</p>
                             <button type="submit" disabled={sending || !form.message.trim()}
-                                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm transition disabled:opacity-50">
+                                className="px-6 py-2.5 rounded-xl text-white font-semibold text-sm transition disabled:opacity-50"
+                                style={{ backgroundColor: "var(--primary)" }}>
                                 {sending ? "Sending..." : "📢 Broadcast"}
                             </button>
                         </div>

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { hashPassword } from "@/lib/password";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 /**
  * POST /api/auth/password-reset-request
@@ -10,6 +10,22 @@ import { hashPassword } from "@/lib/password";
  */
 export async function POST(req: NextRequest) {
     try {
+        // Rate limiting: 3 attempts per 30 minutes
+        const rateLimit = checkRateLimit(req, 'passwordReset');
+        if (!rateLimit.allowed) {
+            return NextResponse.json(
+                { error: "Too many password reset requests. Please try again later." },
+                { 
+                    status: 429,
+                    headers: {
+                        'Retry-After': String(rateLimit.retryAfter || 1800),
+                        'X-RateLimit-Remaining': String(rateLimit.remaining),
+                        'X-RateLimit-Reset': String(new Date(rateLimit.resetTime).toISOString()),
+                    }
+                }
+            );
+        }
+
         const body = await req.json();
         const { email } = body;
 
@@ -96,6 +112,22 @@ export async function POST(req: NextRequest) {
  */
 export async function PATCH(req: NextRequest) {
     try {
+        // Rate limiting: 3 attempts per 30 minutes (prevent brute force of tokens)
+        const rateLimit = checkRateLimit(req, 'passwordReset');
+        if (!rateLimit.allowed) {
+            return NextResponse.json(
+                { error: "Too many password reset attempts. Please try again later." },
+                { 
+                    status: 429,
+                    headers: {
+                        'Retry-After': String(rateLimit.retryAfter || 1800),
+                        'X-RateLimit-Remaining': String(rateLimit.remaining),
+                        'X-RateLimit-Reset': String(new Date(rateLimit.resetTime).toISOString()),
+                    }
+                }
+            );
+        }
+
         const body = await req.json();
         const { token, password, confirmPassword } = body;
 

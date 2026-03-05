@@ -7,6 +7,7 @@ export default function ThemeToggle() {
 
     useEffect(() => {
         const saved = localStorage.getItem("lamas-theme") as "light" | "dark" | null;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setTheme(saved || "dark");
     }, []);
 

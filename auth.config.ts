@@ -1,6 +1,4 @@
 import type { NextAuthConfig } from "next-auth";
-import Google from "next-auth/providers/google";
-import AzureAD from "next-auth/providers/microsoft-entra-id";
 
 export const authConfig = {
     pages: {
@@ -23,7 +21,7 @@ export const authConfig = {
             }
             return true;
         },
-        async jwt({ token, user, trigger, session }) {
+        async jwt({ token, user, trigger }) {
             if (user) {
                 token.id = user.id;
                 token.role = (user as any).role;

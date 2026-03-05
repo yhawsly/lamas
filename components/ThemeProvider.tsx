@@ -19,6 +19,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         const savedTheme = localStorage.getItem("lamas-theme") as "light" | "dark" | null;
         const initialTheme = savedTheme || "dark";
         
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setTheme(initialTheme);
         document.documentElement.classList.toggle("dark", initialTheme === "dark");
         setMounted(true);

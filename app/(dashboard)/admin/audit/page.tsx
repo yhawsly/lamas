@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useCallback, useEffect, useState } from "react";
 import Pagination from "@/components/ui/Pagination";
 
 interface AuditLog {
@@ -30,7 +29,6 @@ const ACTION_COLORS: Record<string, string> = {
 };
 
 export default function AdminAuditPage() {
-    const { data: session } = useSession();
     const [logs, setLogs] = useState<AuditLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
@@ -39,7 +37,7 @@ export default function AdminAuditPage() {
     const [userFilter, setUserFilter] = useState("");
     const LIMIT = 20;
 
-    const loadLogs = (pageNum = 1) => {
+    const loadLogs = useCallback((pageNum = 1) => {
         setLoading(true);
         let url = `/api/audit?page=${pageNum}&limit=${LIMIT}`;
         if (actionFilter !== "ALL") url += `&action=${actionFilter}`;
@@ -61,11 +59,12 @@ export default function AdminAuditPage() {
                 console.error("Failed to load audit logs:", err);
                 setLoading(false);
             });
-    };
+    }, [actionFilter, userFilter]);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         loadLogs(1);
-    }, [actionFilter, userFilter]);
+    }, [loadLogs]);
 
     const actions = Array.from(new Set(logs.map(l => l.action)));
 
@@ -124,7 +123,7 @@ export default function AdminAuditPage() {
                         <div className="text-6xl mb-4">📋</div>
                         <h4 className="font-semibold" style={{ color: "var(--text-primary)" }}>No audit logs found</h4>
                         <p className="text-sm max-w-xs mx-auto mt-1" style={{ color: "var(--text-muted)" }}>
-                            Try adjusting your filters to find what you're looking for.
+                            Try adjusting your filters to find what you&apos;re looking for.
                         </p>
                     </div>
                 ) : (

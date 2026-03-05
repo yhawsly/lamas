@@ -161,7 +161,11 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                     <input
                         value={searchQ}
                         onChange={e => { setSearchQ(e.target.value); setShowResults(true); }}
-                        onFocus={() => setShowResults(true)}
+                        onFocus={(e) => {
+                            setShowResults(true);
+                            e.currentTarget.style.borderColor = "var(--primary)";
+                            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(79, 70, 229, 0.1)";
+                        }}
                         placeholder="Search LAMAS..."
                         style={{
                             backgroundColor: "var(--bg-surface)",
@@ -169,10 +173,6 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                             color: "var(--text-primary)",
                         }}
                         className="w-full border rounded-xl pl-9 pr-4 py-2 text-[13px] focus:outline-none focus:ring-2 transition-all"
-                        onFocus={(e) => {
-                            e.currentTarget.style.borderColor = "var(--primary)";
-                            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(79, 70, 229, 0.1)";
-                        }}
                         onBlur={(e) => {
                             e.currentTarget.style.borderColor = "var(--bg-border)";
                             e.currentTarget.style.boxShadow = "none";

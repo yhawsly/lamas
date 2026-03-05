@@ -28,6 +28,7 @@ model User {
   observedBy    Observation[]  @relation("ObservedLecturer")
   observing     Observation[]  @relation("ObserverUser")
   resources     Resource[]     @relation("LecturerResources")
+  passwordResets PasswordReset[]
 
   createdAt DateTime @default(now())
 
@@ -198,4 +199,16 @@ model Report {
   filePath    String
   filters     String?  // JSON string
   generatedAt DateTime @default(now())
+}
+
+model PasswordReset {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
 }

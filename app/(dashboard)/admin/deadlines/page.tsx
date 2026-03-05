@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function AdminDeadlinesPage() {
     const [deadlines, setDeadlines] = useState<any[]>([]);
@@ -7,7 +7,6 @@ export default function AdminDeadlinesPage() {
     const [form, setForm] = useState({ type: "SEMESTER_CALENDAR", label: "", dueDate: "" });
     const [saving, setSaving] = useState(false);
     const [msg, setMsg] = useState("");
-    const now = Date.now();
 
     useEffect(() => {
         fetch("/api/deadlines").then(r => r.json()).then(d => { setDeadlines(Array.isArray(d) ? d : []); setLoading(false); });
@@ -20,6 +19,9 @@ export default function AdminDeadlinesPage() {
         else setMsg("Failed to create deadline.");
         setSaving(false); setTimeout(() => setMsg(""), 3000);
     }
+
+    // eslint-disable-next-line react-hooks/purity
+    const now = useMemo(() => Date.now(), []);
 
     function daysLeft(d: string) {
         return Math.ceil((new Date(d).getTime() - now) / 86400000);

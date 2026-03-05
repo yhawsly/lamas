@@ -2,9 +2,8 @@ import { z } from "zod";
 
 // Submission validation
 export const submissionSchema = z.object({
-    type: z.enum(["SEMESTER_CALENDAR", "COURSE_TOPICS", "OBSERVATION_REPORT", "WEEKLY_TOPICS"], {
-        errorMap: () => ({ message: "Please select a valid submission type" })
-    }),
+    type: z.enum(["SEMESTER_CALENDAR", "COURSE_TOPICS", "OBSERVATION_REPORT", "WEEKLY_TOPICS"])
+        .catch("SEMESTER_CALENDAR"),
     title: z.string()
         .min(3, "Title must be at least 3 characters")
         .max(200, "Title cannot exceed 200 characters"),
@@ -48,9 +47,7 @@ export const notificationSchema = z.object({
         .min(1, "Message cannot be empty")
         .max(500, "Message cannot exceed 500 characters"),
     userId: z.string().optional().nullable(),
-    targetRole: z.enum(["LECTURER", "HOD", "ADMIN"], {
-        errorMap: () => ({ message: "Invalid role" })
-    }).optional(),
+    targetRole: z.enum(["LECTURER", "HOD", "ADMIN"]).optional(),
 });
 
 // Deadline validation
@@ -61,9 +58,7 @@ export const deadlineSchema = z.object({
     description: z.string()
         .max(500, "Description cannot exceed 500 characters")
         .optional(),
-    type: z.enum(["SEMESTER_CALENDAR", "COURSE_TOPICS", "OBSERVATION_REPORT", "WEEKLY_TOPICS"], {
-        errorMap: () => ({ message: "Please select a valid deadline type" })
-    }),
+    type: z.enum(["SEMESTER_CALENDAR", "COURSE_TOPICS", "OBSERVATION_REPORT", "WEEKLY_TOPICS"]),
     dueDate: z.string()
         .refine(date => new Date(date) > new Date(), "Due date must be in the future"),
 });
