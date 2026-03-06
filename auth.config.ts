@@ -4,7 +4,8 @@ export const authConfig = {
     pages: {
         signIn: "/login",
     },
-    secret: process.env.AUTH_SECRET,
+    // Explicitly define secret for middleware and auth handlers
+    secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
     session: {
         maxAge: 30 * 60, // 30 minutes session timeout
         updateAge: 5 * 60, // Update session every 5 minutes of activity
@@ -36,11 +37,12 @@ export const authConfig = {
             return token;
         },
         async session({ session, token }) {
+            // Further hardening for session data
             if (token && session.user) {
-                session.user.id = token.id as string;
-                (session.user as any).role = token.role;
-                (session.user as any).departmentId = token.departmentId;
-                (session.user as any).lastActivity = token.lastActivity;
+                session.user.id = (token.id as string) || (token.sub as string);
+                (session.user as any).role = (token.role as string) || "LECTURER";
+                (session.user as any).departmentId = (token.departmentId as number) || null;
+                (session.user as any).lastActivity = (token.lastActivity as number) || Date.now();
             }
             return session;
         },

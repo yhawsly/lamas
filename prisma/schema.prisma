@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -18,16 +18,16 @@ model User {
   lastLogin    DateTime?
   departmentId Int?
 
-  department     Department? @relation("UserDepartment", fields: [departmentId], references: [id])
+  department     Department?  @relation("UserDepartment", fields: [departmentId], references: [id])
   hodDepartments Department[] @relation("HoDepartment")
 
-  submissions   Submission[]
-  notifications Notification[]
-  activityLogs  ActivityLog[]
-  classSessions ClassSession[]
-  observedBy    Observation[]  @relation("ObservedLecturer")
-  observing     Observation[]  @relation("ObserverUser")
-  resources     Resource[]     @relation("LecturerResources")
+  submissions    Submission[]
+  notifications  Notification[]
+  activityLogs   ActivityLog[]
+  classSessions  ClassSession[]
+  observedBy     Observation[]   @relation("ObservedLecturer")
+  observing      Observation[]   @relation("ObserverUser")
+  resources      Resource[]      @relation("LecturerResources")
   passwordResets PasswordReset[]
 
   createdAt DateTime @default(now())
@@ -50,12 +50,12 @@ model Department {
 }
 
 model Resource {
-  id           Int      @id @default(autoincrement())
+  id           Int     @id @default(autoincrement())
   title        String
   description  String?
-  type         String   // PDF | SLIDES | CODE | OTHER
-  url          String   // Storage path or external link
-  status       String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  type         String // PDF | SLIDES | CODE | OTHER
+  url          String // Storage path or external link
+  status       String  @default("PENDING") // PENDING | APPROVED | REJECTED
   lecturerId   Int
   departmentId Int?
 
@@ -71,7 +71,7 @@ model Resource {
 
 model Deadline {
   id          Int          @id @default(autoincrement())
-  type        String       // SEMESTER_CALENDAR | COURSE_TOPICS | OBSERVATION_REPORT
+  type        String // SEMESTER_CALENDAR | COURSE_TOPICS | OBSERVATION_REPORT
   label       String
   dueDate     DateTime
   createdBy   Int
@@ -80,19 +80,19 @@ model Deadline {
 }
 
 model Submission {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   lecturerId  Int
-  type        String   // SEMESTER_CALENDAR | COURSE_TOPICS | OBSERVATION_REPORT
+  type        String // SEMESTER_CALENDAR | COURSE_TOPICS | OBSERVATION_REPORT
   title       String
-  content     String?  // JSON string
+  content     String? // JSON string
   filePath    String?
   deadlineId  Int?
-  status      String   @default("PENDING") // PENDING | SUBMITTED | LATE | DRAFT
+  status      String    @default("PENDING") // PENDING | SUBMITTED | LATE | DRAFT
   submittedAt DateTime?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 
-  lecturer User      @relation(fields: [lecturerId], references: [id])
-  deadline Deadline? @relation(fields: [deadlineId], references: [id])
+  lecturer User                @relation(fields: [lecturerId], references: [id])
+  deadline Deadline?           @relation(fields: [deadlineId], references: [id])
   versions SubmissionVersion[]
 
   // Indexes for frequently queried fields
@@ -105,7 +105,7 @@ model Submission {
 model SubmissionVersion {
   id           Int      @id @default(autoincrement())
   submissionId Int
-  snapshot     String   // JSON string
+  snapshot     String // JSON string
   isDraft      Boolean  @default(true)
   savedAt      DateTime @default(now())
 
@@ -118,8 +118,8 @@ model Observation {
   observerId   Int
   sessionDate  DateTime
   courseCode   String
-  strengths    String?  // JSON string
-  improvements String?  // JSON string
+  strengths    String? // JSON string
+  improvements String? // JSON string
   rating       Int?
   status       String   @default("PENDING") // PENDING | COMPLETED | REVIEWED
   createdAt    DateTime @default(now())
@@ -180,7 +180,7 @@ model ActivityLog {
   id        Int      @id @default(autoincrement())
   userId    Int
   action    String
-  detail    String?  // JSON string
+  detail    String? // JSON string
   ip        String?
   createdAt DateTime @default(now())
 
@@ -195,9 +195,9 @@ model ActivityLog {
 model Report {
   id          Int      @id @default(autoincrement())
   generatedBy Int
-  type        String   // lecturer_summary | department_compliance | audit_report
+  type        String // lecturer_summary | department_compliance | audit_report
   filePath    String
-  filters     String?  // JSON string
+  filters     String? // JSON string
   generatedAt DateTime @default(now())
 }
 
