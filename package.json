@@ -11,7 +11,10 @@
     "seed": "npx ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts",
     "db:push": "npx prisma db push",
     "db:seed": "npx prisma db seed",
-    "db:studio": "npx prisma studio"
+    "db:studio": "npx prisma studio",
+    "db:push:local": "cross-env DATABASE_URL=file:./dev.db npx prisma db push --skip-generate",
+    "db:seed:local": "cross-env DATABASE_URL=file:./dev.db npx prisma db seed",
+    "auth:reset:local": "cross-env DATABASE_URL=file:./dev.db npx prisma db push --force-reset --skip-generate && cross-env DATABASE_URL=file:./dev.db npx prisma db seed"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
@@ -45,6 +48,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^7.0.3",
     "dotenv": "^17.3.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
