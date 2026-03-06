@@ -33,43 +33,47 @@ export default function LecturerReportsPage() {
         <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight">Reports & Analytics</h1>
-                    <p className="text-white/50 mt-1">Export and analyze your academic performance data</p>
+                    <h1 className="text-3xl font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>Reports & Analytics</h1>
+                    <p className="mt-1" style={{ color: "var(--text-muted)" }}>Export and analyze your academic performance data</p>
                 </div>
                 <ExportPDFButton targetRef={reportRef} filename={`LAMAS_Full_Portfolio_${new Date().getFullYear()}.pdf`} />
             </div>
 
-            <div ref={reportRef} className="space-y-8 p-4 bg-slate-900 rounded-3xl">
+            <div
+                ref={reportRef}
+                className="space-y-8 p-4 rounded-3xl"
+                style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}
+            >
 
                 {/* Analytics Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
-                        <div className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-2">Compliance Score</div>
+                    <div className="rounded-3xl p-6" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)" }}>
+                        <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>Compliance Score</div>
                         <div className="flex items-end gap-2">
-                            <span className="text-4xl font-bold text-white">{stats.compliance}%</span>
+                            <span className="text-4xl font-bold" style={{ color: "var(--text-primary)" }}>{stats.compliance}%</span>
                             <span className="text-green-500 text-xs font-medium mb-1">↑ 2%</span>
                         </div>
-                        <div className="mt-4 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                        <div className="mt-4 h-1.5 w-full rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-border)" }}>
                             <div className="h-full bg-blue-600" style={{ width: `${stats.compliance}%` }} />
                         </div>
                     </div>
-                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
-                        <div className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-2">Avg. Session Attendance</div>
+                    <div className="rounded-3xl p-6" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)" }}>
+                        <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>Avg. Session Attendance</div>
                         <div className="flex items-end gap-2">
-                            <span className="text-4xl font-bold text-white">{stats.attendance}</span>
-                            <span className="text-white/20 text-xs mb-1">Students/Session</span>
+                            <span className="text-4xl font-bold" style={{ color: "var(--text-primary)" }}>{stats.attendance}</span>
+                            <span className="text-xs mb-1" style={{ color: "var(--text-muted)" }}>Students/Session</span>
                         </div>
-                        <div className="mt-4 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                        <div className="mt-4 h-1.5 w-full rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-border)" }}>
                             <div className="h-full bg-indigo-600" style={{ width: '70%' }} />
                         </div>
                     </div>
-                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
-                        <div className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-2">Total Documents</div>
+                    <div className="rounded-3xl p-6" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)" }}>
+                        <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>Total Documents</div>
                         <div className="flex items-end gap-2">
-                            <span className="text-4xl font-bold text-white">{submissions.length}</span>
+                            <span className="text-4xl font-bold" style={{ color: "var(--text-primary)" }}>{submissions.length}</span>
                             <span className="text-blue-400 text-xs font-medium mb-1">{submissions.filter(s => s.status === 'SUBMITTED').length} Verified</span>
                         </div>
-                        <div className="mt-4 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                        <div className="mt-4 h-1.5 w-full rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-border)" }}>
                             <div className="h-full bg-emerald-600" style={{ width: '100%' }} />
                         </div>
                     </div>
@@ -77,19 +81,33 @@ export default function LecturerReportsPage() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                     <div className="lg:col-span-3 space-y-6">
-                        <div className="bg-white/5 border border-white/10 rounded-3xl p-1 overflow-hidden">
+                        <div className="rounded-3xl p-1 overflow-hidden" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)" }}>
                             {reportTypes.map((r, i) => (
-                                <div key={r.id} className={`p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/5 transition-all ${i !== reportTypes.length - 1 ? 'border-b border-white/5' : ''}`}>
+                                <div
+                                    key={r.id}
+                                    className={`p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${i !== reportTypes.length - 1 ? 'border-b' : ''}`}
+                                    style={{ borderColor: "var(--bg-border)" }}
+                                >
                                     <div className="flex items-start gap-4">
-                                        <div className={`w-14 h-14 shrink-0 rounded-2xl ${r.color} flex items-center justify-center text-3xl shadow-inner border border-white/5`}>
+                                        <div
+                                            className={`w-14 h-14 shrink-0 rounded-2xl ${r.color} flex items-center justify-center text-3xl shadow-inner border`}
+                                            style={{ borderColor: "var(--bg-border)" }}
+                                        >
                                             {r.icon}
                                         </div>
                                         <div>
-                                            <h3 className="text-white font-bold text-lg">{r.title}</h3>
-                                            <p className="text-white/40 text-sm max-w-md">{r.desc}</p>
+                                            <h3 className="font-bold text-lg" style={{ color: "var(--text-primary)" }}>{r.title}</h3>
+                                            <p className="text-sm max-w-md" style={{ color: "var(--text-muted)" }}>{r.desc}</p>
                                         </div>
                                     </div>
-                                    <div className="px-6 py-3 rounded-2xl bg-white/5 border border-white/10 text-white font-semibold text-sm hover:bg-blue-600/20 hover:border-blue-500/40 transition-all shadow-xl flex items-center gap-2">
+                                    <div
+                                        className="px-6 py-3 rounded-2xl font-semibold text-sm transition-all shadow-xl flex items-center gap-2"
+                                        style={{
+                                            backgroundColor: "var(--bg-surface)",
+                                            border: "1px solid var(--bg-border)",
+                                            color: "var(--text-primary)",
+                                        }}
+                                    >
                                         <span>✓</span> Included in Report
                                     </div>
                                 </div>
@@ -98,10 +116,16 @@ export default function LecturerReportsPage() {
                     </div>
 
                     <div className="lg:col-span-1">
-                        <div className="bg-gradient-to-br from-indigo-600/20 to-emerald-600/20 border border-white/10 rounded-3xl p-8 text-center relative overflow-hidden h-full flex flex-col items-center justify-center">
-                            <div className="w-16 h-16 rounded-3xl bg-white/10 flex items-center justify-center text-3xl mb-4 border border-white/10">✨</div>
-                            <h3 className="text-white font-bold text-lg mb-2">Automated Exports</h3>
-                            <p className="text-white/40 text-xs leading-relaxed">
+                        <div
+                            className="rounded-3xl p-8 text-center relative overflow-hidden h-full flex flex-col items-center justify-center"
+                            style={{
+                                background: "linear-gradient(135deg, rgba(79,70,229,0.12), rgba(16,185,129,0.12))",
+                                border: "1px solid var(--bg-border)",
+                            }}
+                        >
+                            <div className="w-16 h-16 rounded-3xl flex items-center justify-center text-3xl mb-4 border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>✨</div>
+                            <h3 className="font-bold text-lg mb-2" style={{ color: "var(--text-primary)" }}>Automated Exports</h3>
+                            <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
                                 Reports are automatically compiled at the end of each academic cycle.
                                 You can download previous semester archives here when available.
                             </p>
