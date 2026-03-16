@@ -46,3 +46,13 @@ next-env.d.ts
 prisma/dev.db
 prisma/*.db
 prisma/prisma/
+
+# uploads
+public/uploads/*.mp4
+public/uploads/*.mov
+public/uploads/*.avi
+public/uploads/*.zip
+public/uploads/*.7z
+public/uploads/*.tar
+public/uploads/*.gz
+
