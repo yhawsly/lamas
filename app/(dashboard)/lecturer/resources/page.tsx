@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Pagination from "@/components/ui/Pagination";
+import Modal from "@/components/ui/Modal";
+import SearchableSelect from "@/components/ui/SearchableSelect";
 
 interface Resource {
     id: number;
@@ -20,9 +22,9 @@ const typeIcon: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-    PENDING: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    APPROVED: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    REJECTED: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+    PENDING: "bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20",
+    APPROVED: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20",
+    REJECTED: "bg-rose-100 text-rose-800 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20",
 };
 
 export default function LecturerResourcesPage() {
@@ -38,12 +40,15 @@ export default function LecturerResourcesPage() {
     // Form state
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const [type, setType] = useState("PDF");
     const [file, setFile] = useState<File | null>(null);
 
     // Search & Filter state for 'Shared' tab
     const [searchQuery, setSearchQuery] = useState("");
     const [typeFilter, setTypeFilter] = useState("ALL");
+
+    const [modal, setModal] = useState<{ isOpen: boolean; type: "alert" | "confirm"; title: string; message: string; onConfirm?: () => void }>({ isOpen: false, type: "alert", title: "", message: "" });
+    const showAlert = (title: string, message: string) => setModal({ isOpen: true, type: "alert", title, message });
+    const showConfirm = (title: string, message: string, onConfirm: () => void) => setModal({ isOpen: true, type: "confirm", title, message, onConfirm });
 
     const fetchMyResources = async (page: number) => {
         setMyLoading(true);
@@ -87,7 +92,7 @@ export default function LecturerResourcesPage() {
         e.preventDefault();
 
         if (!file) {
-            alert("Please select a file to upload.");
+            showAlert("Action Required", "Please select a file to upload.");
             return;
         }
 
@@ -102,7 +107,7 @@ export default function LecturerResourcesPage() {
                 method: "POST",
                 body: fileData
             });
-            const { url: uploadedUrl, error: uploadErr } = await uploadRes.json();
+            const { url: uploadedUrl, format: detectedFormat, error: uploadErr } = await uploadRes.json();
 
             if (!uploadRes.ok) throw new Error(uploadErr || "File upload failed");
 
@@ -110,13 +115,12 @@ export default function LecturerResourcesPage() {
             const res = await fetch("/api/resources", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title, description, type, url: uploadedUrl }),
+                body: JSON.stringify({ title, description, type: detectedFormat || "OTHER", url: uploadedUrl }),
             });
 
             if (res.ok) {
                 setTitle("");
                 setDescription("");
-                setType("PDF");
                 setFile(null);
 
                 // Reset file input element
@@ -124,34 +128,35 @@ export default function LecturerResourcesPage() {
                 if (fileInput) fileInput.value = "";
 
                 fetchMyResources(1);
-                alert("✅ Resource submitted for review!");
+                showAlert("Success", "Resource submitted for review!");
             } else {
                 const { error } = await res.json();
-                alert(error || "Submission failed");
+                showAlert("Error", error || "Submission failed");
             }
         } catch (error: unknown) {
             console.error("Upload process error", error);
             const msg = error instanceof Error ? error.message : "Failed to upload file";
-            alert(msg);
+            showAlert("Upload Error", msg);
         } finally {
             setUploadingFile(false);
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm("Are you sure you want to delete this resource?")) return;
-        try {
-            const res = await fetch(`/api/resources/${id}`, { method: "DELETE" });
-            if (res.ok) {
-                fetchMyResources(myPagination.page);
-            } else {
-                const { error } = await res.json();
-                alert(error || "Deletion failed");
+    const handleDelete = (id: number) => {
+        showConfirm("Confirm Deletion", "Are you sure you want to delete this resource?", async () => {
+            try {
+                const res = await fetch(`/api/resources/${id}`, { method: "DELETE" });
+                if (res.ok) {
+                    fetchMyResources(myPagination.page);
+                } else {
+                    const { error } = await res.json();
+                    showAlert("Error", error || "Deletion failed");
+                }
+            } catch (error) {
+                console.error("Delete error", error);
+                showAlert("Error", "Failed to delete resource");
             }
-        } catch (error) {
-            console.error("Delete error", error);
-            alert("Failed to delete resource");
-        }
+        });
     };
 
     const filteredShared = sharedResources.filter(r => {
@@ -206,17 +211,6 @@ export default function LecturerResourcesPage() {
                                         className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm resize-none" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest mb-1.5">Type *</label>
-                                    <select value={type} onChange={e => setType(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm">
-                                        <option value="PDF" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">PDF Document</option>
-                                        <option value="SLIDES" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Presentation Slides</option>
-                                        <option value="CODE" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Source Code / Repo</option>
-                                        <option value="VIDEO" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Video</option>
-                                        <option value="LINK" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">External Link</option>
-                                        <option value="OTHER" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Other</option>
-                                    </select>
-                                </div>
-                                <div>
                                     <label className="block text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest mb-1.5">File *</label>
                                     <input type="file" id="file-upload" onChange={e => setFile(e.target.files?.[0] || null)} required className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/5 text-slate-500 dark:text-white/50 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-blue-500/10 file:text-blue-500 hover:file:bg-blue-500/20" />
                                 </div>
@@ -251,6 +245,12 @@ export default function LecturerResourcesPage() {
                                                     <span className="w-1 h-1 rounded-full bg-slate-200 dark:bg-white/10" />
                                                     <span className="text-[10px] text-slate-400 dark:text-white/20">{new Date(r.createdAt).toLocaleDateString()}</span>
                                                 </div>
+                                                {r.status === "REJECTED" && (r as any).feedback && (
+                                                    <div className="mt-3 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20">
+                                                        <div className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-1">Feedback</div>
+                                                        <div className="text-xs text-rose-400">{(r as any).feedback}</div>
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="flex items-center gap-3 flex-shrink-0">
                                                 <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${statusColors[r.status] || ""}`}>{r.status}</span>
@@ -293,15 +293,19 @@ export default function LecturerResourcesPage() {
                                 placeholder="Search resources by title, description or author..."
                                 className="w-full pl-11 pr-4 py-3 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 text-sm shadow-sm" />
                         </div>
-                        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
-                            className="px-4 py-3 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/40 text-sm min-w-[140px] shadow-sm">
-                            <option value="ALL" className="bg-white dark:bg-slate-900">All Types</option>
-                            <option value="PDF" className="bg-white dark:bg-slate-900">PDF Document</option>
-                            <option value="SLIDES" className="bg-white dark:bg-slate-900">Presentation Slides</option>
-                            <option value="CODE" className="bg-white dark:bg-slate-900">Source Code</option>
-                            <option value="VIDEO" className="bg-white dark:bg-slate-900">Video</option>
-                            <option value="LINK" className="bg-white dark:bg-slate-900">Links</option>
-                        </select>
+                        <SearchableSelect
+                            value={typeFilter}
+                            onChange={val => setTypeFilter(String(val))}
+                            placeholder="All Types"
+                            options={[
+                                { label: "All Types", value: "ALL" },
+                                { label: "PDF Document", value: "PDF" },
+                                { label: "Presentation Slides", value: "SLIDES" },
+                                { label: "Source Code", value: "CODE" },
+                                { label: "Video", value: "VIDEO" },
+                                { label: "Links", value: "LINK" },
+                            ]}
+                        />
                     </div>
 
                     {sharedLoading ? (
@@ -374,6 +378,15 @@ export default function LecturerResourcesPage() {
                     )}
                 </div>
             )}
+
+            <Modal
+                isOpen={modal.isOpen}
+                onClose={() => setModal(p => ({ ...p, isOpen: false }))}
+                title={modal.title}
+                message={modal.message}
+                type={modal.type}
+                onConfirm={modal.onConfirm}
+            />
         </div>
     );
 }

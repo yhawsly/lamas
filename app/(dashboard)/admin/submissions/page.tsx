@@ -1,11 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
+import SearchableSelect from "@/components/ui/SearchableSelect";
 
 const statusColors: Record<string, string> = {
-    SUBMITTED: "bg-green-500/20 text-green-300",
-    LATE: "bg-red-500/20 text-red-300",
-    PENDING: "bg-yellow-500/20 text-yellow-300",
-    DRAFT: "bg-slate-500/20 text-slate-300",
+    SUBMITTED: "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300",
+    LATE: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300",
+    PENDING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300",
+    DRAFT: "bg-slate-100 text-slate-800 dark:bg-slate-500/20 dark:text-slate-300",
 };
 
 export default function AdminSubmissionsPage() {
@@ -27,24 +28,35 @@ export default function AdminSubmissionsPage() {
                 <p className="mt-1" style={{ color: "var(--text-muted)" }}>Review and monitor all lecturer submissions</p>
             </div>
 
-            {/* Filters */}
-            <div className="flex flex-wrap gap-3 mb-6">
-                <select value={filter.status} onChange={e => setFilter(f => ({ ...f, status: e.target.value }))}
-                    className="px-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }}>
-                    <option value="">All Statuses</option>
-                    <option value="SUBMITTED">Submitted</option>
-                    <option value="LATE">Late</option>
-                    <option value="PENDING">Pending</option>
-                    <option value="DRAFT">Draft</option>
-                </select>
-                <select value={filter.type} onChange={e => setFilter(f => ({ ...f, type: e.target.value }))}
-                    className="px-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }}>
-                    <option value="">All Types</option>
-                    <option value="SEMESTER_CALENDAR">Semester Calendar</option>
-                    <option value="COURSE_TOPICS">Course Topics</option>
-                    <option value="OBSERVATION_REPORT">Observation Report</option>
-                </select>
-                <span className="text-sm self-center" style={{ color: "var(--text-muted)", marginLeft: "auto" }}>{submissions.length} records</span>
+            <div className="flex flex-wrap gap-3 mb-6 items-center">
+                <div className="w-44">
+                    <SearchableSelect
+                        value={filter.status}
+                        onChange={val => setFilter(f => ({ ...f, status: String(val) }))}
+                        placeholder="All Statuses"
+                        options={[
+                            { label: "All Statuses", value: "" },
+                            { label: "Submitted", value: "SUBMITTED" },
+                            { label: "Late", value: "LATE" },
+                            { label: "Pending", value: "PENDING" },
+                            { label: "Draft", value: "DRAFT" },
+                        ]}
+                    />
+                </div>
+                <div className="w-52">
+                    <SearchableSelect
+                        value={filter.type}
+                        onChange={val => setFilter(f => ({ ...f, type: String(val) }))}
+                        placeholder="All Types"
+                        options={[
+                            { label: "All Types", value: "" },
+                            { label: "Semester Calendar", value: "SEMESTER_CALENDAR" },
+                            { label: "Course Topics", value: "COURSE_TOPICS" },
+                            { label: "Observation Report", value: "OBSERVATION_REPORT" },
+                        ]}
+                    />
+                </div>
+                <span className="text-sm" style={{ color: "var(--text-muted)", marginLeft: "auto" }}>{submissions.length} records</span>
             </div>
 
             <div className="rounded-2xl p-6" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>

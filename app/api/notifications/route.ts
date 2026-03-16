@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { logAction } from "@/lib/audit";
 import { handleApiError } from "@/lib/api-error";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { ROLES, isAdmin, hasHodPrivileges } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
         if (!rateLimit.allowed) {
             return NextResponse.json(
                 { error: "Rate limit exceeded. Please try again later." },
-                { 
+                {
                     status: 429,
                     headers: {
                         'Retry-After': String(rateLimit.retryAfter || 900),
@@ -98,7 +99,7 @@ export async function POST(req: NextRequest) {
         if (!rateLimit.allowed) {
             return NextResponse.json(
                 { error: "Rate limit exceeded. Please try again later." },
-                { 
+                {
                     status: 429,
                     headers: {
                         'Retry-After': String(rateLimit.retryAfter || 900),
@@ -126,10 +127,11 @@ export async function POST(req: NextRequest) {
 
         const where: any = { isActive: true };
 
-        if (role === "LECTURER" || role === "HOD") {
+        if (role === ROLES.LECTURER || hasHodPrivileges(role) && !isAdmin(role)) {
             const currentUser = await prisma.user.findUnique({ where: { id: senderId } });
             if (!currentUser?.departmentId) {
-                if (!role.includes("ADMIN") && !targetUserId) {
+                // If the user has no department, they cannot brodcast.
+                if (!isAdmin(role) && !targetUserId) {
                     return NextResponse.json(
                         { error: "Department membership required for broadcasts" },
                         { status: 403 }
@@ -139,19 +141,25 @@ export async function POST(req: NextRequest) {
 
             if (targetUserId) {
                 where.id = parseInt(targetUserId);
-                if (role === "LECTURER" && currentUser?.departmentId) {
+                if (role === ROLES.LECTURER && currentUser?.departmentId) {
                     where.departmentId = currentUser.departmentId;
                 }
             } else {
-                where.role = "LECTURER";
+                if (role === ROLES.LECTURER) {
+                    return NextResponse.json(
+                        { error: "Lecturers are not permitted to send department broadcasts" },
+                        { status: 403 }
+                    );
+                }
+                where.role = ROLES.LECTURER;
                 if (currentUser?.departmentId) where.departmentId = currentUser.departmentId;
                 where.id = { not: senderId };
             }
-        } else if (["ADMIN", "SUPER_ADMIN"].includes(role)) {
+        } else if (isAdmin(role)) {
             if (targetUserId) {
                 where.id = parseInt(targetUserId);
             } else {
-                where.role = targetRole || { in: ["LECTURER", "HOD"] };
+                where.role = targetRole || { in: [ROLES.LECTURER, ROLES.HOD] };
             }
         } else {
             return NextResponse.json(

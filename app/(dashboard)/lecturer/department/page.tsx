@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Pagination from "@/components/ui/Pagination";
+import SearchableSelect from "@/components/ui/SearchableSelect";
 
 interface Colleague {
     id: number;
@@ -45,7 +46,19 @@ export default function LecturerDepartmentPage() {
 
     useEffect(() => {
         loadColleagues(1);
+        const savedMsg = localStorage.getItem("lamas_draft_lecturer_dept_msg");
+        if (savedMsg) setMessage(savedMsg);
+        const savedTarget = localStorage.getItem("lamas_draft_lecturer_dept_target");
+        if (savedTarget) setTargetId(savedTarget);
     }, []);
+
+    useEffect(() => {
+        localStorage.setItem("lamas_draft_lecturer_dept_msg", message);
+    }, [message]);
+
+    useEffect(() => {
+        localStorage.setItem("lamas_draft_lecturer_dept_target", targetId);
+    }, [targetId]);
 
     const filteredColleagues = colleagues.filter(c =>
         c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -73,6 +86,8 @@ export default function LecturerDepartmentPage() {
                 setStatus({ type: "success", text: "✅ Message sent successfully!" });
                 setMessage("");
                 setTargetId("ALL");
+                localStorage.removeItem("lamas_draft_lecturer_dept_msg");
+                localStorage.removeItem("lamas_draft_lecturer_dept_target");
             } else {
                 const err = await res.json();
                 setStatus({ type: "error", text: err.error || "Failed to send message." });
@@ -112,17 +127,15 @@ export default function LecturerDepartmentPage() {
                         <form onSubmit={handleSend} className="space-y-4">
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: "var(--text-muted)" }}>Recipient</label>
-                                <select
+                                <SearchableSelect
                                     value={targetId}
-                                    onChange={e => setTargetId(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }}>
-                                    <option value="ALL">Entire Department (Broadcast)</option>
-                                    <optgroup label="Direct Message">
-                                        {colleagues.map(c => (
-                                            <option key={c.id} value={c.id}>{c.name}</option>
-                                        ))}
-                                    </optgroup>
-                                </select>
+                                    onChange={val => setTargetId(String(val))}
+                                    placeholder="Entire Department (Broadcast)"
+                                    options={[
+                                        { label: "Entire Department (Broadcast)", value: "ALL" },
+                                        ...colleagues.map(c => ({ label: c.name, value: String(c.id) }))
+                                    ]}
+                                />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-white/40 uppercase tracking-widest mb-1.5">Message</label>

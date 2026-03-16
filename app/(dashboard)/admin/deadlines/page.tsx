@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import SearchableSelect from "@/components/ui/SearchableSelect";
 
 export default function AdminDeadlinesPage() {
     const [deadlines, setDeadlines] = useState<any[]>([]);
@@ -41,12 +42,15 @@ export default function AdminDeadlinesPage() {
                     <form onSubmit={createDeadline} className="space-y-4">
                         <div>
                             <label className="block text-sm mb-1.5" style={{ color: "var(--text-muted)" }}>Submission Type</label>
-                            <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }}>
-                                <option value="SEMESTER_CALENDAR">Semester Calendar</option>
-                                <option value="COURSE_TOPICS">Course Topics</option>
-                                <option value="OBSERVATION_REPORT">Observation Report</option>
-                            </select>
+                            <SearchableSelect
+                                value={form.type}
+                                onChange={val => setForm({ ...form, type: String(val) })}
+                                options={[
+                                    { label: "Semester Calendar", value: "SEMESTER_CALENDAR" },
+                                    { label: "Course Topics", value: "COURSE_TOPICS" },
+                                    { label: "Observation Report", value: "OBSERVATION_REPORT" },
+                                ]}
+                            />
                         </div>
                         <div>
                             <label className="block text-sm mb-1.5" style={{ color: "var(--text-muted)" }}>Label</label>

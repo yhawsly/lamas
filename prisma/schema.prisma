@@ -1,3 +1,7 @@
+// ==============================================================================
+// PRISMA SCHEMA DEFINITION
+// ==============================================================================
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,20 +11,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ==============================================================================
+// CORE & AUTHENTICATION
+// ==============================================================================
+
+/// User model representing any person registered in the system
 model User {
   id           Int       @id @default(autoincrement())
   name         String
   email        String    @unique
   passwordHash String
-  role         String    @default("LECTURER") // LECTURER | HOD | ADMIN | SUPER_ADMIN
+  /// Role: LECTURER | HOD | ADMIN | SUPER_ADMIN
+  role         String    @default("LECTURER")
   phone        String?
   isActive     Boolean   @default(true)
   lastLogin    DateTime?
   departmentId Int?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now()) @updatedAt
+  deletedAt    DateTime? // Soft delete support
 
-  department     Department?  @relation("UserDepartment", fields: [departmentId], references: [id])
-  hodDepartments Department[] @relation("HoDepartment")
-
+  // Relations
+  department     Department?     @relation("UserDepartment", fields: [departmentId], references: [id])
+  hodDepartments Department[]    @relation("HoDepartment")
   submissions    Submission[]
   notifications  Notification[]
   activityLogs   ActivityLog[]
@@ -29,110 +42,207 @@ model User {
   observing      Observation[]   @relation("ObserverUser")
   resources      Resource[]      @relation("LecturerResources")
   passwordResets PasswordReset[]
+  createdTerms   AcademicTerm[]
 
-  createdAt DateTime @default(now())
-
-  // Indexes for frequently queried fields
   @@index([departmentId])
   @@index([role])
   @@index([isActive])
 }
 
+/// Academic departments within the institution
 model Department {
-  id    Int    @id @default(autoincrement())
-  name  String
-  code  String @unique
-  hodId Int?
+  id        Int       @id @default(autoincrement())
+  name      String
+  code      String    @unique
+  hodId     Int?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  deletedAt DateTime?
 
+  // Relations
   hod       User?      @relation("HoDepartment", fields: [hodId], references: [id])
   users     User[]     @relation("UserDepartment")
   resources Resource[] @relation("DepartmentResources")
+  courses   Course[]
 }
 
+model PasswordReset {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ==============================================================================
+// ACADEMIC & CONTENT
+// ==============================================================================
+
+/// Educational resources uploaded by lecturers
 model Resource {
-  id           Int     @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   title        String
   description  String?
-  type         String // PDF | SLIDES | CODE | OTHER
+  /// Type: PDF | SLIDES | CODE | VIDEO | LINK | OTHER
+  type         String    @default("OTHER")
   url          String // Storage path or external link
-  status       String  @default("PENDING") // PENDING | APPROVED | REJECTED
+  /// Status: PENDING | APPROVED | REJECTED
+  status       String    @default("PENDING")
+  feedback     String? // Feedback from HOD upon rejection
   lecturerId   Int
   departmentId Int?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now()) @updatedAt
+  deletedAt    DateTime?
 
+  // Relations
   lecturer   User        @relation("LecturerResources", fields: [lecturerId], references: [id])
   department Department? @relation("DepartmentResources", fields: [departmentId], references: [id])
-  createdAt  DateTime    @default(now())
 
-  // Indexes for frequently queried fields
   @@index([lecturerId])
   @@index([departmentId])
   @@index([status])
 }
 
+/// Deadlines for academic submissions
 model Deadline {
-  id          Int          @id @default(autoincrement())
-  type        String // SEMESTER_CALENDAR | COURSE_TOPICS | OBSERVATION_REPORT
-  label       String
-  dueDate     DateTime
-  createdBy   Int
+  id        Int      @id @default(autoincrement())
+  /// Type: SEMESTER_CALENDAR | COURSE_TOPICS | OBSERVATION_REPORT
+  type      String
+  label     String
+  dueDate   DateTime
+  createdBy Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  // Relations
   submissions Submission[]
-  createdAt   DateTime     @default(now())
+  termId      Int?
+  term        AcademicTerm? @relation(fields: [termId], references: [id])
 }
 
+/// Accredited academic courses
+model Course {
+  id      Int       @id @default(autoincrement())
+  code    String    @unique // e.g. CS101
+  title   String // e.g. Intro to Computer Science
+  credits Int       @default(3)
+  deletedAt DateTime?
+
+  // Relations
+  departmentId Int
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+/// Specific academic periods (semesters/terms)
+model AcademicTerm {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique // e.g. Semester 1 2026/2027
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(false)
+
+  createdBy Int
+  admin     User @relation(fields: [createdBy], references: [id])
+
+  submissions  Submission[]
+  observations Observation[]
+  deadlines    Deadline[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+/// Lecturers academic submissions (calendars, topics, etc.)
 model Submission {
   id          Int       @id @default(autoincrement())
   lecturerId  Int
-  type        String // SEMESTER_CALENDAR | COURSE_TOPICS | OBSERVATION_REPORT
+  /// Type: SEMESTER_CALENDAR | COURSE_TOPICS | OBSERVATION_REPORT
+  type        String
   title       String
-  content     String? // JSON string
+  /// Content stored as JSON string
+  content     String?   
   filePath    String?
   deadlineId  Int?
-  status      String    @default("PENDING") // PENDING | SUBMITTED | LATE | DRAFT
+  /// Status: DRAFT | PENDING | SUBMITTED | LATE | REVIEWED
+  status      String    @default("PENDING")
+  feedback    String? // Feedback on the submission
   submittedAt DateTime?
   createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
 
+  // Relations
   lecturer User                @relation(fields: [lecturerId], references: [id])
   deadline Deadline?           @relation(fields: [deadlineId], references: [id])
+  termId   Int?
+  term     AcademicTerm?       @relation(fields: [termId], references: [id])
   versions SubmissionVersion[]
 
-  // Indexes for frequently queried fields
   @@index([lecturerId])
   @@index([status])
   @@index([deadlineId])
+  @@index([termId])
   @@index([lecturerId, status])
 }
 
 model SubmissionVersion {
   id           Int      @id @default(autoincrement())
   submissionId Int
-  snapshot     String // JSON string
+  /// Snapshot stored as JSON string
+  snapshot     String   
   isDraft      Boolean  @default(true)
   savedAt      DateTime @default(now())
 
+  // Relations
   submission Submission @relation(fields: [submissionId], references: [id])
 }
 
+// ==============================================================================
+// OBSERVATION & ATTENDANCE
+// ==============================================================================
+
+/// Classroom observation and peer review records
 model Observation {
-  id           Int      @id @default(autoincrement())
-  lecturerId   Int
-  observerId   Int
-  sessionDate  DateTime
-  courseCode   String
-  strengths    String? // JSON string
-  improvements String? // JSON string
-  rating       Int?
-  status       String   @default("PENDING") // PENDING | COMPLETED | REVIEWED
-  createdAt    DateTime @default(now())
+  id                Int      @id @default(autoincrement())
+  lecturerId        Int
+  observerId        Int
+  sessionDate       DateTime
+  courseCode        String
+  /// Strengths stored as JSON string
+  strengths         String?   
+  /// Improvements stored as JSON string
+  improvements      String?   
+  ratingKnowledge   Int? // Specific rubric score (1-5)
+  ratingEngagement  Int? // Specific rubric score (1-5)
+  ratingTech        Int? // Specific rubric score (1-5)
+  ratingPunctuality Int? // Specific rubric score (1-5)
+  /// Status: PENDING | COMPLETED | REVIEWED
+  status            String   @default("PENDING")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @default(now()) @updatedAt
 
-  lecturer User @relation("ObservedLecturer", fields: [lecturerId], references: [id])
-  observer User @relation("ObserverUser", fields: [observerId], references: [id])
+  // Relations
+  lecturer User          @relation("ObservedLecturer", fields: [lecturerId], references: [id])
+  observer User          @relation("ObserverUser", fields: [observerId], references: [id])
+  termId   Int?
+  term     AcademicTerm? @relation(fields: [termId], references: [id])
 
-  // Indexes for frequently queried fields
   @@index([lecturerId])
   @@index([observerId])
   @@index([status])
+  @@index([termId])
 }
 
+/// Scheduled teaching sessions
 model ClassSession {
   id          Int      @id @default(autoincrement())
   lecturerId  Int
@@ -142,24 +252,35 @@ model ClassSession {
   qrToken     String   @unique @default(uuid())
   qrExpiresAt DateTime
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 
+  // Relations
   lecturer   User         @relation(fields: [lecturerId], references: [id])
   attendance Attendance[]
 
-  // Indexes for frequently queried fields
   @@index([lecturerId])
   @@index([qrToken])
 }
 
+/// Student attendance records for specific sessions
 model Attendance {
   id            Int      @id @default(autoincrement())
   sessionId     Int
   studentMatric String
-  method        String   @default("qr")
+  /// Method: QR | MANUAL
+  method        String   @default("QR")
   checkedInAt   DateTime @default(now())
 
+  // Relations
   session ClassSession @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId])
+  @@index([studentMatric])
 }
+
+// ==============================================================================
+// SYSTEM LOGGING & NOTIFICATIONS
+// ==============================================================================
 
 model Notification {
   id        Int      @id @default(autoincrement())
@@ -168,47 +289,40 @@ model Notification {
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 
+  // Relations
   user User @relation(fields: [userId], references: [id])
 
-  // Indexes for frequently queried fields
   @@index([userId])
   @@index([read])
   @@index([userId, read])
 }
 
+/// Audit trail for system activities
 model ActivityLog {
   id        Int      @id @default(autoincrement())
   userId    Int
   action    String
-  detail    String? // JSON string
+  /// Detail stored as JSON string
+  detail    String?   
   ip        String?
   createdAt DateTime @default(now())
 
+  // Relations
   user User @relation(fields: [userId], references: [id])
 
-  // Indexes for frequently queried fields
   @@index([userId])
   @@index([action])
   @@index([createdAt])
 }
 
+/// Generated system reports
 model Report {
   id          Int      @id @default(autoincrement())
   generatedBy Int
-  type        String // lecturer_summary | department_compliance | audit_report
+  /// Type: lecturer_summary | department_compliance | audit_report
+  type        String
   filePath    String
-  filters     String? // JSON string
+  /// Filters stored as JSON string
+  filters     String?   
   generatedAt DateTime @default(now())
-}
-
-model PasswordReset {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-  @@index([expiresAt])
 }

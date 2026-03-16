@@ -4,6 +4,16 @@ import { prisma } from "@/lib/prisma";
 import { logAction } from "@/lib/audit";
 import { handleApiError } from "@/lib/api-error";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { ROLES, hasHodPrivileges } from "@/lib/permissions";
+import { z } from "zod";
+
+const SubmissionSchema = z.object({
+    type: z.enum(["SEMESTER_CALENDAR", "COURSE_TOPICS", "OBSERVATION_REPORT"]),
+    title: z.string().min(3).max(255),
+    content: z.any().optional(),
+    deadlineId: z.number().int().positive().optional().nullable(),
+    isDraft: z.boolean().optional().default(false),
+});
 
 export const dynamic = "force-dynamic";
 
@@ -11,15 +21,13 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
     try {
         // Rate limiting: 20 requests per 15 minutes
-        const rateLimit = checkRateLimit(req, 'general');
+        const rateLimit = checkRateLimit(req, "general");
         if (!rateLimit.allowed) {
             return NextResponse.json(
                 { error: "Rate limit exceeded. Please try again later." },
-                { 
+                {
                     status: 429,
-                    headers: {
-                        'Retry-After': String(rateLimit.retryAfter || 900),
-                    }
+                    headers: { "Retry-After": String(rateLimit.retryAfter || 900) },
                 }
             );
         }
@@ -48,9 +56,9 @@ export async function GET(req: NextRequest) {
         }
 
         const where: any = {};
-        if (role === "LECTURER") {
+        if (role === ROLES.LECTURER) {
             where.lecturerId = userId;
-        } else if (role === "HOD") {
+        } else if (hasHodPrivileges(role) && !["ADMIN", "SUPER_ADMIN"].includes(role)) {
             const currentUser = await prisma.user.findUnique({ where: { id: userId } });
             if (currentUser?.departmentId) {
                 where.lecturer = { departmentId: currentUser.departmentId };
@@ -97,7 +105,7 @@ export async function POST(req: NextRequest) {
         if (!rateLimit.allowed) {
             return NextResponse.json(
                 { error: "Rate limit exceeded. Please try again later." },
-                { 
+                {
                     status: 429,
                     headers: {
                         'Retry-After': String(rateLimit.retryAfter || 900),
@@ -113,14 +121,17 @@ export async function POST(req: NextRequest) {
 
         const userId = parseInt(session.user.id!);
         const body = await req.json();
-        const { type, title, content, deadlineId, isDraft } = body;
-
-        if (!type || !title) {
+        
+        // Zod validation
+        const validation = SubmissionSchema.safeParse(body);
+        if (!validation.success) {
             return NextResponse.json(
-                { error: "Missing required fields: type, title" },
+                { error: "Validation failed", details: validation.error.format() },
                 { status: 400 }
             );
         }
+
+        const { type, title, content, deadlineId, isDraft } = validation.data;
 
         // Check if submission is late
         let status = isDraft ? "DRAFT" : "SUBMITTED";
@@ -129,6 +140,8 @@ export async function POST(req: NextRequest) {
             if (deadline && new Date() > deadline.dueDate) status = "LATE";
         }
 
+        const activeTerm = await prisma.academicTerm.findFirst({ where: { isActive: true } });
+
         const submission = await prisma.submission.create({
             data: {
                 lecturerId: userId,
@@ -136,6 +149,7 @@ export async function POST(req: NextRequest) {
                 title,
                 content: content ? JSON.stringify(content) : null,
                 deadlineId: deadlineId || null,
+                termId: activeTerm?.id || null,
                 status,
                 submittedAt: isDraft ? null : new Date(),
             },

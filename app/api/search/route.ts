@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { ROLES, hasHodPrivileges } from "@/lib/permissions";
 
 export async function GET(req: NextRequest) {
     const session = await auth();
@@ -21,14 +22,14 @@ export async function GET(req: NextRequest) {
         const lecturerWhere: any = { name: { contains: q }, role: "LECTURER", isActive: true };
         const resourceWhere: any = { title: { contains: q }, status: "APPROVED" };
 
-        if (role === "LECTURER") {
+        if (role === ROLES.LECTURER) {
             submissionWhere.lecturerId = userId;
             // Lecturers can search all approved resources, keep resourceWhere as is
             // Lecturers can search colleagues in their department
             if (departmentId) {
                 lecturerWhere.departmentId = departmentId;
             }
-        } else if (role === "HOD" && departmentId) {
+        } else if (hasHodPrivileges(role) && !["ADMIN", "SUPER_ADMIN"].includes(role) && departmentId) {
             submissionWhere.lecturer = { departmentId };
             lecturerWhere.departmentId = departmentId;
             resourceWhere.OR = [

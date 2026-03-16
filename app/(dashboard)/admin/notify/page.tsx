@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import SearchableSelect from "@/components/ui/SearchableSelect";
 
 export default function AdminNotifyPage() {
     const [form, setForm] = useState({ message: "", targetRole: "" });
@@ -7,13 +8,30 @@ export default function AdminNotifyPage() {
     const [result, setResult] = useState<{ sent: number } | null>(null);
     const [error, setError] = useState("");
 
+    useEffect(() => {
+        const saved = localStorage.getItem("lamas_draft_admin_notify");
+        if (saved) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            try { setForm(JSON.parse(saved)); } catch {}
+        }
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem("lamas_draft_admin_notify", JSON.stringify(form));
+    }, [form]);
+
     async function handleSend(e: React.FormEvent) {
         e.preventDefault(); setSending(true); setError("");
         const res = await fetch("/api/notifications", {
             method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ message: form.message, targetRole: form.targetRole || undefined }),
         });
-        if (res.ok) { const d = await res.json(); setResult(d); setForm({ message: "", targetRole: "" }); }
+        if (res.ok) { 
+            const d = await res.json(); 
+            setResult(d); 
+            setForm({ message: "", targetRole: "" }); 
+            localStorage.removeItem("lamas_draft_admin_notify");
+        }
         else setError("Failed to send notification.");
         setSending(false);
     }
@@ -41,13 +59,16 @@ export default function AdminNotifyPage() {
                         {error && <div className="p-3 rounded-xl text-sm" style={{ backgroundColor: "rgba(239, 68, 68, 0.1)", borderColor: "rgba(239, 68, 68, 0.3)", color: "#ef4444" }}>{error}</div>}
                         <div>
                             <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-muted)" }}>Target Audience</label>
-                            <select value={form.targetRole} onChange={e => setForm(f => ({ ...f, targetRole: e.target.value }))}
-                                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2"
-                                style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }}>
-                                <option value="">All Lecturers & HoDs</option>
-                                <option value="LECTURER">Lecturers Only</option>
-                                <option value="HOD">Heads of Department Only</option>
-                            </select>
+                            <SearchableSelect
+                                value={form.targetRole}
+                                onChange={val => setForm(f => ({ ...f, targetRole: String(val) }))}
+                                placeholder="All Lecturers & HoDs"
+                                options={[
+                                    { label: "All Lecturers & HoDs", value: "" },
+                                    { label: "Lecturers Only", value: "LECTURER" },
+                                    { label: "Heads of Department Only", value: "HOD" },
+                                ]}
+                            />
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-muted)" }}>Message</label>

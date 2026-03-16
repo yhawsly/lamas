@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { handleApiError } from "@/lib/api-error";
+import { isAdmin, hasHodPrivileges } from "@/lib/permissions";
 
 export async function GET(req: NextRequest) {
     try {
@@ -11,7 +12,7 @@ export async function GET(req: NextRequest) {
         }
 
         const role = (session.user as any).role;
-        if (role !== "ADMIN" && role !== "SUPER_ADMIN" && role !== "HOD") {
+        if (!hasHodPrivileges(role)) {
             return NextResponse.json(
                 { error: "You do not have permission to view audit logs" },
                 { status: 403 }
@@ -35,7 +36,7 @@ export async function GET(req: NextRequest) {
         const where: any = {};
         if (actionQuery) where.action = actionQuery;
 
-        if (role === "HOD") {
+        if (hasHodPrivileges(role) && !isAdmin(role)) {
             const departmentId = (session.user as any).departmentId;
             if (departmentId) {
                 where.user = { departmentId };
@@ -50,10 +51,10 @@ export async function GET(req: NextRequest) {
         if (userIdQuery) {
             const targetId = parseInt(userIdQuery);
             // Security check: HOD can only see logs for their department members
-            if (role === "HOD") {
-                const targetUser = await prisma.user.findUnique({ 
-                    where: { id: targetId }, 
-                    select: { departmentId: true } 
+            if (hasHodPrivileges(role) && !isAdmin(role)) {
+                const targetUser = await prisma.user.findUnique({
+                    where: { id: targetId },
+                    select: { departmentId: true }
                 });
                 if (targetUser?.departmentId !== (session.user as any).departmentId) {
                     return NextResponse.json(

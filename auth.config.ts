@@ -15,7 +15,10 @@ export const authConfig = {
             const isLoggedIn = !!auth?.user;
             const isOnDashboard = nextUrl.pathname.startsWith("/admin") ||
                 nextUrl.pathname.startsWith("/hod") ||
-                nextUrl.pathname.startsWith("/lecturer");
+                nextUrl.pathname.startsWith("/lecturer") ||
+                nextUrl.pathname.startsWith("/api/admin") ||
+                nextUrl.pathname.startsWith("/api/hod") ||
+                nextUrl.pathname.startsWith("/api/lecturer");
 
             if (isOnDashboard) {
                 if (isLoggedIn) return true;

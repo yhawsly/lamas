@@ -10,10 +10,10 @@ interface Deadline { id: number; label: string; dueDate: string; type: string; }
 interface Notification { id: number; message: string; read: boolean; createdAt: string; }
 
 const statusColors: Record<string, string> = {
-    SUBMITTED: "bg-green-500/20 text-green-300",
-    LATE: "bg-red-500/20 text-red-300",
-    PENDING: "bg-yellow-500/20 text-yellow-300",
-    DRAFT: "bg-slate-500/20 text-slate-300",
+    SUBMITTED: "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300",
+    LATE: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300",
+    PENDING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300",
+    DRAFT: "bg-slate-100 text-slate-800 dark:bg-slate-500/20 dark:text-slate-300",
 };
 
 export default function LecturerDashboard() {

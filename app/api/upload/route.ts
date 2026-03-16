@@ -33,9 +33,21 @@ export async function POST(req: NextRequest) {
         // Save file locally (in production you would upload to S3 here)
         fs.writeFileSync(filePath, buffer);
 
-        // Return the public URL
+        // Return the public URL and detected formats
         const publicUrl = `/uploads/${uniqueFileName}`;
-        return NextResponse.json({ url: publicUrl });
+        let formatStr = "OTHER";
+        // Attempt simple format grouping
+        const ft = file.type.toLowerCase();
+        if (ft.includes("pdf")) formatStr = "PDF";
+        else if (ft.includes("image") || ft.includes("powerpoint") || ft.includes("presentation") || fileExt === ".pptx") formatStr = "SLIDES";
+        else if (ft.includes("text/plain") || fileExt === ".js" || fileExt === ".py" || fileExt === ".ts" || fileExt === ".zip") formatStr = "CODE";
+
+        return NextResponse.json({
+            url: publicUrl,
+            fileType: file.type,
+            format: formatStr, // Standardized grouping for the system
+            extension: fileExt.replace(".", "").toUpperCase()
+        });
 
     } catch (e: any) {
         console.error("Upload error:", e);

@@ -5,6 +5,8 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     LineChart, Line, PieChart, Pie, Cell, Legend,
 } from "recharts";
+import ComplianceChart from "@/components/analytics/ComplianceChart";
+import ObservationRadar from "@/components/analytics/ObservationRadar";
 
 interface Analytics {
     summary: { totalLecturers: number; totalSubmissions: number; totalDeadlines: number; avgScore: number; atRiskCount: number };
@@ -67,8 +69,8 @@ export default function AdminDashboard() {
                     <button key={t} onClick={() => setTab(t)}
                         className="px-4 py-2 rounded-lg text-sm font-medium capitalize transition"
                         style={{
-                          backgroundColor: tab === t ? "var(--primary)" : "transparent",
-                          color: tab === t ? "white" : "var(--text-muted)"
+                            backgroundColor: tab === t ? "var(--primary)" : "transparent",
+                            color: tab === t ? "white" : "var(--text-muted)"
                         }}>
                         {t === "atRisk" ? "⚠️ At Risk" : t === "trend" ? "📈 Trend" : t === "lecturers" ? "👥 Scores" : "📊 Overview"}
                     </button>
@@ -78,9 +80,19 @@ export default function AdminDashboard() {
             {/* Overview Tab — Charts */}
             {tab === "overview" && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="rounded-2xl p-6" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
+                        <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Global Submission Statuses</h3>
+                        <ComplianceChart />
+                    </div>
+
+                    <div className="rounded-2xl p-6" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
+                        <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Average Observation Rubrics</h3>
+                        <ObservationRadar />
+                    </div>
+
                     {/* Compliance Distribution */}
                     <div className="rounded-2xl p-6" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
-                        <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Compliance Score Distribution</h3>
+                        <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Lecturer Final Compliance Scores</h3>
                         <ResponsiveContainer width="100%" height={260}>
                             <PieChart>
                                 <Pie data={[
@@ -122,7 +134,7 @@ export default function AdminDashboard() {
                             <div className="flex gap-3">
                                 <input value={notify.message} onChange={e => setNotify(n => ({ ...n, message: e.target.value }))}
                                     placeholder="Type a message to broadcast to all lecturers..."
-                                    className="flex-1 px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 text-sm" 
+                                    className="flex-1 px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 text-sm"
                                     style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
                                 <button onClick={sendBroadcast} disabled={!notify.message}
                                     className="px-5 py-2.5 rounded-xl text-white font-medium text-sm transition disabled:opacity-40"

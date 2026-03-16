@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { handleApiError } from "@/lib/api-error";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { ROLES, hasHodPrivileges } from "@/lib/permissions";
 
 // GET /api/observations
 export async function GET(req?: any) {
@@ -13,7 +14,7 @@ export async function GET(req?: any) {
             if (!rateLimit.allowed) {
                 return NextResponse.json(
                     { error: "Rate limit exceeded. Please try again later." },
-                    { 
+                    {
                         status: 429,
                         headers: {
                             'Retry-After': String(rateLimit.retryAfter || 900),
@@ -42,9 +43,9 @@ export async function GET(req?: any) {
         const skip = (page - 1) * limit;
 
         let where: any = {};
-        if (role === "LECTURER") {
+        if (role === ROLES.LECTURER) {
             where = { OR: [{ lecturerId: userId }, { observerId: userId }] };
-        } else if (role === "HOD" && departmentId) {
+        } else if (hasHodPrivileges(role) && !["ADMIN", "SUPER_ADMIN"].includes(role) && departmentId) {
             where = {
                 OR: [
                     { lecturer: { departmentId: departmentId } },
@@ -81,19 +82,24 @@ export async function GET(req?: any) {
     }
 }
 
-// POST /api/observations — Assign an observation
+// POST /api/observations — Assign an observation (HOD/Admin only)
 export async function POST(req: NextRequest) {
     try {
-        const session = await auth();
-        if (!session || !session.user) {
+        const rateLimit = checkRateLimit(req, "general");
+        if (!rateLimit.allowed) {
             return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
+                { error: "Rate limit exceeded. Please try again later." },
+                { status: 429, headers: { "Retry-After": String(rateLimit.retryAfter || 900) } }
             );
         }
 
+        const session = await auth();
+        if (!session || !session.user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
         const role = (session.user as any).role;
-        if (!["HOD", "ADMIN", "SUPER_ADMIN"].includes(role)) {
+        if (!hasHodPrivileges(role)) {
             return NextResponse.json(
                 { error: "You do not have permission to assign observations" },
                 { status: 403 }
@@ -110,12 +116,22 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        if (lecturerId === observerId) {
+            return NextResponse.json(
+                { error: "Lecturer and observer cannot be the same person" },
+                { status: 400 }
+            );
+        }
+
+        const activeTerm = await prisma.academicTerm.findFirst({ where: { isActive: true } });
+
         const observation = await prisma.observation.create({
             data: {
                 lecturerId,
                 observerId,
                 sessionDate: new Date(sessionDate),
                 courseCode,
+                termId: activeTerm?.id || null,
                 status: "PENDING",
             },
         });

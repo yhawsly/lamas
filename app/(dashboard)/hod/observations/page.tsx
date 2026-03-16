@@ -1,13 +1,20 @@
 "use client";
 import { useEffect, useState } from "react";
+import SearchableSelect from "@/components/ui/SearchableSelect";
 
 export default function HoDObservationsPage() {
     const [observations, setObservations] = useState<any[]>([]);
+    const [courses, setCourses] = useState<any[]>([]);
+    const [lecturers, setLecturers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [form, setForm] = useState({ lecturerId: "", observerId: "", sessionDate: "", courseCode: "" });
     const [msg, setMsg] = useState("");
 
-    useEffect(() => { fetch("/api/observations").then(r => r.json()).then(d => { setObservations(Array.isArray(d) ? d : []); setLoading(false); }); }, []);
+    useEffect(() => {
+        fetch("/api/observations").then(r => r.json()).then(d => { setObservations(Array.isArray(d) ? d : []); setLoading(false); });
+        fetch("/api/courses").then(r => r.json()).then(d => setCourses(Array.isArray(d) ? d : []));
+        fetch("/api/lecturers").then(r => r.json()).then(d => setLecturers(Array.isArray(d) ? d : []));
+    }, []);
 
     async function assign(e: React.FormEvent) {
         e.preventDefault();
@@ -20,7 +27,7 @@ export default function HoDObservationsPage() {
         setTimeout(() => setMsg(""), 3000);
     }
 
-    const statusColors: Record<string, string> = { PENDING: "bg-yellow-500/20 text-yellow-300", COMPLETED: "bg-green-500/20 text-green-300", REVIEWED: "bg-blue-500/20 text-blue-300" };
+    const statusColors: Record<string, string> = { PENDING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300", COMPLETED: "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300", REVIEWED: "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300" };
 
     return (
         <div className="max-w-5xl mx-auto">
@@ -30,11 +37,34 @@ export default function HoDObservationsPage() {
                     <h3 className="font-semibold mb-5" style={{ color: "var(--text-primary)" }}>➕ Assign Observation</h3>
                     {msg && <div className={`mb-4 p-3 rounded-xl text-sm border`} style={{ backgroundColor: msg.startsWith("✅") ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)", borderColor: msg.startsWith("✅") ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)", color: msg.startsWith("✅") ? "#10b981" : "#ef4444" }}>{msg}</div>}
                     <form onSubmit={assign} className="space-y-4">
-                        {[{ label: "Lecturer to Observe (User ID)", key: "lecturerId", ph: "e.g. 5" }, { label: "Assigned Observer (User ID)", key: "observerId", ph: "e.g. 6" }, { label: "Course Code", key: "courseCode", ph: "e.g. CS101" }].map(f => (
-                            <div key={f.key}><label className="block text-sm mb-1.5" style={{ color: "var(--text-muted)" }}>{f.label}</label>
-                                <input value={(form as any)[f.key]} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))} required placeholder={f.ph}
-                                    className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} /></div>
-                        ))}
+                        <div>
+                            <label className="block text-sm mb-1.5" style={{ color: "var(--text-muted)" }}>Lecturer to Observe</label>
+                            <SearchableSelect
+                                value={form.lecturerId}
+                                onChange={(val) => setForm(p => ({ ...p, lecturerId: String(val) }))}
+                                options={lecturers.map(l => ({ label: `${l.name} (${l.email})`, value: String(l.id) }))}
+                                placeholder="Select Lecturer..."
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm mb-1.5" style={{ color: "var(--text-muted)" }}>Assigned Observer</label>
+                            <SearchableSelect
+                                value={form.observerId}
+                                onChange={(val) => setForm(p => ({ ...p, observerId: String(val) }))}
+                                options={lecturers.map(l => ({ label: `${l.name} (${l.email})`, value: String(l.id) }))}
+                                placeholder="Select Observer..."
+                                disabledValues={form.lecturerId ? [form.lecturerId] : []}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm mb-1.5" style={{ color: "var(--text-muted)" }}>Course Code</label>
+                            <SearchableSelect
+                                value={form.courseCode}
+                                onChange={(val) => setForm(p => ({ ...p, courseCode: String(val) }))}
+                                options={courses.map(c => ({ label: `${c.code} - ${c.title}`, value: c.code }))}
+                                placeholder="Search Course..."
+                            />
+                        </div>
                         <div><label className="block text-sm mb-1.5" style={{ color: "var(--text-muted)" }}>Session Date</label>
                             <input type="date" value={form.sessionDate} onChange={e => setForm(p => ({ ...p, sessionDate: e.target.value }))} required
                                 className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} /></div>

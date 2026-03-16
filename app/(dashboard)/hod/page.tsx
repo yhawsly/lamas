@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import OnboardingCard from "@/components/ui/OnboardingCard";
+import SearchableSelect from "@/components/ui/SearchableSelect";
+import ComplianceChart from "@/components/analytics/ComplianceChart";
+import ObservationRadar from "@/components/analytics/ObservationRadar";
 
 interface LecturerScore {
     lecturerId: number; lecturerName: string; email: string;
@@ -15,9 +18,13 @@ export default function HoDDashboard() {
     const [obsMsg, setObsMsg] = useState("");
     const [tab, setTab] = useState<"overview" | "observations" | "notify">("overview");
     const [notify, setNotify] = useState({ message: "", sent: false });
+    const [courses, setCourses] = useState<any[]>([]);
+    const [lecturers, setLecturers] = useState<any[]>([]);
 
     useEffect(() => {
         fetch("/api/admin/analytics").then(r => r.json()).then(d => { setData(d); setLoading(false); });
+        fetch("/api/courses").then(r => r.json()).then(d => setCourses(Array.isArray(d) ? d : []));
+        fetch("/api/lecturers").then(r => r.json()).then(d => setLecturers(Array.isArray(d) ? d : []));
     }, []);
 
     async function assignObservation(e: React.FormEvent) {
@@ -80,7 +87,7 @@ export default function HoDDashboard() {
             </div>
 
             {/* HOD Onboarding */}
-            <OnboardingCard 
+            <OnboardingCard
                 role="HOD"
                 steps={[
                     { title: "Review Resources", description: "Review and approve pending resources from your department lecturers.", actionLabel: "Review Resources", href: "/lecturer/resources", completed: scores.length > 0 },
@@ -96,8 +103,8 @@ export default function HoDDashboard() {
                     <button key={t} onClick={() => setTab(t)}
                         className="px-6 py-2.5 rounded-xl text-sm font-semibold capitalize transition-all duration-300"
                         style={{
-                          backgroundColor: tab === t ? "var(--primary)" : "transparent",
-                          color: tab === t ? "white" : "var(--text-muted)"
+                            backgroundColor: tab === t ? "var(--primary)" : "transparent",
+                            color: tab === t ? "white" : "var(--text-muted)"
                         }}>
                         {t === "overview" ? "Lecturer Scores" : t === "notify" ? "Broadcast" : "Assign Observation"}
                     </button>
@@ -108,39 +115,52 @@ export default function HoDDashboard() {
             <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
                 {/* Lecturer Scores */}
                 {tab === "overview" && (
-                    <div className="p-8">
-                        <h3 className="font-bold text-lg mb-6 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-                            <span>📊</span> Lecturer Compliance Rankings
-                        </h3>
-                        <div className="space-y-4">
-                            {scores.sort((a, b) => b.score - a.score).map((s, i) => (
-                                <div key={s.lecturerId} className="flex items-center gap-4 p-5 rounded-2xl hover:translate-x-1 transition-all" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)" }}>
-                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shadow-lg" style={{
-                                      backgroundColor: i === 0 ? "rgba(251, 191, 36, 0.1)" : i === 1 ? "rgba(148, 163, 184, 0.1)" : i === 2 ? "rgba(234, 88, 12, 0.1)" : "var(--bg-border)",
-                                      color: i === 0 ? "#fbbf24" : i === 1 ? "#94a3b8" : i === 2 ? "#ea580c" : "var(--text-muted)"
-                                    }}>
-                                        #{i + 1}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="font-bold truncate" style={{ color: "var(--text-primary)" }}>{s.lecturerName}</div>
-                                        <div className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{s.email}</div>
-                                        <div className="mt-3 h-1.5 rounded-full w-full overflow-hidden" style={{ backgroundColor: "var(--bg-border)" }}>
-                                            <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${s.score}%`, backgroundColor: s.score >= 70 ? "#10b981" : "#ef4444" }} />
+                    <div className="p-8 space-y-12">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="p-6 rounded-3xl" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)" }}>
+                                <h3 className="font-bold text-sm mb-6 text-center" style={{ color: "var(--text-primary)" }}>Department Submission Deadlines</h3>
+                                <ComplianceChart />
+                            </div>
+                            <div className="p-6 rounded-3xl" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)" }}>
+                                <h3 className="font-bold text-sm mb-6 text-center" style={{ color: "var(--text-primary)" }}>Avg Department Observation Rubrics</h3>
+                                <ObservationRadar />
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 className="font-bold text-lg mb-6 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+                                <span>📊</span> Lecturer Compliance Rankings
+                            </h3>
+                            <div className="space-y-4">
+                                {scores.sort((a, b) => b.score - a.score).map((s, i) => (
+                                    <div key={s.lecturerId} className="flex items-center gap-4 p-5 rounded-2xl hover:translate-x-1 transition-all" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)" }}>
+                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shadow-lg" style={{
+                                            backgroundColor: i === 0 ? "rgba(251, 191, 36, 0.1)" : i === 1 ? "rgba(148, 163, 184, 0.1)" : i === 2 ? "rgba(234, 88, 12, 0.1)" : "var(--bg-border)",
+                                            color: i === 0 ? "#fbbf24" : i === 1 ? "#94a3b8" : i === 2 ? "#ea580c" : "var(--text-muted)"
+                                        }}>
+                                            #{i + 1}
                                         </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="font-bold truncate" style={{ color: "var(--text-primary)" }}>{s.lecturerName}</div>
+                                            <div className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{s.email}</div>
+                                            <div className="mt-3 h-1.5 rounded-full w-full overflow-hidden" style={{ backgroundColor: "var(--bg-border)" }}>
+                                                <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${s.score}%`, backgroundColor: s.score >= 70 ? "#10b981" : "#ef4444" }} />
+                                            </div>
+                                        </div>
+                                        <div className="text-right shrink-0">
+                                            <div className="text-2xl font-black" style={{ color: s.score >= 70 ? "#10b981" : "#ef4444" }}>{s.score}%</div>
+                                            <div className="text-[10px] font-bold uppercase" style={{ color: "var(--text-muted)" }}>{s.submitted} SUBMITTED</div>
+                                        </div>
+                                        {s.isAtRisk && <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/20 uppercase tracking-tighter">AT RISK</span>}
                                     </div>
-                                    <div className="text-right shrink-0">
-                                        <div className="text-2xl font-black" style={{ color: s.score >= 70 ? "#10b981" : "#ef4444" }}>{s.score}%</div>
-                                        <div className="text-[10px] font-bold uppercase" style={{ color: "var(--text-muted)" }}>{s.submitted} SUBMITTED</div>
+                                ))}
+                                {scores.length === 0 && (
+                                    <div className="text-center py-16">
+                                        <div className="text-4xl mb-4">🏜️</div>
+                                        <p className="text-sm font-medium italic" style={{ color: "var(--text-muted)" }}>No lecturers in your department yet.</p>
                                     </div>
-                                    {s.isAtRisk && <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/20 uppercase tracking-tighter">AT RISK</span>}
-                                </div>
-                            ))}
-                            {scores.length === 0 && (
-                                <div className="text-center py-16">
-                                    <div className="text-4xl mb-4">🏜️</div>
-                                    <p className="text-sm font-medium italic" style={{ color: "var(--text-muted)" }}>No lecturers in your department yet.</p>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}
@@ -152,26 +172,33 @@ export default function HoDDashboard() {
                             <h3 className="font-bold text-xl mb-2" style={{ color: "var(--text-primary)" }}>👁️ Assign Peer Observation</h3>
                             <p className="text-sm" style={{ color: "var(--text-muted)" }}>Schedule a mandatory session observation between two lecturers.</p>
                         </div>
-                        
+
                         {obsMsg && (
                             <div className={`mb-6 p-4 rounded-2xl text-sm border animate-in slide-in-from-top-2 duration-300 ${obsMsg.startsWith("✅") ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-rose-500/10 border-rose-500/20 text-rose-400"}`}>
                                 {obsMsg}
                             </div>
                         )}
-                        
+
                         <form onSubmit={assignObservation} className="space-y-5">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Lecturer to Observe *</label>
-                                    <input type="number" value={obsForm.lecturerId} onChange={e => setObsForm({ ...obsForm, lecturerId: e.target.value })} required 
-                                        placeholder="User ID (e.g. 5)"
-                                        className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
+                                    <SearchableSelect
+                                        value={obsForm.lecturerId}
+                                        onChange={(val) => setObsForm({ ...obsForm, lecturerId: String(val) })}
+                                        options={lecturers.map(l => ({ label: `${l.name} (${l.email})`, value: String(l.id) }))}
+                                        placeholder="Select Lecturer..."
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Assigned Observer *</label>
-                                    <input type="number" value={obsForm.observerId} onChange={e => setObsForm({ ...obsForm, observerId: e.target.value })} required 
-                                        placeholder="User ID (e.g. 6)"
-                                        className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
+                                    <SearchableSelect
+                                        value={obsForm.observerId}
+                                        onChange={(val) => setObsForm({ ...obsForm, observerId: String(val) })}
+                                        options={lecturers.map(l => ({ label: `${l.name} (${l.email})`, value: String(l.id) }))}
+                                        placeholder="Select Observer..."
+                                        disabledValues={obsForm.lecturerId ? [obsForm.lecturerId] : []}
+                                    />
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -182,9 +209,12 @@ export default function HoDDashboard() {
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Course Code *</label>
-                                    <input type="text" value={obsForm.courseCode} onChange={e => setObsForm({ ...obsForm, courseCode: e.target.value })} required 
-                                        placeholder="e.g. CS101"
-                                        className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
+                                    <SearchableSelect
+                                        value={obsForm.courseCode}
+                                        onChange={(val) => setObsForm({ ...obsForm, courseCode: String(val) })}
+                                        options={courses.map(c => ({ label: `${c.code} - ${c.title}`, value: c.code }))}
+                                        placeholder="Search Course..."
+                                    />
                                 </div>
                             </div>
                             <button type="submit"

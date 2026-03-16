@@ -12,7 +12,6 @@ export async function GET(req: NextRequest) {
     if (!session || !session.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const userId = parseInt(session.user.id!);
-    const role = (session.user as any).role;
     const url = new URL(req.url);
     const shared = url.searchParams.get("shared") === "true";
     const status = url.searchParams.get("status");
@@ -33,13 +32,8 @@ export async function GET(req: NextRequest) {
             { departmentId: currentUser?.departmentId ?? undefined },
         ];
     } else {
-        // Private context
-        if (role === "LECTURER") {
-            where.lecturerId = userId;
-        } else if (role === "HOD") {
-            const user = await prisma.user.findUnique({ where: { id: userId } });
-            if (user?.departmentId) where.departmentId = user.departmentId;
-        }
+        // Private context (My Uploads)
+        where.lecturerId = userId;
         if (status) where.status = status;
     }
 

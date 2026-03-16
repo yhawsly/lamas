@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Pagination from "@/components/ui/Pagination";
+import SearchableSelect from "@/components/ui/SearchableSelect";
 
 interface AuditLog {
     id: number;
@@ -79,21 +80,15 @@ export default function AdminAuditPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>Filter by Action</label>
-                    <select
+                    <SearchableSelect
                         value={actionFilter}
-                        onChange={e => setActionFilter(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2"
-                        style={{
-                            backgroundColor: "var(--bg-surface)",
-                            border: "1px solid var(--bg-border)",
-                            color: "var(--text-primary)"
-                        }}
-                    >
-                        <option value="ALL">All Actions</option>
-                        {actions.map(action => (
-                            <option key={action} value={action}>{action}</option>
-                        ))}
-                    </select>
+                        onChange={val => setActionFilter(String(val))}
+                        options={[
+                            { label: "All Actions", value: "ALL" },
+                            ...actions.map(a => ({ label: a, value: a }))
+                        ]}
+                        placeholder="All Actions"
+                    />
                 </div>
                 <div>
                     <label className="block text-sm mb-2" style={{ color: "var(--text-secondary)" }}>Filter by User ID</label>

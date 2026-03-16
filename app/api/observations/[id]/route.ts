@@ -31,11 +31,11 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
         }
 
         const body = await req.json();
-        const { strengths, improvements, rating } = body;
+        const { strengths, improvements, ratingKnowledge, ratingEngagement, ratingTech, ratingPunctuality } = body;
 
-        if (!strengths || !improvements || rating === undefined) {
+        if (!strengths || !improvements || !ratingKnowledge || !ratingEngagement || !ratingTech || !ratingPunctuality) {
             return NextResponse.json(
-                { error: "Missing required fields: strengths, improvements, rating" },
+                { error: "Missing required fields for observation rubric" },
                 { status: 400 }
             );
         }
@@ -45,7 +45,10 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
             data: {
                 strengths: JSON.stringify(strengths),
                 improvements: JSON.stringify(improvements),
-                rating: parseInt(rating),
+                ratingKnowledge: parseInt(ratingKnowledge),
+                ratingEngagement: parseInt(ratingEngagement),
+                ratingTech: parseInt(ratingTech),
+                ratingPunctuality: parseInt(ratingPunctuality),
                 status: "COMPLETED",
             },
         });
