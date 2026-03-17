@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { headers, cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+    await headers();
+    await cookies();
     try {
         const session = await auth();
         if (!session || !["ADMIN", "SUPER_ADMIN"].includes((session.user as any)?.role as string)) {
@@ -26,6 +29,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+    await headers();
+    await cookies();
     try {
         const session = await auth();
         if (!session || !["ADMIN", "SUPER_ADMIN"].includes((session.user as any)?.role as string)) {

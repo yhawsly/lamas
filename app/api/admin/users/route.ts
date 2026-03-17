@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { headers, cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 import bcrypt from "bcryptjs";
@@ -14,6 +15,8 @@ const UserSchema = z.object({
 });
 
 export async function GET() {
+    await headers();
+    await cookies();
     try {
         const users = await prisma.user.findMany({
             include: { department: true },
@@ -31,6 +34,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+    await headers();
+    await cookies();
     try {
         const body = await req.json();
 

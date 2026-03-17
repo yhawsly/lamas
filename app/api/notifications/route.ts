@@ -5,11 +5,14 @@ import { logAction } from "@/lib/audit";
 import { handleApiError } from "@/lib/api-error";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { ROLES, isAdmin, hasHodPrivileges } from "@/lib/permissions";
+import { headers, cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/notifications
 export async function GET(req: NextRequest) {
+    await headers();
+    await cookies();
     try {
         // Rate limiting: 20 requests per 15 minutes
         const rateLimit = checkRateLimit(req, 'general');
@@ -73,6 +76,8 @@ export async function GET(req: NextRequest) {
 
 // PATCH /api/notifications — Mark all as read
 export async function PATCH() {
+    await headers();
+    await cookies();
     try {
         const session = await auth();
         if (!session || !session.user) {
@@ -93,6 +98,8 @@ export async function PATCH() {
 
 // POST /api/notifications — Broadcast or specific notify
 export async function POST(req: NextRequest) {
+    await headers();
+    await cookies();
     try {
         // Rate limiting: 20 requests per 15 minutes
         const rateLimit = checkRateLimit(req, 'general');

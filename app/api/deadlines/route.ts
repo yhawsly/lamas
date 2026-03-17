@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { headers, cookies } from "next/headers";
 import { handleApiError } from "@/lib/api-error";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { logAction } from "@/lib/audit";
@@ -17,6 +18,8 @@ const deadlineSchema = z.object({
 
 // GET /api/deadlines — any authenticated user
 export async function GET() {
+    await headers();
+    await cookies();
     try {
         const session = await auth();
         if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -33,6 +36,8 @@ export async function GET() {
 
 // POST /api/deadlines — Admin only
 export async function POST(req: NextRequest) {
+    await headers();
+    await cookies();
     try {
         const rateLimit = checkRateLimit(req, "general");
         if (!rateLimit.allowed) {

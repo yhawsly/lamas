@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { headers, cookies } from "next/headers";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { logAction } from "@/lib/audit";
@@ -20,6 +21,8 @@ export const dynamic = "force-dynamic";
 
 // GET /api/submissions
 export async function GET(req: NextRequest) {
+    await headers();
+    await cookies();
     try {
         // Rate limiting: 20 requests per 15 minutes
         const rateLimit = checkRateLimit(req, "general");
@@ -100,6 +103,8 @@ export async function GET(req: NextRequest) {
 
 // POST /api/submissions
 export async function POST(req: NextRequest) {
+    await headers();
+    await cookies();
     try {
         // Rate limiting: 20 requests per 15 minutes
         const rateLimit = checkRateLimit(req, 'general');

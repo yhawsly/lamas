@@ -3,12 +3,15 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { logAction } from "@/lib/audit";
 import { ResourceStatus, ResourceType } from "@prisma/client";
+import { headers, cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/resources?shared=true  → admin-shared resources for download
 // GET /api/resources               → my own uploaded resources
 export async function GET(req: NextRequest) {
+    await headers();
+    await cookies();
     const session = await auth();
     if (!session || !session.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -65,6 +68,8 @@ export async function GET(req: NextRequest) {
 
 // POST /api/resources
 export async function POST(req: NextRequest) {
+    await headers();
+    await cookies();
     const session = await auth();
     if (!session || !session.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

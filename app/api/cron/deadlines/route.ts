@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { headers, cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
+    await headers();
+    await cookies();
     // Basic API Key security for external CRON services (Vercel Cron, cron-job.org, etc.)
     const authHeader = req.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET;

@@ -7,9 +7,12 @@ import {
     getMonthlyTrend,
 } from "@/lib/compliance";
 import { prisma } from "@/lib/prisma";
+import { headers, cookies } from "next/headers";
 
 // GET /api/admin/analytics
 export async function GET() {
+    await headers();
+    await cookies();
     const session = await auth();
     if (!session || !session.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

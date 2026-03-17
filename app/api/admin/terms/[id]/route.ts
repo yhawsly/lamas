@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { headers, cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+    await headers();
+    await cookies();
     try {
         const session = await auth();
         if (!session || !["ADMIN", "SUPER_ADMIN"].includes((session.user as any)?.role as string)) {

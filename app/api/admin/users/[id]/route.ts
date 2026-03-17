@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { headers, cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+    await headers();
+    await cookies();
     try {
         const resolvedParams = await params;
         const userId = parseInt(resolvedParams.id);

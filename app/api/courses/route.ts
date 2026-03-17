@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
-export const dynamic = "force-dynamic";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { headers, cookies } from "next/headers";
+
+export const dynamic = "force-dynamic";
 
 const CourseSchema = z.object({
     code: z.string().min(2).max(20).toUpperCase(),
@@ -12,6 +14,8 @@ const CourseSchema = z.object({
 });
 
 export async function GET() {
+    await headers();
+    await cookies();
     try {
         const session = await auth();
         if (!session || !session.user) {
