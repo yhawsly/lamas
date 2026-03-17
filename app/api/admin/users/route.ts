@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { z } from "zod";
+
+const UserSchema = z.object({
+    name: z.string().min(2).max(100),
+    email: z.string().email(),
+    password: z.string().min(8),
+    role: z.enum(["LECTURER", "HOD", "ADMIN", "SUPER_ADMIN"]),
+    departmentId: z.union([z.number(), z.string().transform(v => parseInt(v))]).optional().nullable(),
+});
 
 export async function GET() {
     try {
@@ -22,12 +31,17 @@ export async function GET() {
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { name, email, password, role, departmentId } = body;
 
-        // Basic validation
-        if (!name || !email || !password || !role) {
-            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+        // Zod validation
+        const validation = UserSchema.safeParse(body);
+        if (!validation.success) {
+            return NextResponse.json(
+                { error: "Validation failed", details: validation.error.format() },
+                { status: 400 }
+            );
         }
+
+        const { name, email, password, role, departmentId } = validation.data;
 
         // Check if user exists
         const existing = await prisma.user.findUnique({ where: { email } });
@@ -43,7 +57,7 @@ export async function POST(req: Request) {
                 email,
                 passwordHash,
                 role,
-                ...(departmentId ? { departmentId: parseInt(departmentId) } : {}),
+                departmentId: departmentId || null,
             },
         });
 

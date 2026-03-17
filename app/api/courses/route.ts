@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+
+const CourseSchema = z.object({
+    code: z.string().min(2).max(20).toUpperCase(),
+    title: z.string().min(3).max(255),
+    credits: z.union([z.number(), z.string().transform(v => parseInt(v))]).optional().default(3),
+    departmentId: z.union([z.number(), z.string().transform(v => parseInt(v))]),
+});
 
 export async function GET() {
     try {
@@ -51,16 +59,22 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        const { code, title, credits, departmentId } = body;
 
-        if (!code || !title || !departmentId) {
-            return NextResponse.json({ error: "Missing required fields: code, title, or departmentId" }, { status: 400 });
+        // Zod validation
+        const validation = CourseSchema.safeParse(body);
+        if (!validation.success) {
+            return NextResponse.json(
+                { error: "Validation failed", details: validation.error.format() },
+                { status: 400 }
+            );
         }
+
+        const { code, title, credits, departmentId } = validation.data;
 
         // Enforce HODs can only create courses for their own department
         if (role === "HOD") {
             const user = await prisma.user.findUnique({ where: { id: parseInt(session.user.id!) } });
-            if (user?.departmentId !== parseInt(departmentId)) {
+            if (user?.departmentId !== departmentId) {
                 return NextResponse.json({ error: "Forbidden. You can only create courses for your own department." }, { status: 403 });
             }
         }
@@ -74,8 +88,8 @@ export async function POST(req: Request) {
             data: {
                 code,
                 title,
-                credits: credits ? parseInt(credits) : 3,
-                departmentId: parseInt(departmentId)
+                credits: credits || 3,
+                departmentId: departmentId
             }
         });
 

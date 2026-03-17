@@ -9,6 +9,18 @@ if (!fs.existsSync(UPLOAD_DIR)) {
     fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
+const ALLOWED_EXTENSIONS = [".pdf", ".pptx", ".ppt", ".doc", ".docx", ".zip", ".jpg", ".jpeg", ".png"];
+const ALLOWED_MIME_TYPES = [
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    "application/vnd.ms-powerpoint",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/zip",
+    "image/jpeg",
+    "image/png"
+];
+
 export async function POST(req: NextRequest) {
     const session = await auth();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -21,11 +33,21 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "No file provided" }, { status: 400 });
         }
 
+        const fileExt = path.extname(file.name).toLowerCase();
+        const mimeType = file.type;
+
+        if (!ALLOWED_EXTENSIONS.includes(fileExt) || !ALLOWED_MIME_TYPES.includes(mimeType)) {
+            return NextResponse.json({ error: "File type not allowed" }, { status: 400 });
+        }
+
+        if (file.size > 10 * 1024 * 1024) { // 10MB limit
+            return NextResponse.json({ error: "File too large. Max 10MB." }, { status: 400 });
+        }
+
         // Generate a safe unique filename to prevent overwriting
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
 
-        const fileExt = path.extname(file.name);
         const fileNameWithoutExt = path.basename(file.name, fileExt).replace(/[^a-zA-Z0-9-]/g, "_");
         const uniqueFileName = `${fileNameWithoutExt}-${Date.now()}${fileExt}`;
         const filePath = path.join(UPLOAD_DIR, uniqueFileName);
