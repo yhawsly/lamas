@@ -187,7 +187,7 @@ async function main() {
                     lecturerId: lecturer1.id,
                     type: "SEMESTER_CALENDAR",
                     title: "CS101 - Semester Calendar 2025/2026",
-                    content: JSON.stringify({ weeks: [], note: "Seeded initial data" }),
+                    content: { weeks: [], note: "Seeded initial data" },
                     deadlineId: dl.id,
                     status: "SUBMITTED",
                     submittedAt: new Date(),

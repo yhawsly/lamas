@@ -7,8 +7,65 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// ==============================================================================
+// ENUMS (PostgreSQL Native)
+// ==============================================================================
+
+enum Role {
+  LECTURER
+  HOD
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum ResourceType {
+  PDF
+  SLIDES
+  CODE
+  VIDEO
+  LINK
+  OTHER
+}
+
+enum ResourceStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SubmissionType {
+  SEMESTER_CALENDAR
+  COURSE_TOPICS
+  OBSERVATION_REPORT
+}
+
+enum SubmissionStatus {
+  DRAFT
+  PENDING
+  SUBMITTED
+  LATE
+  REVIEWED
+}
+
+enum ObservationStatus {
+  PENDING
+  COMPLETED
+  REVIEWED
+}
+
+enum AttendanceMethod {
+  QR
+  MANUAL
+}
+
+enum ReportType {
+  lecturer_summary
+  department_compliance
+  audit_report
 }
 
 // ==============================================================================
@@ -21,8 +78,7 @@ model User {
   name         String
   email        String    @unique
   passwordHash String
-  /// Role: LECTURER | HOD | ADMIN | SUPER_ADMIN
-  role         String    @default("LECTURER")
+  role         Role      @default(LECTURER)
   phone        String?
   isActive     Boolean   @default(true)
   lastLogin    DateTime?
@@ -86,19 +142,17 @@ model PasswordReset {
 
 /// Educational resources uploaded by lecturers
 model Resource {
-  id           Int       @id @default(autoincrement())
+  id           Int            @id @default(autoincrement())
   title        String
   description  String?
-  /// Type: PDF | SLIDES | CODE | VIDEO | LINK | OTHER
-  type         String    @default("OTHER")
+  type         ResourceType   @default(OTHER)
   url          String // Storage path or external link
-  /// Status: PENDING | APPROVED | REJECTED
-  status       String    @default("PENDING")
+  status       ResourceStatus @default(PENDING)
   feedback     String? // Feedback from HOD upon rejection
   lecturerId   Int
   departmentId Int?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @default(now()) @updatedAt
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @default(now()) @updatedAt
   deletedAt    DateTime?
 
   // Relations
@@ -112,14 +166,13 @@ model Resource {
 
 /// Deadlines for academic submissions
 model Deadline {
-  id        Int      @id @default(autoincrement())
-  /// Type: SEMESTER_CALENDAR | COURSE_TOPICS | OBSERVATION_REPORT
-  type      String
+  id        Int            @id @default(autoincrement())
+  type      SubmissionType
   label     String
   dueDate   DateTime
   createdBy Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @default(now()) @updatedAt
 
   // Relations
   submissions Submission[]
@@ -129,10 +182,10 @@ model Deadline {
 
 /// Accredited academic courses
 model Course {
-  id      Int       @id @default(autoincrement())
-  code    String    @unique // e.g. CS101
-  title   String // e.g. Intro to Computer Science
-  credits Int       @default(3)
+  id        Int       @id @default(autoincrement())
+  code      String    @unique // e.g. CS101
+  title     String // e.g. Intro to Computer Science
+  credits   Int       @default(3)
   deletedAt DateTime?
 
   // Relations
@@ -164,21 +217,18 @@ model AcademicTerm {
 
 /// Lecturers academic submissions (calendars, topics, etc.)
 model Submission {
-  id          Int       @id @default(autoincrement())
+  id          Int              @id @default(autoincrement())
   lecturerId  Int
-  /// Type: SEMESTER_CALENDAR | COURSE_TOPICS | OBSERVATION_REPORT
-  type        String
+  type        SubmissionType
   title       String
-  /// Content stored as JSON string
-  content     String?   
+  content     Json?
   filePath    String?
   deadlineId  Int?
-  /// Status: DRAFT | PENDING | SUBMITTED | LATE | REVIEWED
-  status      String    @default("PENDING")
+  status      SubmissionStatus @default(PENDING)
   feedback    String? // Feedback on the submission
   submittedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @default(now()) @updatedAt
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @default(now()) @updatedAt
 
   // Relations
   lecturer User                @relation(fields: [lecturerId], references: [id])
@@ -197,8 +247,7 @@ model Submission {
 model SubmissionVersion {
   id           Int      @id @default(autoincrement())
   submissionId Int
-  /// Snapshot stored as JSON string
-  snapshot     String   
+  snapshot     Json
   isDraft      Boolean  @default(true)
   savedAt      DateTime @default(now())
 
@@ -212,23 +261,20 @@ model SubmissionVersion {
 
 /// Classroom observation and peer review records
 model Observation {
-  id                Int      @id @default(autoincrement())
+  id                Int               @id @default(autoincrement())
   lecturerId        Int
   observerId        Int
   sessionDate       DateTime
   courseCode        String
-  /// Strengths stored as JSON string
-  strengths         String?   
-  /// Improvements stored as JSON string
-  improvements      String?   
+  strengths         Json?
+  improvements      Json?
   ratingKnowledge   Int? // Specific rubric score (1-5)
   ratingEngagement  Int? // Specific rubric score (1-5)
   ratingTech        Int? // Specific rubric score (1-5)
   ratingPunctuality Int? // Specific rubric score (1-5)
-  /// Status: PENDING | COMPLETED | REVIEWED
-  status            String   @default("PENDING")
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @default(now()) @updatedAt
+  status            ObservationStatus @default(PENDING)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @default(now()) @updatedAt
 
   // Relations
   lecturer User          @relation("ObservedLecturer", fields: [lecturerId], references: [id])
@@ -264,12 +310,11 @@ model ClassSession {
 
 /// Student attendance records for specific sessions
 model Attendance {
-  id            Int      @id @default(autoincrement())
+  id            Int              @id @default(autoincrement())
   sessionId     Int
   studentMatric String
-  /// Method: QR | MANUAL
-  method        String   @default("QR")
-  checkedInAt   DateTime @default(now())
+  method        AttendanceMethod @default(QR)
+  checkedInAt   DateTime         @default(now())
 
   // Relations
   session ClassSession @relation(fields: [sessionId], references: [id])
@@ -302,8 +347,7 @@ model ActivityLog {
   id        Int      @id @default(autoincrement())
   userId    Int
   action    String
-  /// Detail stored as JSON string
-  detail    String?   
+  detail    Json?
   ip        String?
   createdAt DateTime @default(now())
 
@@ -317,12 +361,11 @@ model ActivityLog {
 
 /// Generated system reports
 model Report {
-  id          Int      @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   generatedBy Int
-  /// Type: lecturer_summary | department_compliance | audit_report
-  type        String
+  type        ReportType
   filePath    String
-  /// Filters stored as JSON string
-  filters     String?   
-  generatedAt DateTime @default(now())
+  filters     Json?
+  generatedAt DateTime   @default(now())
 }
+
