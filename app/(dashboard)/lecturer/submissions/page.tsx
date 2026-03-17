@@ -78,7 +78,7 @@ export default function CourseOutlinePage() {
         assessment: "",
     });
 
-    const [weeks, setWeeks] = useState<WeekEntry[]>(defaultWeeks(DEFAULT_WEEKS));
+    const [weeks, setWeeks] = useState<WeekEntry[]>([]);
     const [courseCodeForWeekly, setCourseCodeForWeekly] = useState("");
     const [viewMode, setViewMode] = useState<"edit" | "calendar">("edit");
     const [activeTerm, setActiveTerm] = useState<{ name: string; startDate: string; endDate: string; totalWeeks: number } | null>(null);
@@ -126,13 +126,24 @@ export default function CourseOutlinePage() {
                     // Restore weekly draft or use default
                     const savedWeeks = localStorage.getItem(DRAFT_KEY_WEEKS);
                     if (savedWeeks) {
-                        try { setWeeks(JSON.parse(savedWeeks)); } catch { setWeeks(defaultWeeks(term.totalWeeks)); }
+                        try { 
+                            const parsed = JSON.parse(savedWeeks);
+                            // If duration changed, we might need to adjust, but for now just load
+                            setWeeks(parsed); 
+                        } catch { 
+                            setWeeks(defaultWeeks(term.totalWeeks)); 
+                        }
                     } else {
                         setWeeks(defaultWeeks(term.totalWeeks));
                     }
+                } else {
+                    // Fallback to 18 if no term found but we want to show something
+                    setWeeks(defaultWeeks(DEFAULT_WEEKS));
                 }
             })
-            .catch(() => { });
+            .catch(() => { 
+                setWeeks(defaultWeeks(DEFAULT_WEEKS));
+            });
 
         fetch("/api/courses")
             .then(r => r.ok ? r.json() : [])

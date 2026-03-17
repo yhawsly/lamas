@@ -42,7 +42,7 @@ const STATUS_CONFIG: Record<string, { label: string; dotColor: string; rowBg: st
     },
 };
 
-export default function CalendarView({ topics, onTopicClick, totalWeeks = 18 }: CalendarViewProps) {
+export default function CalendarView({ topics, onTopicClick, totalWeeks = 0 }: CalendarViewProps) {
     // Group weeks into blocks of 6 for the visual layout
     const [groupBy] = useState(6);
     const weeks = Array.from({ length: totalWeeks }, (_, i) => i + 1);
