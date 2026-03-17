@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { handleApiError } from "@/lib/api-error";
+import { ObservationStatus } from "@prisma/client";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { ROLES, hasHodPrivileges } from "@/lib/permissions";
 
@@ -132,7 +133,7 @@ export async function POST(req: NextRequest) {
                 sessionDate: new Date(sessionDate),
                 courseCode,
                 termId: activeTerm?.id || null,
-                status: "PENDING",
+                status: ObservationStatus.PENDING,
             },
         });
 

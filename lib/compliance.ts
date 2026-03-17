@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { SubmissionStatus, SubmissionType } from "@prisma/client";
 
 export interface ComplianceScore {
     lecturerId: number;
@@ -30,8 +31,8 @@ export async function computeComplianceScores(
     const totalRequired = deadlines.length;
 
     return lecturers.map((l) => {
-        const submittedOnTime = l.submissions.filter((s) => s.status === "SUBMITTED").length;
-        const submittedLate = l.submissions.filter((s) => s.status === "LATE").length;
+        const submittedOnTime = l.submissions.filter((s) => s.status === SubmissionStatus.SUBMITTED).length;
+        const submittedLate = l.submissions.filter((s) => s.status === SubmissionStatus.LATE).length;
         const totalSubmitted = submittedOnTime + submittedLate;
 
         const missing = Math.max(0, totalRequired - totalSubmitted);
@@ -47,7 +48,7 @@ export async function computeComplianceScores(
                 (s) =>
                     s.deadline &&
                     s.deadline.dueDate < new Date() &&
-                    (s.status === "PENDING" || s.status === "DRAFT")
+                    (s.status === SubmissionStatus.PENDING || s.status === SubmissionStatus.DRAFT)
             );
 
         return {
@@ -70,7 +71,11 @@ export async function getDepartmentHeatmap() {
         include: { users: { where: { role: { in: ["LECTURER", "HOD"] } } } },
     });
 
-    const types = ["SEMESTER_CALENDAR", "COURSE_TOPICS", "OBSERVATION_REPORT"];
+    const types = [
+        SubmissionType.SEMESTER_CALENDAR,
+        SubmissionType.COURSE_TOPICS,
+        SubmissionType.OBSERVATION_REPORT
+    ];
 
     return Promise.all(
         departments.map(async (dept) => {
@@ -82,8 +87,8 @@ export async function getDepartmentHeatmap() {
                 const count = await prisma.submission.count({
                     where: {
                         lecturerId: { in: lecturerIds },
-                        type,
-                        status: { in: ["SUBMITTED", "LATE"] },
+                        type: type as SubmissionType,
+                        status: { in: [SubmissionStatus.SUBMITTED, SubmissionStatus.LATE] },
                     },
                 });
                 const total = lecturerIds.length;
@@ -97,7 +102,7 @@ export async function getDepartmentHeatmap() {
 
 export async function getMonthlyTrend() {
     const submissions = await prisma.submission.findMany({
-        where: { status: { in: ["SUBMITTED", "LATE"] } },
+        where: { status: { in: [SubmissionStatus.SUBMITTED, SubmissionStatus.LATE] } },
         select: { submittedAt: true, status: true },
         orderBy: { submittedAt: "asc" },
     });
@@ -110,7 +115,7 @@ export async function getMonthlyTrend() {
         if (!months[key]) {
             months[key] = { month: key, submitted: 0, late: 0 };
         }
-        if (s.status === "LATE") months[key].late++;
+        if (s.status === SubmissionStatus.LATE) months[key].late++;
         else months[key].submitted++;
     }
 

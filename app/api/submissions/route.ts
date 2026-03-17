@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { logAction } from "@/lib/audit";
+import { SubmissionStatus } from "@prisma/client";
 import { handleApiError } from "@/lib/api-error";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { ROLES, hasHodPrivileges } from "@/lib/permissions";
@@ -134,10 +135,10 @@ export async function POST(req: NextRequest) {
         const { type, title, content, deadlineId, isDraft } = validation.data;
 
         // Check if submission is late
-        let status = isDraft ? "DRAFT" : "SUBMITTED";
+        let status: SubmissionStatus = isDraft ? SubmissionStatus.DRAFT : SubmissionStatus.SUBMITTED;
         if (deadlineId && !isDraft) {
             const deadline = await prisma.deadline.findUnique({ where: { id: deadlineId } });
-            if (deadline && new Date() > deadline.dueDate) status = "LATE";
+            if (deadline && new Date() > deadline.dueDate) status = SubmissionStatus.LATE;
         }
 
         const activeTerm = await prisma.academicTerm.findFirst({ where: { isActive: true } });
@@ -147,7 +148,7 @@ export async function POST(req: NextRequest) {
                 lecturerId: userId,
                 type,
                 title,
-                content: content ? JSON.stringify(content) : null,
+                content: content || undefined,
                 deadlineId: deadlineId || null,
                 termId: activeTerm?.id || null,
                 status,
@@ -165,7 +166,7 @@ export async function POST(req: NextRequest) {
         await prisma.submissionVersion.create({
             data: {
                 submissionId: submission.id,
-                snapshot: content ? JSON.stringify(content) : "{}",
+                snapshot: content || {},
                 isDraft: isDraft || false,
             },
         });

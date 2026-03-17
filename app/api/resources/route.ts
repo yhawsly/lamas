@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { logAction } from "@/lib/audit";
+import { ResourceStatus, ResourceType } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
     if (shared) {
         // Shared context
         const currentUser = await prisma.user.findUnique({ where: { id: userId } });
-        where.status = "APPROVED";
+        where.status = ResourceStatus.APPROVED;
         where.lecturer = { role: { in: ["ADMIN", "SUPER_ADMIN", "HOD"] } };
         where.OR = [
             { departmentId: null },
@@ -79,11 +80,11 @@ export async function POST(req: NextRequest) {
         data: {
             title,
             description,
-            type,
+            type: type as ResourceType,
             url,
             lecturerId: userId,
             departmentId: user?.departmentId || null,
-            status: isAutoApprovable ? "APPROVED" : "PENDING",
+            status: isAutoApprovable ? ResourceStatus.APPROVED : ResourceStatus.PENDING,
         },
     });
 
