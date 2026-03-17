@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { hashPassword } from "@/lib/password";
+import { headers, cookies } from "next/headers";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 /**
@@ -9,6 +10,8 @@ import { checkRateLimit } from "@/lib/rate-limit";
  * Request a password reset link via email
  */
 export async function POST(req: NextRequest) {
+    await headers();
+    await cookies();
     try {
         // Rate limiting: 3 attempts per 30 minutes
         const rateLimit = checkRateLimit(req, 'passwordReset');
@@ -111,6 +114,8 @@ export async function POST(req: NextRequest) {
  * Reset password using token
  */
 export async function PATCH(req: NextRequest) {
+    await headers();
+    await cookies();
     try {
         // Rate limiting: 3 attempts per 30 minutes (prevent brute force of tokens)
         const rateLimit = checkRateLimit(req, 'passwordReset');

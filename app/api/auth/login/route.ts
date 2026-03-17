@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { signIn } from "@/auth";
+import { headers, cookies } from "next/headers";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 /**
@@ -10,6 +11,8 @@ import { checkRateLimit } from "@/lib/rate-limit";
  * Rate limit: 5 login attempts per 15 minutes per IP
  */
 export async function POST(req: NextRequest) {
+  await headers();
+  await cookies();
   try {
     const body = await req.json();
     const { email, password } = body;
@@ -88,6 +91,8 @@ export async function POST(req: NextRequest) {
  * Return rate limit status for email (useful for frontend to show warning)
  */
 export async function GET(req: NextRequest) {
+  await headers();
+  await cookies();
   try {
     const rateLimit = checkRateLimit(req, 'login');
     

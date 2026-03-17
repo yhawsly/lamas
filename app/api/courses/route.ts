@@ -5,6 +5,8 @@ import { z } from "zod";
 import { headers, cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 const CourseSchema = z.object({
     code: z.string().min(2).max(20).toUpperCase(),

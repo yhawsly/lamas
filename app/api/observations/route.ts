@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { headers, cookies } from "next/headers";
 import { handleApiError } from "@/lib/api-error";
 import { ObservationStatus } from "@prisma/client";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -9,6 +10,8 @@ import { ROLES, hasHodPrivileges } from "@/lib/permissions";
 
 // GET /api/observations
 export async function GET(req?: any) {
+    await headers();
+    await cookies();
     try {
         // Rate limiting: 20 requests per 15 minutes
         if (req instanceof NextRequest) {
@@ -86,6 +89,8 @@ export async function GET(req?: any) {
 
 // POST /api/observations — Assign an observation (HOD/Admin only)
 export async function POST(req: NextRequest) {
+    await headers();
+    await cookies();
     try {
         const rateLimit = checkRateLimit(req, "general");
         if (!rateLimit.allowed) {

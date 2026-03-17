@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { headers, cookies } from "next/headers";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    await headers();
+    await cookies();
     try {
         const session = await auth();
         if (!session || !session.user) {
