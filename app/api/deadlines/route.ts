@@ -9,6 +9,8 @@ import { isAdmin } from "@/lib/permissions";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 const deadlineSchema = z.object({
     type: z.enum(["SEMESTER_CALENDAR", "COURSE_TOPICS", "OBSERVATION_REPORT", "WEEKLY_TOPICS"]),

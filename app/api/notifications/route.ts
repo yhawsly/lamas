@@ -8,6 +8,8 @@ import { ROLES, isAdmin, hasHodPrivileges } from "@/lib/permissions";
 import { headers, cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 // GET /api/notifications
 export async function GET(req: NextRequest) {

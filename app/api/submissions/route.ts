@@ -10,7 +10,7 @@ import { ROLES, hasHodPrivileges } from "@/lib/permissions";
 import { z } from "zod";
 
 const SubmissionSchema = z.object({
-    type: z.enum(["SEMESTER_CALENDAR", "COURSE_TOPICS", "OBSERVATION_REPORT"]),
+    type: z.enum(["SEMESTER_CALENDAR", "COURSE_TOPICS", "OBSERVATION_REPORT", "WEEKLY_TOPICS"]),
     title: z.string().min(3).max(255),
     content: z.any().optional(),
     deadlineId: z.number().int().positive().optional().nullable(),
@@ -18,6 +18,8 @@ const SubmissionSchema = z.object({
 });
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 // GET /api/submissions
 export async function GET(req: NextRequest) {

@@ -15,7 +15,7 @@ interface WeekEntry {
     week: number;
     topic: string;
     description: string;
-    status: "planned" | "delivered" | "postponed";
+    status: "PLANNED" | "DELIVERED" | "POSTPONED";
 }
 
 const defaultWeeks = (count: number): WeekEntry[] =>
@@ -23,13 +23,13 @@ const defaultWeeks = (count: number): WeekEntry[] =>
         week: i + 1,
         topic: "",
         description: "",
-        status: "planned",
+        status: "PLANNED",
     }));
 
 const statusConfig = {
-    planned: { label: "Planned", color: "bg-blue-500/20 text-blue-300 border-blue-500/30" },
-    delivered: { label: "Delivered", color: "bg-green-500/20 text-green-300 border-green-500/30" },
-    postponed: { label: "Postponed", color: "bg-amber-500/20 text-amber-300 border-amber-500/30" },
+    PLANNED: { label: "Planned", color: "bg-blue-500/20 text-blue-300 border-blue-500/30" },
+    DELIVERED: { label: "Delivered", color: "bg-green-500/20 text-green-300 border-green-500/30" },
+    POSTPONED: { label: "Postponed", color: "bg-amber-500/20 text-amber-300 border-amber-500/30" },
 };
 
 interface Submission {
@@ -97,7 +97,7 @@ export default function CourseOutlinePage() {
         week: w.week,
         title: w.topic,
         description: w.description,
-        status: w.status === "planned" ? "PENDING" : w.status === "delivered" ? "COMPLETED" : "IN_PROGRESS"
+        status: w.status === "PLANNED" ? "PENDING" : w.status === "DELIVERED" ? "COMPLETED" : "IN_PROGRESS"
     }));
 
     const fetchHistory = (page: number) => {
@@ -513,9 +513,9 @@ export default function CourseOutlinePage() {
                                                             onChange={val => updateWeek(i, "status", String(val))}
                                                             searchable={false}
                                                             options={[
-                                                                { label: "Planned", value: "planned" },
-                                                                { label: "Delivered", value: "delivered" },
-                                                                { label: "Postponed", value: "postponed" },
+                                                                { label: "Planned", value: "PLANNED" },
+                                                                { label: "Delivered", value: "DELIVERED" },
+                                                                { label: "Postponed", value: "POSTPONED" },
                                                             ]}
                                                         />
                                                     </div>

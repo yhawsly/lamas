@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { headers, cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 import { handleApiError } from "@/lib/api-error";
 import { isAdmin, hasHodPrivileges } from "@/lib/permissions";
 

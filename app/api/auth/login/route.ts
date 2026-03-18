@@ -3,6 +3,10 @@ import { signIn } from "@/auth";
 import { headers, cookies } from "next/headers";
 import { checkRateLimit } from "@/lib/rate-limit";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+
 /**
  * POST /api/auth/login
  * Custom credentials login endpoint with rate limiting
