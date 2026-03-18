@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { auth } from "@/auth";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "LAMAS — Lecturer Academic Management System",
   description: "Academic accountability and monitoring platform for higher education",
