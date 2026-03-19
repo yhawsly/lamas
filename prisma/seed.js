@@ -27,15 +27,39 @@ async function main() {
     const hash = await bcrypt.hash("password123", 12);
 
     // Create users
-    await prisma.user.upsert({ where: { email: "superadmin@lamas.edu" }, update: {}, create: { name: "Super Administrator", email: "superadmin@lamas.edu", passwordHash: hash, role: "SUPER_ADMIN" } });
-    await prisma.user.upsert({ where: { email: "admin@lamas.edu" }, update: {}, create: { name: "System Administrator", email: "admin@lamas.edu", passwordHash: hash, role: "ADMIN" } });
+    await prisma.user.upsert({ 
+        where: { email: "superadmin@lamas.edu" }, 
+        update: { role: "SUPER_ADMIN" }, 
+        create: { name: "Super Administrator", email: "superadmin@lamas.edu", passwordHash: hash, role: "SUPER_ADMIN" } 
+    });
+    await prisma.user.upsert({ 
+        where: { email: "admin@lamas.edu" }, 
+        update: { role: "ADMIN" }, 
+        create: { name: "System Administrator", email: "admin@lamas.edu", passwordHash: hash, role: "ADMIN" } 
+    });
 
-    const hod = await prisma.user.upsert({ where: { email: "hod.cs@lamas.edu" }, update: {}, create: { name: "Dr. Ahmad Razif", email: "hod.cs@lamas.edu", passwordHash: hash, role: "HOD", departmentId: cs.id } });
+    const hod = await prisma.user.upsert({ 
+        where: { email: "hod.cs@lamas.edu" }, 
+        update: { role: "HOD" }, 
+        create: { name: "Dr. Ahmad Razif", email: "hod.cs@lamas.edu", passwordHash: hash, role: "HOD", departmentId: cs.id } 
+    });
     await prisma.department.update({ where: { id: cs.id }, data: { hodId: hod.id } });
 
-    const lec1 = await prisma.user.upsert({ where: { email: "lecturer1@lamas.edu" }, update: {}, create: { name: "Dr. Sarah Lim", email: "lecturer1@lamas.edu", passwordHash: hash, role: "LECTURER", departmentId: cs.id } });
-    await prisma.user.upsert({ where: { email: "lecturer2@lamas.edu" }, update: {}, create: { name: "Mr. Hafiz Rahman", email: "lecturer2@lamas.edu", passwordHash: hash, role: "LECTURER", departmentId: eng.id } });
-    await prisma.user.upsert({ where: { email: "lecturer3@lamas.edu" }, update: {}, create: { name: "Ms. Priya Nair", email: "lecturer3@lamas.edu", passwordHash: hash, role: "LECTURER", departmentId: biz.id } });
+    const lec1 = await prisma.user.upsert({ 
+        where: { email: "lecturer1@lamas.edu" }, 
+        update: { role: "LECTURER" }, 
+        create: { name: "Dr. Sarah Lim", email: "lecturer1@lamas.edu", passwordHash: hash, role: "LECTURER", departmentId: cs.id } 
+    });
+    await prisma.user.upsert({ 
+        where: { email: "lecturer2@lamas.edu" }, 
+        update: { role: "LECTURER" }, 
+        create: { name: "Mr. Hafiz Rahman", email: "lecturer2@lamas.edu", passwordHash: hash, role: "LECTURER", departmentId: eng.id } 
+    });
+    await prisma.user.upsert({ 
+        where: { email: "lecturer3@lamas.edu" }, 
+        update: { role: "LECTURER" }, 
+        create: { name: "Ms. Priya Nair", email: "lecturer3@lamas.edu", passwordHash: hash, role: "LECTURER", departmentId: biz.id } 
+    });
 
     // Deadlines
     const existingDl = await prisma.deadline.count();

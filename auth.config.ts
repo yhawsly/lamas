@@ -38,21 +38,19 @@ export const authConfig = {
             if (trigger === "update") {
                 token.lastActivity = Date.now();
             }
+            console.debug(`[JWT] Final Token - Sub: ${token.sub}, Role: ${token.role}`);
             return token;
         },
         async session({ session, token }) {
-            // Further hardening for session data
+            console.debug(`[SESSION] Token ID: ${token.id}, Token Role: ${token.role}`);
+            
             if (token && session.user) {
-                session.user.id = (token.id as string) || (token.sub as string);
-                // Hardened role assignment: no default "LECTURER" fallback if data is missing
-                const userRole = (token.role as string);
-                (session.user as any).role = userRole;
-                (session.user as any).departmentId = (token.departmentId as number) || null;
-                (session.user as any).lastActivity = (token.lastActivity as number) || Date.now();
+                session.user.id = String(token.id || token.sub);
+                (session.user as any).role = token.role as string;
+                (session.user as any).departmentId = token.departmentId as number;
+                (session.user as any).lastActivity = token.lastActivity as number;
                 
-                if (!userRole) {
-                    console.warn(`[AUTH] Warning: Missing role in token for session ${session.user.id}`);
-                }
+                console.debug(`[SESSION] Final Session User - ID: ${session.user.id}, Role: ${(session.user as any).role}`);
             }
             return session;
         },

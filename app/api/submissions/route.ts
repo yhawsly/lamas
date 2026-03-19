@@ -44,7 +44,17 @@ export async function GET(req: NextRequest) {
         }
 
         const userId = parseInt(session.user.id!);
-        const role = (session.user as any).role;
+        let role = (session.user as any).role;
+
+        // Fallback: Recover role from DB if missing in session
+        if (!role) {
+            const user = await prisma.user.findUnique({
+                where: { id: userId },
+                select: { role: true }
+            });
+            role = user?.role;
+        }
+
         const url = new URL(req.url);
         const status = url.searchParams.get("status");
         const type = url.searchParams.get("type");
