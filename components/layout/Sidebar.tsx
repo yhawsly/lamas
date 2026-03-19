@@ -10,8 +10,8 @@ const navByRole: Record<string, { label: string; href: string; icon: string }[]>
     LECTURER: [
         { label: "Dashboard", href: "/lecturer", icon: "🏠" },
         { label: "My Department", href: "/lecturer/department", icon: "📢" },
-        { label: "Course Outline", href: "/lecturer/submissions", icon: "📋" },
-        { label: "Weekly Topics", href: "/lecturer/submissions", icon: "📅" },
+        { label: "Course Outline", href: "/lecturer/submissions?mode=outline", icon: "📋" },
+        { label: "Weekly Topics", href: "/lecturer/submissions?mode=weekly", icon: "📅" },
         { label: "Observations", href: "/lecturer/observations", icon: "👁️" },
         { label: "Resources", href: "/lecturer/resources", icon: "📚" },
         { label: "My Reports", href: "/lecturer/reports", icon: "📄" },

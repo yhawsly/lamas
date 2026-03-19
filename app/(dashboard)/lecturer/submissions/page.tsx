@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { z } from "zod";
 import Pagination from "@/components/ui/Pagination";
 import CalendarView, { WeeklyTopic } from "@/components/ui/CalendarView";
@@ -59,8 +60,27 @@ const weeklyTopicSchema = z.object({
 
 interface Course { id: number; code: string; title: string; }
 
-export default function CourseOutlinePage() {
-    const [mode, setMode] = useState<"outline" | "weekly">("outline");
+function CourseOutlineContent() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const initialMode = (searchParams.get("mode") as "outline" | "weekly") || "outline";
+    const [mode, setMode] = useState<"outline" | "weekly">(initialMode);
+
+    // Sync state with URL when it changes
+    useEffect(() => {
+        const urlMode = searchParams.get("mode") as "outline" | "weekly";
+        if (urlMode && urlMode !== mode) {
+            setMode(urlMode);
+        }
+    }, [searchParams]);
+
+    const changeMode = (newMode: "outline" | "weekly") => {
+        setMode(newMode);
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("mode", newMode);
+        router.push(`?${params.toString()}`);
+    };
+
     const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
 
     // ── Course list (fetched from API) ─────────────────────
@@ -311,14 +331,14 @@ export default function CourseOutlinePage() {
             {/* Mode Switcher */}
             <div className="flex gap-1 p-1 rounded-2xl mb-8 w-fit border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
                 <button
-                    onClick={() => setMode("outline")}
+                    onClick={() => changeMode("outline")}
                     className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${mode === "outline" ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25" : "hover:text-blue-300 text-white"}`}
                     style={mode !== "outline" ? { color: "var(--text-secondary)" } : {}}
                 >
                     📋 Course Outline
                 </button>
                 <button
-                    onClick={() => setMode("weekly")}
+                    onClick={() => changeMode("weekly")}
                     className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${mode === "weekly" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25" : "hover:text-indigo-300 text-white"}`}
                     style={mode !== "weekly" ? { color: "var(--text-secondary)" } : {}}
                 >
@@ -463,7 +483,13 @@ export default function CourseOutlinePage() {
                             ) : (
                                 <div className="space-y-2">
                                     {weeks.map((w, i) => (
-                                        <div key={w.week} className="border rounded-2xl overflow-hidden transition-all duration-200" style={{ borderColor: expandedWeek === w.week ? "rgb(79, 70, 229)" : "var(--bg-border)", backgroundColor: expandedWeek === w.week ? "rgb(79, 70, 229, 0.05)" : "var(--bg-hover)" }}>
+                                        <div key={w.week} className="border rounded-2xl transition-all duration-200" 
+                                            style={{ 
+                                                borderColor: expandedWeek === w.week ? "rgb(79, 70, 229)" : "var(--bg-border)", 
+                                                backgroundColor: expandedWeek === w.week ? "rgb(79, 70, 229, 0.05)" : "var(--bg-hover)",
+                                                position: "relative",
+                                                zIndex: expandedWeek === w.week ? 50 : 1
+                                            }}>
                                             <button type="button"
                                                 onClick={() => setExpandedWeek(expandedWeek === w.week ? null : w.week)}
                                                 className="w-full flex items-center gap-4 px-5 py-4 text-left">
@@ -574,5 +600,13 @@ export default function CourseOutlinePage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function CourseOutlinePage() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-[400px]"><div className="animate-spin w-10 h-10 border-2 border-blue-600 border-t-transparent rounded-full" /></div>}>
+            <CourseOutlineContent />
+        </Suspense>
     );
 }
