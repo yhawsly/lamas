@@ -24,7 +24,6 @@ export default function HODResourcesPage() {
     };
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchResources();
     }, []);
 
@@ -56,6 +55,54 @@ export default function HODResourcesPage() {
         PENDING: "bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-500 dark:border-amber-500/20",
         APPROVED: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-500 dark:border-emerald-500/20",
         REJECTED: "bg-rose-100 text-rose-800 dark:bg-rose-500/10 dark:text-rose-500 dark:border-rose-500/20",
+    };
+
+    const handleDownloadClick = async (e: React.MouseEvent, url: string, filename: string) => {
+        e.preventDefault();
+        try {
+            if (url.includes("vercel-storage.com")) {
+                const downloadUrl = url.includes("?") ? `${url}&download=1` : `${url}?download=1`;
+                window.location.href = downloadUrl;
+                return;
+            }
+            const res = await fetch(url);
+            if (!res.ok) throw new Error("Fetch failed");
+            const blob = await res.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = blobUrl;
+            a.download = filename || "resource";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+            console.error("Download fallback", err);
+            window.open(url, "_blank");
+        }
+    };
+
+    const handleViewClick = async (e: React.MouseEvent, url: string, type: string) => {
+        e.preventDefault();
+
+        try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error();
+            const blob = await res.blob();
+            
+            // Override MIME type to force inline viewing instead of downloading
+            let mime = blob.type;
+            if (type === "PDF" || url.toLowerCase().endsWith(".pdf")) mime = "application/pdf";
+            else if (type === "IMAGE" || url.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/)) mime = "image/jpeg";
+            else if (type === "VIDEO") mime = "video/mp4";
+            else if (mime === "application/octet-stream") mime = "text/plain"; 
+            
+            const fileBlob = new Blob([blob], { type: mime });
+            const blobUrl = URL.createObjectURL(fileBlob);
+            window.open(blobUrl, "_blank");
+        } catch {
+            window.open(url, "_blank");
+        }
     };
 
     const typeIcons: Record<string, string> = {
@@ -112,7 +159,10 @@ export default function HODResourcesPage() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 shrink-0 uppercase tracking-widest text-[10px] font-bold">
-                                    <a href={r.url} target="_blank" rel="noopener noreferrer" className="px-4 py-3 rounded-xl border hover:bg-[var(--bg-hover)] transition-colors flex items-center gap-2" style={{ borderColor: "var(--bg-border)", color: "var(--text-primary)" }}>
+                                    <a href={r.url} onClick={(e) => handleDownloadClick(e, r.url, r.title)} className="px-4 py-3 rounded-xl border hover:bg-[var(--bg-hover)] transition-colors flex items-center gap-2" style={{ borderColor: "var(--bg-border)", color: "var(--text-primary)" }}>
+                                        📥 Download
+                                    </a>
+                                    <a href={r.url} onClick={(e) => handleViewClick(e, r.url, r.type)} className="px-4 py-3 rounded-xl border hover:bg-[var(--bg-hover)] transition-colors flex items-center gap-2" style={{ borderColor: "var(--bg-border)", color: "var(--text-primary)" }}>
                                         👀 View Source
                                     </a>
                                     {r.status === "PENDING" && (

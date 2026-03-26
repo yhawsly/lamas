@@ -27,8 +27,8 @@ export default function LecturerDepartmentPage() {
     const loadColleagues = (pageNum = 1) => {
         setLoading(true);
         fetch(`/api/department/colleagues?page=${pageNum}&limit=${LIMIT}`)
-            .then(r => r.json())
-            .then(data => {
+            .then(r => r.ok ? r.json().catch(() => ({})) : {})
+            .then((data: any) => {
                 if (data.data) {
                     setColleagues(Array.isArray(data.data) ? data.data : []);
                     setTotalPages(data.meta?.totalPages || 1);
@@ -89,7 +89,7 @@ export default function LecturerDepartmentPage() {
                 localStorage.removeItem("lamas_draft_lecturer_dept_msg");
                 localStorage.removeItem("lamas_draft_lecturer_dept_target");
             } else {
-                const err = await res.json();
+                const err = await res.json().catch(() => ({ error: "Failed to send message." }));
                 setStatus({ type: "error", text: err.error || "Failed to send message." });
             }
         } catch (error) {

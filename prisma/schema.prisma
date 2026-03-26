@@ -274,6 +274,9 @@ enum ResourceType {
   CODE
   VIDEO
   LINK
+  IMAGE
+  SPREADSHEET
+  DOCUMENT
   OTHER
 }
 

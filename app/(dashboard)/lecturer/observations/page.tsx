@@ -231,13 +231,13 @@ export default function LecturerObservationsPage() {
                             <div>
                                 <h4 className="text-sm font-bold uppercase tracking-wider mb-2" style={{ color: "var(--primary)" }}>Key Strengths</h4>
                                 <div className="p-4 rounded-xl text-sm leading-relaxed" style={{ backgroundColor: "var(--bg-hover)", color: "var(--text-primary)" }}>
-                                    {viewing.strengths ? JSON.parse(viewing.strengths) : "Not provided"}
+                                    {viewing.strengths || "Not provided"}
                                 </div>
                             </div>
                             <div>
                                 <h4 className="text-sm font-bold uppercase tracking-wider mb-2" style={{ color: "var(--primary)" }}>Areas for Improvement</h4>
                                 <div className="p-4 rounded-xl text-sm leading-relaxed" style={{ backgroundColor: "var(--bg-hover)", color: "var(--text-primary)" }}>
-                                    {viewing.improvements ? JSON.parse(viewing.improvements) : "Not provided"}
+                                    {viewing.improvements || "Not provided"}
                                 </div>
                             </div>
 

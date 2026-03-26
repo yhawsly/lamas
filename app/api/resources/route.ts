@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
         if (status) where.status = status;
     }
 
-    const [resources, totalCount] = await Promise.all([
+    const [resources, totalCount] = await prisma.$transaction([
         prisma.resource.findMany({
             where,
             include: {
@@ -83,32 +83,56 @@ export async function POST(req: NextRequest) {
     const role = (session.user as any).role;
     const isAutoApprovable = ["ADMIN", "SUPER_ADMIN", "HOD"].includes(role);
 
-    const resource = await prisma.resource.create({
-        data: {
-            title,
-            description,
-            type: type as ResourceType,
-            url,
-            lecturerId: userId,
-            departmentId: user?.departmentId || null,
-            status: isAutoApprovable ? ResourceStatus.APPROVED : ResourceStatus.PENDING,
-        },
-    });
+    try {
+        const resource = await prisma.resource.create({
+            data: {
+                title,
+                description,
+                type: type as ResourceType,
+                url,
+                lecturerId: userId,
+                departmentId: user?.departmentId || null,
+                status: isAutoApprovable ? ResourceStatus.APPROVED : ResourceStatus.PENDING,
+            },
+        });
 
-    await logAction({
-        userId: userId,
-        action: 'RESOURCE_UPLOADED',
-        details: `Uploaded new ${type} resource: "${title}"`,
-    });
+        await logAction({
+            userId: userId,
+            action: 'RESOURCE_UPLOADED',
+            details: `Uploaded new ${type} resource: "${title}"`,
+        });
 
-    // Notify admins
-    const admins = await prisma.user.findMany({ where: { role: { in: ["ADMIN", "SUPER_ADMIN"] } } });
-    await prisma.notification.createMany({
-        data: admins.map((a) => ({
-            userId: a.id,
-            message: `New resource uploaded for review: "${title}" by ${user?.name}`,
-        })),
-    });
+        // Notify admins
+        const admins = await prisma.user.findMany({ where: { role: { in: ["ADMIN", "SUPER_ADMIN"] } } });
+        await prisma.notification.createMany({
+            data: admins.map((a) => ({
+                userId: a.id,
+                message: `New resource uploaded for review: "${title}" by ${user?.name}`,
+            })),
+        });
 
-    return NextResponse.json(resource, { status: 201 });
+        return NextResponse.json(resource, { status: 201 });
+    } catch (createError: any) {
+        console.error("Resource creation error:", createError);
+        // Fallback for DB enum mismatch: Try saving as OTHER
+        if (createError.message?.includes("ResourceType") || createError.code === "P2009" || createError.code === "P2003") {
+            try {
+                const fallbackResource = await prisma.resource.create({
+                    data: {
+                        title,
+                        description,
+                        type: ResourceType.OTHER,
+                        url,
+                        lecturerId: userId,
+                        departmentId: user?.departmentId || null,
+                        status: isAutoApprovable ? ResourceStatus.APPROVED : ResourceStatus.PENDING,
+                    },
+                });
+                return NextResponse.json(fallbackResource, { status: 201 });
+            } catch (fallbackError) {
+                return NextResponse.json({ error: "Database error occurred. Please contact support." }, { status: 500 });
+            }
+        }
+        return NextResponse.json({ error: createError.message || "Failed to save resource" }, { status: 500 });
+    }
 }

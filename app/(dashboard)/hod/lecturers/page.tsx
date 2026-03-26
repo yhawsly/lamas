@@ -5,7 +5,12 @@ export default function HoDLecturersPage() {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => { fetch("/api/admin/analytics").then(r => r.json()).then(d => { setData(d); setLoading(false); }); }, []);
+    useEffect(() => { 
+        fetch("/api/admin/analytics")
+            .then(r => r.ok ? r.json().catch(() => ({ scores: [] })) : ({ scores: [] }))
+            .then(d => { setData(d); setLoading(false); })
+            .catch(() => setLoading(false));
+    }, []);
 
     const scores = data?.scores ?? [];
 

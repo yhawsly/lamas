@@ -22,9 +22,20 @@ export default function HoDDashboard() {
     const [lecturers, setLecturers] = useState<any[]>([]);
 
     useEffect(() => {
-        fetch("/api/admin/analytics").then(r => r.json()).then(d => { setData(d); setLoading(false); });
-        fetch("/api/courses").then(r => r.json()).then(d => setCourses(Array.isArray(d) ? d : []));
-        fetch("/api/lecturers").then(r => r.json()).then(d => setLecturers(Array.isArray(d) ? d : []));
+        fetch("/api/admin/analytics")
+            .then(r => r.ok ? r.json().catch(() => ({ scores: [] })) : ({ scores: [] }))
+            .then(d => { setData(d); setLoading(false); })
+            .catch(() => setLoading(false));
+
+        fetch("/api/courses")
+            .then(r => r.ok ? r.json().catch(() => []) : [])
+            .then(d => setCourses(Array.isArray(d) ? d : []))
+            .catch(() => setCourses([]));
+
+        fetch("/api/lecturers")
+            .then(r => r.ok ? r.json().catch(() => []) : [])
+            .then(d => setLecturers(Array.isArray(d) ? d : []))
+            .catch(() => setLecturers([]));
     }, []);
 
     async function assignObservation(e: React.FormEvent) {
@@ -44,13 +55,19 @@ export default function HoDDashboard() {
     }
 
     async function sendBroadcast() {
+        if (!notify.message.trim()) return;
         const res = await fetch("/api/notifications", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ message: notify.message }),
         });
-        if (res.ok) setNotify(n => ({ ...n, sent: true }));
-        setTimeout(() => setNotify({ message: "", sent: false }), 4000);
+        if (res.ok) {
+            setNotify(n => ({ ...n, sent: true }));
+            setTimeout(() => setNotify({ message: "", sent: false }), 4000);
+        } else {
+            const d = await res.json().catch(() => ({}));
+            alert(d.error || "Failed to send notification. Please try again later.");
+        }
     }
 
     if (loading) return (

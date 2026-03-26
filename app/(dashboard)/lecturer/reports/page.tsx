@@ -8,17 +8,24 @@ export default function LecturerReportsPage() {
     const [stats, setStats] = useState({ compliance: 0, attendance: 0, sessions: 0 });
 
     useEffect(() => {
-        fetch("/api/submissions").then(r => r.json()).then(data => setSubmissions(Array.isArray(data) ? data : []));
-        fetch("/api/sessions").then(r => r.json()).then(data => {
-            if (Array.isArray(data)) {
-                const totalMatrics = data.reduce((acc, s) => acc + (s._count?.attendance || 0), 0);
-                setStats({
-                    compliance: 85, // Mock baseline
-                    attendance: data.length > 0 ? Math.round(totalMatrics / data.length) : 0,
-                    sessions: data.length
-                });
-            }
-        });
+        fetch("/api/submissions")
+            .then(r => r.ok ? r.json().catch(() => []) : [])
+            .then(data => setSubmissions(Array.isArray(data) ? data : []))
+            .catch(() => setSubmissions([]));
+
+        fetch("/api/sessions")
+            .then(r => r.ok ? r.json().catch(() => []) : [])
+            .then(data => {
+                if (Array.isArray(data)) {
+                    const totalMatrics = data.reduce((acc, s) => acc + (s._count?.attendance || 0), 0);
+                    setStats({
+                        compliance: 85, // Mock baseline
+                        attendance: data.length > 0 ? Math.round(totalMatrics / data.length) : 0,
+                        sessions: data.length
+                    });
+                }
+            })
+            .catch(() => { });
     }, []);
 
     const reportTypes = [

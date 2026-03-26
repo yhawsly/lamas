@@ -10,13 +10,24 @@ export default function AdminDeadlinesPage() {
     const [msg, setMsg] = useState("");
 
     useEffect(() => {
-        fetch("/api/deadlines").then(r => r.json()).then(d => { setDeadlines(Array.isArray(d) ? d : []); setLoading(false); });
+        async function load() {
+            const r = await fetch("/api/deadlines");
+            const d = await r.ok ? r.json().catch(() => []) : [];
+            setDeadlines(Array.isArray(d) ? d : []);
+            setLoading(false);
+        }
+        load();
     }, []);
 
     async function createDeadline(e: React.FormEvent) {
         e.preventDefault(); setSaving(true);
         const res = await fetch("/api/deadlines", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
-        if (res.ok) { const d = await res.json(); setDeadlines(p => [d, ...p]); setMsg("Deadline created and lecturers notified!"); setForm({ type: "SEMESTER_CALENDAR", label: "", dueDate: "" }); }
+        if (res.ok) { 
+            const d = await res.json().catch(() => ({})); 
+            setDeadlines(p => [d, ...p]); 
+            setMsg("Deadline created and lecturers notified!"); 
+            setForm({ type: "SEMESTER_CALENDAR", label: "", dueDate: "" }); 
+        }
         else setMsg("Failed to create deadline.");
         setSaving(false); setTimeout(() => setMsg(""), 3000);
     }

@@ -3,23 +3,31 @@
 import { useEffect, useState } from "react";
 
 export default function ThemeToggle() {
-    const [theme, setTheme] = useState<"light" | "dark" | null>(null);
+    const [theme, setTheme] = useState<"light" | "dark">("dark");
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        const saved = localStorage.getItem("lamas-theme") as "light" | "dark" | null;
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setTheme(saved || "dark");
+        const saved = (localStorage.getItem("lamas-theme") as "light" | "dark") || "dark";
+        Promise.resolve().then(() => {
+            setTheme(saved);
+            setMounted(true);
+        });
     }, []);
 
+    useEffect(() => {
+        if (mounted) {
+            document.documentElement.classList.toggle("dark", theme === "dark");
+        }
+    }, [theme, mounted]);
+
     const toggle = () => {
-        if (!theme) return;
         const newTheme = theme === "dark" ? "light" : "dark";
         setTheme(newTheme);
         localStorage.setItem("lamas-theme", newTheme);
         document.documentElement.classList.toggle("dark", newTheme === "dark");
     };
 
-    if (theme === null) return null;
+    if (!mounted) return <div className="p-2.5 w-[42px] h-[42px]" />; // Placeholder with same dimensions
 
     return (
         <button

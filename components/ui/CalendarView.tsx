@@ -117,8 +117,8 @@ export default function CalendarView({ topics, onTopicClick, totalWeeks = 0 }: C
                                 return (
                                     <div
                                         key={weekNum}
-                                        onClick={() => topic?.title && onTopicClick?.(topic)}
-                                        className={`rounded-xl border p-3 transition-all duration-200 min-h-[90px] flex flex-col ${topic?.title ? "cursor-pointer hover:scale-[1.02] hover:shadow-md" : ""}`}
+                                        onClick={() => onTopicClick?.(topic || { week: weekNum, title: "", status: "PENDING" })}
+                                        className="rounded-xl border p-3 transition-all duration-200 min-h-[90px] flex flex-col cursor-pointer hover:scale-[1.02] hover:shadow-md"
                                         style={{
                                             backgroundColor: cfg ? cfg.rowBg : "var(--bg-hover)",
                                             borderColor: cfg ? cfg.rowBorder : "var(--bg-border)",
@@ -145,13 +145,18 @@ export default function CalendarView({ topics, onTopicClick, totalWeeks = 0 }: C
                                             {topic?.title ? (
                                                 <>
                                                     <p
-                                                        className="text-[11px] font-semibold leading-snug line-clamp-2 flex-1"
+                                                        className="text-[11px] font-semibold leading-snug line-clamp-2"
                                                         style={{ color: "var(--text-primary)" }}
                                                     >
                                                         {topic.title}
                                                     </p>
+                                                    {topic.description && (
+                                                        <p className="text-[9px] mt-0.5 opacity-60 truncate" style={{ color: "var(--text-secondary)" }}>
+                                                            {topic.description}
+                                                        </p>
+                                                    )}
                                                     {/* Status pill */}
-                                                    <div className="mt-2">
+                                                    <div className="mt-auto pt-2">
                                                         <span
                                                             className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md"
                                                             style={{ backgroundColor: cfg!.pillBg, color: cfg!.textColor }}

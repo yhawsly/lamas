@@ -192,17 +192,17 @@ const rateLimiters = {
     message: 'Too many password reset requests. Please try again after 30 minutes.',
   }),
 
-  // Moderate: 20 requests per 15 minutes (general API endpoint)
+  // Moderate: 200 requests per 15 minutes (general API endpoint)
   general: new RateLimiter({
     windowMs: 15 * 60 * 1000,
-    maxRequests: 20,
+    maxRequests: 200,
     message: 'Rate limit exceeded. Please try again later.',
   }),
 
-  // Lenient: 100 requests per 15 minutes (file uploads, searches)
+  // Lenient: 500 requests per 15 minutes (file uploads, searches)
   lenient: new RateLimiter({
     windowMs: 15 * 60 * 1000,
-    maxRequests: 100,
+    maxRequests: 500,
     message: 'Rate limit exceeded. Please try again later.',
   }),
 };

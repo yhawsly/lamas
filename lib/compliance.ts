@@ -17,17 +17,32 @@ export interface ComplianceScore {
 export async function computeComplianceScores(
     departmentId?: number
 ): Promise<ComplianceScore[]> {
-    const whereClause = departmentId ? { departmentId, isActive: true } : { isActive: true };
+    const activeTerm = await prisma.academicTerm.findFirst({ where: { isActive: true } });
+    const termId = activeTerm?.id;
+
+    const whereClause: any = { isActive: true, role: { in: ["LECTURER", "HOD"] } };
+    if (departmentId) whereClause.departmentId = departmentId;
 
     const lecturers = await prisma.user.findMany({
-        where: { ...whereClause, role: { in: ["LECTURER", "HOD"] } },
+        where: whereClause,
         include: {
-            submissions: { include: { deadline: true } },
+            submissions: { 
+                where: termId ? { termId } : {},
+                include: { deadline: true } 
+            },
             department: true,
         },
     });
 
-    const deadlines = await prisma.deadline.findMany();
+    const now = new Date();
+    const deadlines = await prisma.deadline.findMany({
+        where: {
+            AND: [
+                termId ? { termId } : {},
+                { dueDate: { lte: now } }
+            ]
+        }
+    });
     const totalRequired = deadlines.length;
 
     return lecturers.map((l) => {
@@ -66,9 +81,10 @@ export async function computeComplianceScores(
     });
 }
 
-export async function getDepartmentHeatmap() {
+export async function getDepartmentHeatmap(termId?: number, departmentId?: number) {
     const departments = await prisma.department.findMany({
-        include: { users: { where: { role: { in: ["LECTURER", "HOD"] } } } },
+        where: departmentId ? { id: departmentId } : {},
+        include: { users: { where: { role: { in: ["LECTURER", "HOD"] }, isActive: true } } },
     });
 
     const types = [
@@ -80,8 +96,8 @@ export async function getDepartmentHeatmap() {
     return Promise.all(
         departments.map(async (dept) => {
             const lecturerIds = dept.users.map((u) => u.id);
-            const heatRow: Record<string, number> = { departmentId: dept.id };
-            heatRow.department = dept.name as any;
+            const heatRow: Record<string, number | string | any> = { departmentId: dept.id };
+            heatRow.department = dept.name;
 
             for (const type of types) {
                 const count = await prisma.submission.count({
@@ -89,6 +105,7 @@ export async function getDepartmentHeatmap() {
                         lecturerId: { in: lecturerIds },
                         type: type as SubmissionType,
                         status: { in: [SubmissionStatus.SUBMITTED, SubmissionStatus.LATE] },
+                        termId: termId || undefined,
                     },
                 });
                 const total = lecturerIds.length;
@@ -100,9 +117,12 @@ export async function getDepartmentHeatmap() {
     );
 }
 
-export async function getMonthlyTrend() {
+export async function getMonthlyTrend(termId?: number) {
     const submissions = await prisma.submission.findMany({
-        where: { status: { in: [SubmissionStatus.SUBMITTED, SubmissionStatus.LATE] } },
+        where: { 
+            status: { in: [SubmissionStatus.SUBMITTED, SubmissionStatus.LATE] },
+            ...(termId ? { termId } : {})
+        },
         select: { submittedAt: true, status: true },
         orderBy: { submittedAt: "asc" },
     });

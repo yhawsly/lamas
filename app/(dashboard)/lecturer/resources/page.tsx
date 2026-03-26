@@ -54,7 +54,7 @@ export default function LecturerResourcesPage() {
         setMyLoading(true);
         try {
             const res = await fetch(`/api/resources?page=${page}&limit=10`);
-            const json = await res.json();
+            const json = res.ok ? await res.json().catch(() => ({})) : {};
             setMyResources(json.data || []);
             setMyPagination({ page, totalPages: json.meta?.totalPages || 1 });
         } catch (error) {
@@ -69,7 +69,7 @@ export default function LecturerResourcesPage() {
         setSharedLoading(true);
         try {
             const res = await fetch(`/api/resources?shared=true&page=${page}&limit=9`);
-            const json = await res.json();
+            const json = res.ok ? await res.json().catch(() => ({})) : {};
             setSharedResources(json.data || []);
             setSharedPagination({ page, totalPages: json.meta?.totalPages || 1 });
         } catch (error) {
@@ -107,7 +107,7 @@ export default function LecturerResourcesPage() {
                 method: "POST",
                 body: fileData
             });
-            const { url: uploadedUrl, format: detectedFormat, error: uploadErr } = await uploadRes.json();
+            const { url: uploadedUrl, format: detectedFormat, error: uploadErr } = await uploadRes.json().catch(() => ({}));
 
             if (!uploadRes.ok) throw new Error(uploadErr || "File upload failed");
 
@@ -130,7 +130,7 @@ export default function LecturerResourcesPage() {
                 fetchMyResources(1);
                 showAlert("Success", "Resource submitted for review!");
             } else {
-                const { error } = await res.json();
+                const { error } = await res.json().catch(() => ({ error: "Submission failed" }));
                 showAlert("Error", error || "Submission failed");
             }
         } catch (error: unknown) {
@@ -149,7 +149,7 @@ export default function LecturerResourcesPage() {
                 if (res.ok) {
                     fetchMyResources(myPagination.page);
                 } else {
-                    const { error } = await res.json();
+                    const { error } = await res.json().catch(() => ({ error: "Deletion failed" }));
                     showAlert("Error", error || "Deletion failed");
                 }
             } catch (error) {
@@ -157,6 +157,53 @@ export default function LecturerResourcesPage() {
                 showAlert("Error", "Failed to delete resource");
             }
         });
+    };
+
+    const handleDownloadClick = async (e: React.MouseEvent, url: string, filename: string) => {
+        e.preventDefault();
+        try {
+            if (url.includes("vercel-storage.com")) {
+                const downloadUrl = url.includes("?") ? `${url}&download=1` : `${url}?download=1`;
+                window.location.href = downloadUrl;
+                return;
+            }
+            const res = await fetch(url);
+            if (!res.ok) throw new Error("Fetch failed");
+            const blob = await res.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = blobUrl;
+            a.download = filename || "resource";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+            console.error("Download fallback", err);
+            window.open(url, "_blank");
+        }
+    };
+
+    const handleViewClick = async (e: React.MouseEvent, url: string, type: string) => {
+        e.preventDefault();
+
+        try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error();
+            const blob = await res.blob();
+            
+            let mime = blob.type;
+            if (type === "PDF" || url.toLowerCase().endsWith(".pdf")) mime = "application/pdf";
+            else if (type === "IMAGE" || url.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/)) mime = "image/jpeg";
+            else if (type === "VIDEO") mime = "video/mp4";
+            else if (mime === "application/octet-stream") mime = "text/plain"; 
+            
+            const fileBlob = new Blob([blob], { type: mime });
+            const blobUrl = URL.createObjectURL(fileBlob);
+            window.open(blobUrl, "_blank");
+        } catch {
+            window.open(url, "_blank");
+        }
     };
 
     const filteredShared = sharedResources.filter(r => {
@@ -254,11 +301,11 @@ export default function LecturerResourcesPage() {
                                             </div>
                                             <div className="flex items-center gap-3 flex-shrink-0">
                                                 <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${statusColors[r.status] || ""}`}>{r.status}</span>
-                                                <a href={r.url} target="_blank" rel="noopener noreferrer" download={r.title}
+                                                <a href={r.url} onClick={(e) => handleDownloadClick(e, r.url, r.title)} download={r.title}
                                                     className="p-2 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-blue-600/30 text-slate-400 dark:text-white/40 hover:text-blue-600 dark:hover:text-white transition border border-slate-200 dark:border-white/5" title="Download resource">
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                                 </a>
-                                                <a href={r.url} target="_blank" rel="noopener noreferrer"
+                                                <a href={r.url} onClick={(e) => handleViewClick(e, r.url, r.type)}
                                                     className="p-2 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-emerald-600/30 text-slate-400 dark:text-white/40 hover:text-emerald-600 dark:hover:text-white transition border border-slate-200 dark:border-white/5" title="Open in New Tab">
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                                 </a>
@@ -355,11 +402,11 @@ export default function LecturerResourcesPage() {
                                                 <div className="text-slate-600 dark:text-white/60 text-xs font-medium">{r.lecturer?.name || "Admin"}</div>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <a href={r.url} target="_blank" rel="noopener noreferrer"
+                                                <a href={r.url} onClick={(e) => handleViewClick(e, r.url, r.type)}
                                                     className="p-2 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-400 dark:text-white/40 hover:text-slate-600 dark:hover:text-white transition border border-slate-200 dark:border-white/10" title="Open in New Tab">
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                                 </a>
-                                                <a href={r.url} target="_blank" rel="noopener noreferrer" download={r.title}
+                                                <a href={r.url} onClick={(e) => handleDownloadClick(e, r.url, r.title)} download={r.title}
                                                     className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-lg shadow-emerald-500/20 group-hover:shadow-emerald-500/40">
                                                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                                     Download

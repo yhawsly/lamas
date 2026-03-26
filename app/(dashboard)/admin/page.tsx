@@ -20,22 +20,40 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState<"overview" | "lecturers" | "atRisk" | "trend">("overview");
     const [notify, setNotify] = useState({ message: "", show: false, sent: false });
+    const [sending, setSending] = useState(false);
 
     useEffect(() => {
-        fetch("/api/admin/analytics").then(r => r.json()).then(d => { setData(d); setLoading(false); });
+        fetch("/api/admin/analytics")
+            .then(r => r.ok ? r.json().catch(() => ({ summary: { totalLecturers: 0, totalSubmissions: 0, totalDeadlines: 0, avgScore: 0, atRiskCount: 0 }, scores: [], atRisk: [], heatmap: [], trend: [] })) : null)
+            .then(d => { if (d) setData(d); setLoading(false); })
+            .catch(() => setLoading(false));
     }, []);
 
     async function sendBroadcast() {
+        if (!notify.message.trim()) return;
+        setSending(true);
         const res = await fetch("/api/notifications", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ message: notify.message }),
         });
-        if (res.ok) setNotify(n => ({ ...n, sent: true }));
+        setSending(false);
+        if (res.ok) {
+            setNotify(n => ({ ...n, sent: true, message: "" }));
+        } else {
+            const d = await res.json().catch(() => ({}));
+            alert(d.error || "Failed to send notification. Please try again later.");
+        }
     }
 
-    if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin w-8 h-8 border-2" style={{ borderColor: "var(--primary)", borderTopColor: "transparent" }} /></div>;
-    if (!data) return null;
+    if (loading || !data) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                <p className="text-sm font-medium animate-pulse" style={{ color: "var(--text-muted)" }}>Loading institution analytics...</p>
+            </div>
+        );
+    }
 
     const { summary } = data;
 
@@ -136,10 +154,10 @@ export default function AdminDashboard() {
                                     placeholder="Type a message to broadcast to all lecturers..."
                                     className="flex-1 px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 text-sm"
                                     style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
-                                <button onClick={sendBroadcast} disabled={!notify.message}
+                                <button onClick={sendBroadcast} disabled={!notify.message || sending}
                                     className="px-5 py-2.5 rounded-xl text-white font-medium text-sm transition disabled:opacity-40"
                                     style={{ backgroundColor: "var(--primary)", color: "white" }}>
-                                    Send
+                                    {sending ? "Sending..." : "Send"}
                                 </button>
                             </div>
                         )}

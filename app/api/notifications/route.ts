@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
 
         const where = { userId };
 
-        const [notifications, totalCount] = await Promise.all([
+        const [notifications, totalCount] = await prisma.$transaction([
             prisma.notification.findMany({
                 where,
                 orderBy: { createdAt: "desc" },

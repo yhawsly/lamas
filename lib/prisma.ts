@@ -16,13 +16,19 @@ const createPrismaClient = () => {
             globalForPrisma.pgPool = new Pool({
                 connectionString: process.env.DATABASE_URL,
                 ssl: { rejectUnauthorized: false },
-                max: 10,
-                idleTimeoutMillis: 60000,
-                connectionTimeoutMillis: 10000, // Increased to 10s for Neon cold-starts
+                max: 20, // Increased to 20 per user recommendation
+                idleTimeoutMillis: 30000,
+                connectionTimeoutMillis: 30000,
+                keepAlive: true,
+            });
+
+            // Add background error handler to prevent process crashes
+            globalForPrisma.pgPool.on('error', (err) => {
+                console.error('❌ Unexpected error on idle PostgreSQL client', err);
             });
         }
         
-        const adapter = new PrismaPg(globalForPrisma.pgPool);
+        const adapter = new PrismaPg(globalForPrisma.pgPool as Pool);
         config.adapter = adapter;
     }
 

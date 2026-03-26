@@ -16,12 +16,18 @@ export default function AdminLecturersPage() {
     const [alertMessage, setAlertMessage] = useState("");
 
     const fetchData = () => {
-        fetch("/api/admin/analytics").then(r => r.json()).then(d => { setData(d); setLoading(false); });
+        fetch("/api/admin/analytics")
+            .then(r => r.ok ? r.json().catch(() => ({ scores: [] })) : ({ scores: [] }))
+            .then(d => { setData(d); setLoading(false); })
+            .catch(() => setLoading(false));
     };
 
     useEffect(() => { 
         fetchData();
-        fetch("/api/admin/departments").then(r => r.ok ? r.json() : []).then(d => setDepartments(Array.isArray(d) ? d : []));
+        fetch("/api/admin/departments")
+            .then(r => r.ok ? r.json().catch(() => []) : [])
+            .then(d => setDepartments(Array.isArray(d) ? d : []))
+            .catch(() => setDepartments([]));
     }, []);
 
     const handleCreate = async (e: React.FormEvent) => {

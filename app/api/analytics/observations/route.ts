@@ -19,7 +19,12 @@ export async function GET() {
 
         const user = await prisma.user.findUnique({ where: { id: parseInt(session.user.id!) } });
 
+        const activeTerm = await prisma.academicTerm.findFirst({ where: { isActive: true } });
+        const termId = activeTerm?.id;
+
         const where: any = { status: "COMPLETED" };
+        if (termId) where.termId = termId;
+
         if (role === "HOD" && user?.departmentId) {
             where.lecturer = { departmentId: user.departmentId };
         }

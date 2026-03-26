@@ -49,8 +49,8 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
         const updated = await prisma.observation.update({
             where: { id: obsId },
             data: {
-                strengths: JSON.stringify(strengths),
-                improvements: JSON.stringify(improvements),
+                strengths: strengths,
+                improvements: improvements,
                 ratingKnowledge: parseInt(ratingKnowledge),
                 ratingEngagement: parseInt(ratingEngagement),
                 ratingTech: parseInt(ratingTech),

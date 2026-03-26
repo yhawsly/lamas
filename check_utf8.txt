@@ -1,0 +1,89 @@
+﻿node.exe : 
+(node:14748) Warning: 
+SECURITY WARNING: The 
+SSL modes 'prefer', 
+'require', and 
+'verify-ca' are 
+treated as aliases for 
+'verify-full'.
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: ((node:14748)    
+ Wa... 'verify-full    
+'.:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+In the next major 
+version 
+(pg-connection-string 
+v3.0.0 and pg v9.0.0), 
+these modes will adopt 
+standard libpq 
+semantics, which have 
+weaker security 
+guarantees.
+
+To prepare for this 
+change:
+- If you want the 
+current behavior, 
+explicitly use 
+'sslmode=verify-full'
+- If you want libpq 
+compatibility now, use 
+'uselibpqcompat=true&ss
+lmode=require'
+
+See https://www.postgre
+sql.org/docs/current/li
+bpq-ssl.html for libpq 
+SSL mode definitions.
+(Use `node 
+--trace-warnings ...` 
+to show where the 
+warning was created)
+Total users: 7
+Users: [
+  {
+    "email": "lecturer2@lamas.edu",
+    "role": "LECTURER"
+  },
+  {
+    "email": "lecturer3@lamas.edu",
+    "role": "LECTURER"
+  },
+  {
+    "email": "superadmin@lamas.edu",
+    "role": "SUPER_ADMIN"
+  },
+  {
+    "email": "kofiacquah@lamas.edu",
+    "role": "LECTURER"
+  },
+  {
+    "email": "hod.cs@lamas.edu",
+    "role": "HOD"
+  },
+  {
+    "email": "admin@lamas.edu",
+    "role": "ADMIN"
+  },
+  {
+    "email": "lecturer1@lamas.edu",
+    "role": "LECTURER"
+  }
+]
+Total terms: 1

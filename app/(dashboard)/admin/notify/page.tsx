@@ -27,12 +27,15 @@ export default function AdminNotifyPage() {
             body: JSON.stringify({ message: form.message, targetRole: form.targetRole || undefined }),
         });
         if (res.ok) { 
-            const d = await res.json(); 
+            const d = await res.json().catch(() => ({ sent: 0 })); 
             setResult(d); 
             setForm({ message: "", targetRole: "" }); 
             localStorage.removeItem("lamas_draft_admin_notify");
         }
-        else setError("Failed to send notification.");
+        else {
+            const d = await res.json().catch(() => ({ error: "Server error" }));
+            setError(d.error || "Failed to send notification. Please try again later.");
+        }
         setSending(false);
     }
 

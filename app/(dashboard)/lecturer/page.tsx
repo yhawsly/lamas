@@ -25,19 +25,30 @@ export default function LecturerDashboard() {
     const [now, setNow] = useState<number | null>(null);
 
     useEffect(() => {
-        Promise.all([
-            fetch("/api/submissions").then(r => r.json()),
-            fetch("/api/deadlines").then(r => r.json()),
-            fetch("/api/notifications").then(r => r.json()),
-        ]).then(([subs, dls, notifs]) => {
-            setSubmissions(Array.isArray(subs.data) ? subs.data : []);
-            setDeadlines(Array.isArray(dls) ? dls : []);
-            setNotifications(Array.isArray(notifs) ? notifs : []);
-            setLoading(false);
-        }).catch(err => {
-            console.error("Dashboard fetch error:", err);
-            setLoading(false);
-        });
+        const fetchDashboardData = async () => {
+            try {
+                const [subsRes, dlsRes, notifsRes] = await Promise.all([
+                    fetch("/api/submissions").then(r => r.ok ? r.json().catch(() => ({ data: [] })) : ({ data: [] })),
+                    fetch("/api/deadlines").then(r => r.ok ? r.json().catch(() => []) : []),
+                    fetch("/api/notifications").then(r => r.ok ? r.json().catch(() => ({ data: [] })) : ({ data: [] })),
+                ]);
+
+                // Safe extraction with type-casting/guards
+                const subData = (subsRes as any).data || [];
+                const dlData = Array.isArray(dlsRes) ? dlsRes : [];
+                const notifData = (notifsRes as any).data || [];
+
+                setSubmissions(subData);
+                setDeadlines(dlData);
+                setNotifications(notifData);
+            } catch (err) {
+                console.error("Dashboard fetch error:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
 
         // Safe hydration-friendly timestamp
         const t = setTimeout(() => setNow(Date.now()), 0);

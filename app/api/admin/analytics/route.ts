@@ -26,10 +26,13 @@ export async function GET() {
     const deptId =
         role === "HOD" ? (session.user as any).departmentId : undefined;
 
+    const activeTerm = await prisma.academicTerm.findFirst({ where: { isActive: true } });
+    const termId = activeTerm?.id;
+
     const [scores, heatmap, trend] = await Promise.all([
         computeComplianceScores(deptId),
-        getDepartmentHeatmap(),
-        getMonthlyTrend(),
+        getDepartmentHeatmap(termId, deptId),
+        getMonthlyTrend(termId),
     ]);
 
     const atRisk = scores.filter((s) => s.isAtRisk);
@@ -41,6 +44,7 @@ export async function GET() {
     // Summary stats
     const userWhere: any = { role: { in: ["LECTURER", "HOD"] }, isActive: true };
     const submissionWhere: any = { status: { in: ["SUBMITTED", "LATE"] } };
+    if (termId) submissionWhere.termId = termId;
 
     if (deptId) {
         userWhere.departmentId = deptId;
@@ -50,7 +54,7 @@ export async function GET() {
     const [totalLecturers, totalSubmissions, totalDeadlines] = await Promise.all([
         prisma.user.count({ where: userWhere }),
         prisma.submission.count({ where: submissionWhere }),
-        prisma.deadline.count(),
+        prisma.deadline.count({ where: termId ? { termId } : {} }),
     ]);
 
     return NextResponse.json({
