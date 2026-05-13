@@ -21,10 +21,10 @@ export default function ThemeToggle() {
     }, [theme, mounted]);
 
     const toggle = () => {
-        const newTheme = theme === "dark" ? "light" : "light";
+        const newTheme = theme === "dark" ? "light" : "dark";
         setTheme(newTheme);
         localStorage.setItem("lamas-theme", newTheme);
-        document.documentElement.classList.toggle("light", newTheme === "light");
+        document.documentElement.classList.toggle("dark", newTheme === "dark");
     };
 
     if (!mounted) return <div className="p-2.5 w-[42px] h-[42px]" />; // Placeholder with same dimensions

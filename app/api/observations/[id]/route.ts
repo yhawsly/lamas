@@ -62,7 +62,14 @@ export async function PATCH(
             where: { id: parseInt(id) },
             data: {
                 feedback: body.feedback,
-                status
+                status,
+                // Structured ratings (1–5 scale), only update if provided
+                ...(body.ratingEngagement    !== undefined && { ratingEngagement:    body.ratingEngagement }),
+                ...(body.ratingKnowledge     !== undefined && { ratingKnowledge:     body.ratingKnowledge }),
+                ...(body.ratingOrganization  !== undefined && { ratingOrganization:  body.ratingOrganization }),
+                ...(body.ratingActivities    !== undefined && { ratingActivities:    body.ratingActivities }),
+                ...(body.ratingTech          !== undefined && { ratingTech:          body.ratingTech }),
+                ...(body.ratingCommunication !== undefined && { ratingCommunication: body.ratingCommunication }),
             },
             include: { lecturer: { select: { email: true, name: true } } }
         });

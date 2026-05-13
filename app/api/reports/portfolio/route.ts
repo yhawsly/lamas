@@ -43,19 +43,26 @@ export async function GET() {
         });
 
         const getAvg = (field: string) => {
-            const valid = observations.filter(o => (o as any)[field]);
-            if (valid.length === 0) return 70; // Baseline
-            return Math.round((valid.reduce((a, b) => a + (b as any)[field], 0) / valid.length) * 20); // Normalize 1-5 to 1-100
+            // Only count observations that actually have this rating filled in
+            const rated = observations.filter(o => (o as any)[field] != null);
+            if (rated.length === 0) return 0; // No data — don't fabricate a score
+            const avg = rated.reduce((sum, o) => sum + (o as any)[field], 0) / rated.length;
+            return Math.round((avg / 5) * 100); // Normalise 1–5 → 0–100
         };
 
-        const radarData = [
-            { subject: 'Engagement', A: getAvg('ratingEngagement'), fullMark: 100 },
-            { subject: 'Knowledge', A: getAvg('ratingKnowledge'), fullMark: 100 },
-            { subject: 'Organization', A: getAvg('ratingOrganization'), fullMark: 100 },
-            { subject: 'Activities', A: getAvg('ratingActivities'), fullMark: 100 },
-            { subject: 'Technology', A: getAvg('ratingTech'), fullMark: 100 },
+        const hasRatings = observations.some(o =>
+            (o as any).ratingEngagement != null ||
+            (o as any).ratingKnowledge  != null
+        );
+
+        const radarData = hasRatings ? [
+            { subject: 'Engagement',    A: getAvg('ratingEngagement'),    fullMark: 100 },
+            { subject: 'Knowledge',     A: getAvg('ratingKnowledge'),     fullMark: 100 },
+            { subject: 'Organization',  A: getAvg('ratingOrganization'),  fullMark: 100 },
+            { subject: 'Activities',    A: getAvg('ratingActivities'),    fullMark: 100 },
+            { subject: 'Technology',    A: getAvg('ratingTech'),          fullMark: 100 },
             { subject: 'Communication', A: getAvg('ratingCommunication'), fullMark: 100 },
-        ];
+        ] : null; // null signals "no rated observations yet" to the frontend
 
         // 3. Syllabus Velocity (Weekly Trends based on mandatory topic coverage)
         const weeklySubmissions = await prisma.submission.findMany({
@@ -90,6 +97,32 @@ export async function GET() {
             select: { action: true, createdAt: true, detail: true }
         });
 
+        // 5. Dynamic Audit Artifacts
+        const auditArtifacts = activeTerm ? [
+            { 
+                title: "Pre-Cycle Audit", 
+                desc: "Course Outline Verification", 
+                date: new Date(activeTerm.startDate).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }), 
+                icon: "🛡️" 
+            },
+            { 
+                title: "Mid-Term Review", 
+                desc: "Observational Consistency", 
+                date: new Date(activeTerm.startDate.getTime() + (activeTerm.endDate.getTime() - activeTerm.startDate.getTime()) / 2).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }), 
+                icon: "👁️" 
+            },
+            { 
+                title: "Final Compliance", 
+                desc: "Institutional Alignment", 
+                date: new Date(activeTerm.endDate).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }), 
+                icon: "✅" 
+            }
+        ] : [
+            { title: "Pre-Cycle Audit", desc: "No Active Term", date: "---", icon: "🛡️" },
+            { title: "Mid-Term Review", desc: "No Active Term", date: "---", icon: "👁️" },
+            { title: "Final Compliance", desc: "No Active Term", date: "---", icon: "✅" }
+        ];
+
         return NextResponse.json({
             stats: {
                 compliance: complianceScore,
@@ -98,7 +131,8 @@ export async function GET() {
             },
             radarData,
             velocity,
-            auditHistory
+            auditHistory,
+            auditArtifacts
         });
     } catch (error) {
         console.error("Portfolio Data Fetch Error:", error);

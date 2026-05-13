@@ -11,9 +11,10 @@ interface PortfolioData {
         activeTerm: string;
         institution: string;
     };
-    radarData: any[];
+    radarData: any[] | null; // null = no rated observations yet
     velocity: any[];
     auditHistory: any[];
+    auditArtifacts: any[];
 }
 
 export default function InstitutionalIntelligenceSuite({ role }: { role: string }) {
@@ -134,18 +135,30 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
                         <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
                         <h3 className="font-bold text-lg mb-2" style={{ color: "var(--text-primary)" }}>Pedagogical Radar</h3>
                         <p className="text-xs mb-8 underline decoration-emerald-500/30 underline-offset-4" style={{ color: "var(--text-muted)" }}>Multi-dimensional instructional benchmarking.</p>
-                        
-                        <ResponsiveContainer width="100%" height={260}>
-                            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data.radarData}>
-                                <PolarGrid stroke="var(--bg-border)" />
-                                <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 'bold' }} />
-                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                <Radar name="Top 10% Avg" dataKey="A" stroke="#10b981" fill="#10b981" fillOpacity={0.3} />
-                                <Radar name="Benchmark" dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} />
-                                <Tooltip contentStyle={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--bg-border)', borderRadius: '12px', color: "var(--text-primary)" }} />
-                                <Legend wrapperStyle={{ paddingTop: 10, fontSize: 11 }} />
-                            </RadarChart>
-                        </ResponsiveContainer>
+
+                        {data.radarData ? (
+                            <ResponsiveContainer width="100%" height={260}>
+                                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data.radarData}>
+                                    <PolarGrid stroke="var(--bg-border)" />
+                                    <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 'bold' }} />
+                                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                    <Radar name="Performance" dataKey="A" stroke="#10b981" fill="#10b981" fillOpacity={0.35} dot />
+                                    <Tooltip
+                                        formatter={(value: number) => [`${value}%`, 'Score']}
+                                        contentStyle={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--bg-border)', borderRadius: '12px', color: "var(--text-primary)" }}
+                                    />
+                                    <Legend wrapperStyle={{ paddingTop: 10, fontSize: 11 }} />
+                                </RadarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-[260px] gap-3 rounded-2xl border border-dashed" style={{ borderColor: 'var(--bg-border)' }}>
+                                <span className="text-4xl">🕸️</span>
+                                <p className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>No rated observations yet</p>
+                                <p className="text-xs text-center max-w-[220px]" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
+                                    Ratings will appear here once observers submit scores for completed observations.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -185,14 +198,13 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {[
-                            { title: "Pre-Cycle Audit", desc: "Course Outline Verification", date: "Oct 2025", icon: "🛡️" },
-                            { title: "Mid-Term Review", desc: "Observational Consistency", date: "Dec 2025", icon: "👁️" },
-                            { title: "Final Compliance", desc: "Institutional Alignment", date: "Feb 2026", icon: "✅" }
-                        ].map((audit, i) => (
+                        {data.auditArtifacts.map((audit, i) => (
                             <div key={i} className="p-6 rounded-2xl transition-all hover:bg-white/5 border border-dashed border-white/10 group" style={{ backgroundColor: "var(--bg-hover)" }}>
                                 <div className="text-3xl mb-4 group-hover:scale-110 transition-transform inline-block">{audit.icon}</div>
-                                <h4 className="font-bold text-lg mb-1">{audit.title}</h4>
+                                <div className="flex justify-between items-start mb-1">
+                                    <h4 className="font-bold text-lg">{audit.title}</h4>
+                                    <span className="text-[10px] font-black opacity-40 uppercase tracking-tighter">{audit.date}</span>
+                                </div>
                                 <p className="text-xs opacity-60 mb-8">{audit.desc}</p>
                                 <button 
                                     onClick={() => handleExport(audit.title)}
@@ -224,7 +236,7 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
                         <div className="w-24 h-24 bg-black flex items-center justify-center text-white font-black text-3xl rounded-none underline decoration-4">FUT</div>
                         <div className="text-right">
                             <h1 className="text-2xl font-black uppercase italic tracking-tighter">Institutional Compliance Report</h1>
-                            <p className="text-sm font-bold opacity-80">Federal University of Technology</p>
+                            <p className="text-sm font-bold opacity-80">HO University of Technology</p>
                             <p className="text-[10px] font-mono mt-4">REF-ID: LAMAS-SYS-{Math.floor(100000 + Math.random() * 900000)}</p>
                         </div>
                     </div>
@@ -245,7 +257,7 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
                     <div className="mb-16">
                         <h4 className="text-xs font-black uppercase border-b-2 border-black pb-3 mb-8 tracking-[0.3em]">Pedagogical Benchmarks</h4>
                         <div className="space-y-6">
-                            {data.radarData.map((d, i) => (
+                            {(data.radarData ?? []).map((d, i) => (
                                 <div key={i} className="flex items-center justify-between group">
                                     <span className="text-sm font-black uppercase tracking-tight">{d.subject}</span>
                                     <div className="flex items-center gap-6">

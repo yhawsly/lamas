@@ -212,19 +212,27 @@ model SubmissionVersion {
 
 /// Classroom observation and peer review records
 model Observation {
-  id          Int               @id @default(autoincrement())
-  lecturerId  Int
-  observerId  Int
-  sessionDate DateTime
-  courseCode  String
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @default(now()) @updatedAt
-  status      ObservationStatus @default(PENDING)
-  feedback    String?
-  termId      Int?
-  lecturer    User              @relation("ObservedLecturer", fields: [lecturerId], references: [id])
-  observer    User              @relation("ObserverUser", fields: [observerId], references: [id])
-  term        AcademicTerm?     @relation(fields: [termId], references: [id])
+  id                  Int               @id @default(autoincrement())
+  lecturerId          Int
+  observerId          Int
+  sessionDate         DateTime
+  courseCode          String
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @default(now()) @updatedAt
+  status              ObservationStatus @default(PENDING)
+  feedback            String?
+  termId              Int?
+  // Structured rating fields (scale 1–5)
+  ratingEngagement    Float?
+  ratingKnowledge     Float?
+  ratingOrganization  Float?
+  ratingActivities    Float?
+  ratingTech          Float?
+  ratingCommunication Float?
+  lecturer            User              @relation("ObservedLecturer", fields: [lecturerId], references: [id])
+  observer            User              @relation("ObserverUser", fields: [observerId], references: [id])
+  term                AcademicTerm?     @relation(fields: [termId], references: [id])
+
 
   @@index([lecturerId])
   @@index([observerId])

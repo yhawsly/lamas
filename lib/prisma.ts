@@ -16,15 +16,18 @@ const createPrismaClient = () => {
             globalForPrisma.pgPool = new Pool({
                 connectionString: process.env.DATABASE_URL,
                 ssl: { rejectUnauthorized: false },
-                max: 20, // Increased to 20 per user recommendation
-                idleTimeoutMillis: 30000,
-                connectionTimeoutMillis: 30000,
+                max: 10, // Reduced from 20 to be more conservative with serverless limits
+                idleTimeoutMillis: 10000, // Reduced to 10s to cycle connections faster
+                connectionTimeoutMillis: 5000, // Fail faster if we can't connect
+                maxUses: 7500, // Recycle connections after 7500 uses
                 keepAlive: true,
             });
 
             // Add background error handler to prevent process crashes
             globalForPrisma.pgPool.on('error', (err) => {
-                console.error('❌ Unexpected error on idle PostgreSQL client', err);
+                console.error('❌ PostgreSQL Pool Error:', err);
+                // If it's a connection reset, we might want to clear the pool, 
+                // but usually pg handles this by removing the bad client.
             });
         }
         
