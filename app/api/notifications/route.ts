@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
 
         const where = { userId };
 
-        const [notifications, totalCount] = await prisma.$transaction([
+        const [notifications, totalCount] = await Promise.all([
             prisma.notification.findMany({
                 where,
                 orderBy: { createdAt: "desc" },
@@ -186,6 +186,12 @@ export async function POST(req: NextRequest) {
         await prisma.notification.createMany({
             data: users.map((u) => ({ userId: u.id, message: message.trim() })),
         });
+
+        // Trigger Resend Email Alerts — using allSettled to prevent failures from blocking API
+        const { sendNotificationEmail } = await import("@/lib/email");
+        Promise.allSettled(users.map((u) => 
+            sendNotificationEmail(u.email, targetUserId ? "Direct Message" : "Department Notice", message.trim())
+        )).catch(e => console.error("[Email] Notification broadcast failure:", e));
 
         await logAction({
             userId: senderId,

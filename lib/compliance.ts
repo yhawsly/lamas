@@ -15,10 +15,11 @@ export interface ComplianceScore {
 }
 
 export async function computeComplianceScores(
-    departmentId?: number
+    departmentId?: number,
+    termId?: number
 ): Promise<ComplianceScore[]> {
-    const activeTerm = await prisma.academicTerm.findFirst({ where: { isActive: true } });
-    const termId = activeTerm?.id;
+    const activeTermId = termId ?? (await prisma.academicTerm.findFirst({ where: { isActive: true } }))?.id;
+    const currentTermId = activeTermId;
 
     const whereClause: any = { isActive: true, role: { in: ["LECTURER", "HOD"] } };
     if (departmentId) whereClause.departmentId = departmentId;
@@ -27,7 +28,7 @@ export async function computeComplianceScores(
         where: whereClause,
         include: {
             submissions: { 
-                where: termId ? { termId } : {},
+                where: currentTermId ? { termId: currentTermId } : {},
                 include: { deadline: true } 
             },
             department: true,
@@ -38,7 +39,7 @@ export async function computeComplianceScores(
     const deadlines = await prisma.deadline.findMany({
         where: {
             AND: [
-                termId ? { termId } : {},
+                currentTermId ? { termId: currentTermId } : {},
                 { dueDate: { lte: now } }
             ]
         }

@@ -1,11 +1,12 @@
 "use client";
-import { useEffect, useMemo, useState, Suspense } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { z } from "zod";
 import Pagination from "@/components/ui/Pagination";
 import CalendarView, { WeeklyTopic } from "@/components/ui/CalendarView";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import { ValidationErrorAlert, parseValidationErrors, ValidationError } from "@/lib/validation-errors";
+import Loader from "@/components/ui/Loader";
 
 const DEFAULT_WEEKS = 18;
 const DRAFT_KEY_OUTLINE = "lamas_draft_outline";
@@ -117,7 +118,6 @@ function CourseOutlineContent() {
         const total = w.sessions.length;
         const delivered = w.sessions.filter(s => s.status === "DELIVERED").length;
         const postponed = w.sessions.filter(s => s.status === "POSTPONED").length;
-        // const filled = w.sessions.filter(s => s.topic.trim()).length; // Unused
 
         let status: "PENDING" | "COMPLETED" | "IN_PROGRESS" = "PENDING";
         if (delivered === total && total > 0) status = "COMPLETED";
@@ -146,9 +146,10 @@ function CourseOutlineContent() {
             });
     };
 
+
     useEffect(() => {
         fetchHistory(pagination.page);
-    }, [pagination.page]);
+    }, [courses, pagination.page]);
 
     const fetchActiveTerm = () => {
         fetch("/api/active-term")
@@ -290,6 +291,8 @@ function CourseOutlineContent() {
         setCourseCodeForWeekly(code);
     }
 
+
+
     function showMsg(text: string, ok: boolean) {
         setMsg({ text, ok });
         setTimeout(() => setMsg(null), 4000);
@@ -397,6 +400,7 @@ function CourseOutlineContent() {
             }
         }
 
+
         setSubmitting(true);
         const res = await fetch("/api/submissions", {
             method: "POST",
@@ -424,12 +428,7 @@ function CourseOutlineContent() {
     const filled = weeks.filter(w => w.sessions.some(s => s.topic.trim())).length;
 
     if (loading || (mode === "weekly" && weeks.length === 0)) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4 animate-in fade-in duration-500">
-                <div className="animate-spin w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full" />
-                <p className="font-medium text-sm" style={{ color: "var(--text-muted)" }}>Preparing your academic planner...</p>
-            </div>
-        );
+        return <Loader message="Preparing your academic planner..." />;
     }
 
     return (
@@ -484,7 +483,7 @@ function CourseOutlineContent() {
                             <p className="text-[11px] text-amber-500/70 text-amber-200">The 18-week limit is a fallback. Please check your connection.</p>
                         </div>
                     </div>
-                    <button 
+                    <button
                         onClick={() => fetchActiveTerm()}
                         className="px-4 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-xs font-bold transition-all"
                     >
@@ -614,12 +613,13 @@ function CourseOutlineContent() {
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Course Name *</label>
-                                            <input value={courseNameForWeekly} onChange={() => {}} readOnly
+                                            <input value={courseNameForWeekly} onChange={() => { }} readOnly
                                                 placeholder="Course title"
                                                 className="w-full px-4 py-3 rounded-xl text-white opacity-70 cursor-not-allowed" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
                                         </div>
                                     </div>
                                 </div>
+
                                 <div className="flex flex-col items-end gap-1">
                                     <div className="text-xs" style={{ color: "var(--text-muted)" }}>{filled} / {totalWeeks} weeks filled</div>
                                     <div className="w-48 h-1.5 rounded-full overflow-hidden mb-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)" }}>
@@ -646,9 +646,9 @@ function CourseOutlineContent() {
                             ) : (
                                 <div className="space-y-2">
                                     {weeks.map((w, i) => (
-                                        <div key={w.week} className="border rounded-2xl transition-all duration-200" 
-                                            style={{ 
-                                                borderColor: expandedWeek === w.week ? "rgb(79, 70, 229)" : "var(--bg-border)", 
+                                        <div key={w.week} className="border rounded-2xl transition-all duration-200"
+                                            style={{
+                                                borderColor: expandedWeek === w.week ? "rgb(79, 70, 229)" : "var(--bg-border)",
                                                 backgroundColor: expandedWeek === w.week ? "rgb(79, 70, 229, 0.05)" : "var(--bg-hover)",
                                                 position: "relative",
                                                 zIndex: expandedWeek === w.week ? 50 : 1
@@ -674,11 +674,11 @@ function CourseOutlineContent() {
                                                     {w.sessions[0]?.description && <div className="text-[11px] truncate mt-0.5" style={{ color: "var(--text-muted)" }}>{w.sessions[0]?.description}</div>}
                                                 </div>
                                                 {w.sessions.some(s => s.topic.trim()) && (
-                                                <div className="flex gap-1 flex-wrap overflow-hidden max-h-5 items-center">
-                                                    {w.sessions.map((s) => s.topic.trim() && (
-                                                        <div key={s.id} className={`w-1.5 h-1.5 rounded-full ${s.status === 'DELIVERED' ? 'bg-green-400' : s.status === 'POSTPONED' ? 'bg-amber-400' : 'bg-blue-400'}`} />
-                                                    ))}
-                                                </div>
+                                                    <div className="flex gap-1 flex-wrap overflow-hidden max-h-5 items-center">
+                                                        {w.sessions.map((s) => s.topic.trim() && (
+                                                            <div key={s.id} className={`w-1.5 h-1.5 rounded-full ${s.status === 'DELIVERED' ? 'bg-green-400' : s.status === 'POSTPONED' ? 'bg-amber-400' : 'bg-blue-400'}`} />
+                                                        ))}
+                                                    </div>
                                                 )}
                                                 <svg className={`w-4 h-4 flex-shrink-0 transition-transform ${expandedWeek === w.week ? "rotate-180" : ""}`} style={{ color: "var(--text-muted)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />

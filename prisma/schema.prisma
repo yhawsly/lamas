@@ -102,15 +102,60 @@ model Deadline {
 
 /// Accredited academic courses
 model Course {
-  id           Int        @id @default(autoincrement())
-  code         String     @unique
-  title        String
-  credits      Int        @default(3)
-  deletedAt    DateTime?
-  departmentId Int
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @default(now()) @updatedAt
-  department   Department @relation(fields: [departmentId], references: [id])
+  id              Int             @id @default(autoincrement())
+  code            String          @unique
+  title           String
+  credits         Int             @default(3)
+  departmentId    Int?
+  isInstitutional Boolean         @default(false)
+  categoryId      Int?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @default(now()) @updatedAt
+  deletedAt       DateTime?
+  category        CourseCategory? @relation(fields: [categoryId], references: [id])
+  department      Department?     @relation(fields: [departmentId], references: [id])
+  masterSyllabus  MasterSyllabus?
+  programs        Program[]       @relation("CoursePrograms")
+
+  @@index([departmentId])
+  @@index([categoryId])
+}
+
+/// Academic programs (e.g., BSc Computer Science, BEng Electrical)
+model Program {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  code        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  courses     Course[] @relation("CoursePrograms")
+}
+
+/// Categorization for courses (e.g., Core, Elective, Gen Ed)
+model CourseCategory {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  isGlobal    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  courses     Course[]
+}
+
+/// The authorized syllabus for a course that all lecturers must follow
+model MasterSyllabus {
+  id              Int      @id @default(autoincrement())
+  courseId        Int      @unique
+  mandatoryTopics Json
+  learningOutcomes Json?
+  version         Int      @default(1)
+  lastUpdatedBy   Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now()) @updatedAt
+  course          Course   @relation(fields: [courseId], references: [id])
+
+  @@index([courseId])
 }
 
 /// Specific academic periods (semesters/terms)
@@ -167,24 +212,19 @@ model SubmissionVersion {
 
 /// Classroom observation and peer review records
 model Observation {
-  id                Int               @id @default(autoincrement())
-  lecturerId        Int
-  observerId        Int
-  sessionDate       DateTime
-  courseCode        String
-  createdAt         DateTime          @default(now())
-  ratingEngagement  Int?
-  ratingKnowledge   Int?
-  ratingPunctuality Int?
-  ratingTech        Int?
-  termId            Int?
-  updatedAt         DateTime          @default(now()) @updatedAt
-  strengths         Json?
-  improvements      Json?
-  status            ObservationStatus @default(PENDING)
-  lecturer          User              @relation("ObservedLecturer", fields: [lecturerId], references: [id])
-  observer          User              @relation("ObserverUser", fields: [observerId], references: [id])
-  term              AcademicTerm?     @relation(fields: [termId], references: [id])
+  id          Int               @id @default(autoincrement())
+  lecturerId  Int
+  observerId  Int
+  sessionDate DateTime
+  courseCode  String
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @default(now()) @updatedAt
+  status      ObservationStatus @default(PENDING)
+  feedback    String?
+  termId      Int?
+  lecturer    User              @relation("ObservedLecturer", fields: [lecturerId], references: [id])
+  observer    User              @relation("ObserverUser", fields: [observerId], references: [id])
+  term        AcademicTerm?     @relation(fields: [termId], references: [id])
 
   @@index([lecturerId])
   @@index([observerId])

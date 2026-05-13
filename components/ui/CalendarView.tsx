@@ -108,8 +108,8 @@ export default function CalendarView({ topics, onTopicClick, totalWeeks = 0 }: C
                             <div className="flex-1 h-px" style={{ backgroundColor: "var(--bg-border)" }} />
                         </div>
 
-                        {/* Cards grid for this block — fixed 6-col */}
-                        <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${group.length}, minmax(0, 1fr))` }}>
+                        {/* Cards grid for this block — responsive grid */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
                             {group.map((weekNum) => {
                                 const topic = topics.find(t => t.week === weekNum);
                                 const cfg = topic?.title ? STATUS_CONFIG[topic.status] : null;

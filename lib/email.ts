@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 interface EmailOptions {
   to: string;
@@ -7,95 +7,177 @@ interface EmailOptions {
 }
 
 /**
- * Email sending utility
- * Uses Nodemailer with environment-based configuration
- * Supports: SMTP, Gmail, SendGrid, etc.
+ * Resend Email Service
+ * High-standard, professional email delivery for the LAMAS platform.
  */
 
-let transporter: nodemailer.Transporter | null = null;
+const resend = process.env.RESEND_API_KEY 
+  ? new Resend(process.env.RESEND_API_KEY) 
+  : null;
+
+const SENDER = process.env.EMAIL_FROM || "onboarding@resend.dev";
 
 /**
- * Initialize email transporter based on environment variables
+ * Premium "Academic Standard" Base Template.
+ * Focuses on high legibility, clean spacing, and modern corporate branding.
  */
-function getTransporter(): nodemailer.Transporter {
-  if (transporter) {
-    return transporter;
-  }
-
-  // Use environment-based configuration
-  if (process.env.EMAIL_HOST && process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-    transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: parseInt(process.env.EMAIL_PORT || "587"),
-      secure: process.env.EMAIL_SECURE === "true", // true for 465, false for other ports
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
-  } else if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-    // Default to Gmail if no host specified but credentials provided
-    transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
-  } else {
-    // Development mode: use ethereal (testing service)
-    // In production, this will log a warning but not fail
-    console.warn(
-      "[Email] No email credentials found in environment variables. " +
-      "Set EMAIL_USER and EMAIL_PASSWORD to enable email sending. " +
-      "Supported: Gmail, SMTP, or any Nodemailer-compatible service."
-    );
-
-    // Return a mock transporter for development
-    transporter = {
-      sendMail: async (options: any) => {
-        console.log("[Email] Mock email (development):", {
-          to: options.to,
-          subject: options.subject,
-        });
-        return { messageId: "mock-" + Date.now() };
-      },
-    } as nodemailer.Transporter;
-  }
-
-  return transporter;
-}
+const getBaseTemplate = (content: string, title: string) => `
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        body { 
+          font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+          line-height: 1.625; 
+          color: #1e293b; 
+          margin: 0; 
+          padding: 0; 
+          background-color: #f1f5f9; 
+          -webkit-font-smoothing: antialiased;
+        }
+        .container { 
+          max-width: 640px; 
+          margin: 60px auto; 
+          padding: 0 20px;
+        }
+        .wrapper { 
+          background: #ffffff; 
+          border-radius: 16px; 
+          overflow: hidden; 
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05); 
+          border: 1px solid #e2e8f0; 
+        }
+        .brand-header { 
+          padding: 32px 40px; 
+          border-bottom: 1px solid #f1f5f9;
+          text-align: left;
+        }
+        .brand-logo { 
+          display: inline-block;
+          font-weight: 800; 
+          font-size: 18px; 
+          color: #0f172a; 
+          letter-spacing: -0.02em;
+          text-transform: uppercase;
+          border-bottom: 3px solid #4f46e5;
+          padding-bottom: 4px;
+        }
+        .content { 
+          padding: 40px; 
+        }
+        .content h1, .content h2 {
+          color: #0f172a;
+          font-size: 24px;
+          font-weight: 700;
+          margin-top: 0;
+          margin-bottom: 16px;
+          letter-spacing: -0.025em;
+        }
+        .footer { 
+          padding: 32px 40px; 
+          text-align: left; 
+          border-top: 1px solid #f1f5f9;
+          color: #64748b; 
+          font-size: 13px; 
+        }
+        .btn { 
+          display: inline-block; 
+          padding: 12px 32px; 
+          background-color: #4f46e5; 
+          color: #ffffff !important; 
+          text-decoration: none; 
+          border-radius: 8px; 
+          font-weight: 600; 
+          font-size: 14px; 
+          margin: 24px 0;
+          transition: background-color 0.2s;
+        }
+        .alert-badge {
+          display: inline-block;
+          background: #eef2ff;
+          color: #4f46e5;
+          padding: 4px 12px;
+          border-radius: 9999px;
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: 20px;
+        }
+        .detail-box { 
+          background: #f8fafc; 
+          border: 1px solid #f1f5f9; 
+          border-radius: 12px; 
+          padding: 24px; 
+          margin: 24px 0; 
+        }
+        p { margin-bottom: 20px; font-size: 15px; color: #475569; }
+        .divider { height: 1px; background: #f1f5f9; margin: 32px 0; }
+        @media (max-width: 600px) {
+          .container { margin: 20px auto; }
+          .content { padding: 32px 24px; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="wrapper">
+          <div class="brand-header">
+            <div class="brand-logo">LAMAS</div>
+          </div>
+          <div class="content">
+            <div class="alert-badge">${title}</div>
+            ${content}
+          </div>
+          <div class="footer">
+            <p style="margin: 0; font-weight: 500; color: #334155;">Learning Assessment & Management System</p>
+            <p style="margin: 8px 0 0 0; opacity: 0.8;">Integrated Academic Communication Gateway</p>
+            <div style="margin-top: 24px; font-size: 11px; color: #94a3b8;">
+              &copy; ${new Date().getFullYear()} LAMAS Platform. All rights reserved.
+            </div>
+          </div>
+        </div>
+      </div>
+    </body>
+  </html>
+`;
 
 /**
- * Send an email
- * @param options Email options (to, subject, html)
- * @returns Promise with message ID if successful
+ * Send an email using Resend SDK
  */
 export async function sendEmail(options: EmailOptions): Promise<string> {
   try {
-    const transporter = getTransporter();
+    if (!resend) {
+      console.log("\n--- [DEVELOPMENT MAIL MOCK] ---");
+      console.log(`To: ${options.to}`);
+      console.log(`Subject: ${options.subject}`);
+      console.log("-------------------------------\n");
+      return `dev-mock-${Date.now()}`;
+    }
 
-    const mailOptions = {
-      from: process.env.EMAIL_FROM || process.env.EMAIL_USER || "noreply@lamas.edu",
+    const { data, error } = await resend.emails.send({
+      from: SENDER,
       to: options.to,
       subject: options.subject,
       html: options.html,
-    };
+    });
 
-    const result = await transporter.sendMail(mailOptions);
+    if (error) {
+      console.error("[Email] Resend error:", error);
+      throw new Error(error.message);
+    }
 
-    console.log(`[Email] Sent to ${options.to} (ID: ${result.messageId})`);
-    return result.messageId;
+    console.log(`[Email] Sent to ${options.to} (ID: ${data?.id})`);
+    return data?.id || `resend-${Date.now()}`;
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error("[Email] Failed to send email:", errorMsg);
+    console.error("[Email] Fatal failure:", errorMsg);
 
-    // In development, log but don't throw
     if (process.env.NODE_ENV === "development") {
-      console.warn("[Email] Email failed in development mode. Configure EMAIL_* environment variables for production.");
-      return `dev-mock-${Date.now()}`;
+      console.warn("[Email] Failure ignored in development mode.");
+      return `error-fallback-${Date.now()}`;
     }
 
     throw new Error(`Failed to send email: ${errorMsg}`);
@@ -103,45 +185,39 @@ export async function sendEmail(options: EmailOptions): Promise<string> {
 }
 
 /**
- * Send a password reset email
+ * Professional Password Reset Template
  */
 export async function sendPasswordResetEmail(
   email: string,
   name: string,
   resetUrl: string
 ): Promise<string> {
-  return sendEmail({
-    to: email,
-    subject: "LAMAS - Password Reset Request",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #1e293b;">Password Reset Request</h2>
-        <p>Hi ${name},</p>
-        <p>You requested a password reset for your LAMAS account.</p>
-        <p style="margin: 30px 0;">
-          <a href="${resetUrl}" style="
-            display: inline-block;
-            padding: 12px 24px;
-            background-color: #3b82f6;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: bold;
-          ">
-            Reset Password
-          </a>
-        </p>
-        <p style="color: #666;">This link will expire in 1 hour.</p>
-        <p style="color: #999; font-size: 12px;">If you didn't request this, you can safely ignore this email.</p>
-        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
-        <p style="color: #999; font-size: 12px;">LAMAS - Learning Assessment & Management System</p>
-      </div>
-    `,
-  });
+  const html = getBaseTemplate(`
+    <h1>Security Update</h1>
+    <p>Hi ${name},</p>
+    <p>A request was made to securely reset your password for the LAMAS platform. To continue with this request, please use the button below:</p>
+    <div style="text-align: left;">
+      <a href="${resetUrl}" class="btn">Reset Password</a>
+    </div>
+    <div class="divider"></div>
+    <p style="font-size: 12px; color: #94a3b8; margin: 0;">For your protection, this link will expire in 1 hour. If you did not initiate this request, please contact your System Administrator immediately.</p>
+  `, "Authentication Status");
+
+  return sendEmail({ to: email, subject: "Action Required: Secure your LAMAS Account", html });
 }
 
 /**
- * Send an account creation notification email
+ * Smart URL Detector
+ * Automatically determines the base URL for the project.
+ */
+const getBaseUrl = () => {
+  if (process.env.NEXTAUTH_URL) return process.env.NEXTAUTH_URL;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return "http://localhost:3000";
+};
+
+/**
+ * Professional Account Provisioning Template
  */
 export async function sendAccountCreatedEmail(
   email: string,
@@ -149,65 +225,52 @@ export async function sendAccountCreatedEmail(
   tempPassword: string,
   role: string
 ): Promise<string> {
-  return sendEmail({
-    to: email,
-    subject: "LAMAS - Account Created",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #1e293b;">Welcome to LAMAS</h2>
-        <p>Hi ${name},</p>
-        <p>An account has been created for you as a <strong>${role}</strong>.</p>
-        <div style="background-color: #f8fafc; padding: 20px; border-radius: 6px; margin: 20px 0;">
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Temporary Password:</strong> <code style="background: #e2e8f0; padding: 4px 8px; border-radius: 3px;">${tempPassword}</code></p>
-        </div>
-        <p style="color: #666;">Please log in and change your password immediately.</p>
-        <p style="color: #999; font-size: 12px;">If you have any issues, please contact your administrator.</p>
-        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
-        <p style="color: #999; font-size: 12px;">LAMAS - Learning Assessment & Management System</p>
-      </div>
-    `,
-  });
+  const html = getBaseTemplate(`
+    <h1>Welcome to LAMAS</h1>
+    <p>Greetings ${name},</p>
+    <p>An official academic account has been provisioned for you with the assigned role of <strong>${role}</strong>.</p>
+    <p>Your access credentials are securely generated below:</p>
+    <div class="detail-box">
+      <p style="margin: 0; font-size: 14px;"><strong>Portal Address:</strong> <code style="color: #4f46e5;">${email}</code></p>
+      <p style="margin: 12px 0 0 0; font-size: 14px;"><strong>Initial Access Key:</strong> <code style="color: #4f46e5;">${tempPassword}</code></p>
+    </div>
+    <p>Upon your first login, you will be required to establish a high-security personal password.</p>
+    <div style="text-align: left;">
+      <a href="${getBaseUrl()}" class="btn">Access the Portal</a>
+    </div>
+  `, "Account Provisioned");
+
+  return sendEmail({ to: email, subject: "Welcome to LAMAS - Your Academic Credentials", html });
 }
 
 /**
- * Send notification email
+ * Professional Notification Template
  */
 export async function sendNotificationEmail(
   email: string,
   subject: string,
   message: string
 ): Promise<string> {
-  return sendEmail({
-    to: email,
-    subject: `LAMAS - ${subject}`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #1e293b;">${subject}</h2>
-        <p>${message}</p>
-        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
-        <p style="color: #999; font-size: 12px;">LAMAS - Learning Assessment & Management System</p>
-      </div>
-    `,
-  });
+  const html = getBaseTemplate(`
+    <h1>${subject}</h1>
+    <div style="font-size: 16px; color: #334155; line-height: 1.7;">
+      ${message.split('\n').map(p => `<p>${p}</p>`).join('')}
+    </div>
+    <div style="text-align: left;">
+      <a href="${getBaseUrl()}" class="btn">Review Dashboard</a>
+    </div>
+  `, "System Broadcast");
+
+  return sendEmail({ to: email, subject: `LAMAS Notification: ${subject}`, html });
 }
 
 /**
- * Verify email configuration (for debugging)
+ * Verify configuration
  */
 export async function verifyEmailConfig(): Promise<boolean> {
-  try {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-      console.warn("[Email] Email not configured. Set EMAIL_USER and EMAIL_PASSWORD.");
-      return false;
-    }
-
-    const transporter = getTransporter();
-    await transporter.verify();
-    console.log("[Email] Configuration verified successfully");
-    return true;
-  } catch (error) {
-    console.error("[Email] Configuration verification failed:", error);
+  if (!resend) {
+    console.warn("[Email] Resend API Key missing. Service running in MOCK mode.");
     return false;
   }
+  return true;
 }

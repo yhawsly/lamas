@@ -134,10 +134,28 @@ export async function GET(req: Request) {
 
         if (notifications.length > 0) {
             await prisma.notification.createMany({ data: notifications });
-            // Cannot use logAction safely with fake system user, so skipping it or using a generic approach
+            
+            // Trigger Resend Email Alerts
+            const { sendNotificationEmail } = await import("@/lib/email");
+            const userEmails = await prisma.user.findMany({
+                where: { id: { in: notifications.map(n => n.userId) } },
+                select: { id: true, email: true }
+            });
+
+            Promise.allSettled(notifications.map(n => {
+                const user = userEmails.find(u => u.id === n.userId);
+                if (user?.email) {
+                    return sendNotificationEmail(user.email, "Deadline Alert", n.message);
+                }
+                return Promise.resolve();
+            })).catch(e => console.error("[Email] Cron notification failure:", e));
         }
 
-        return NextResponse.json({ success: true, processedDeadlines: upcomingDeadlines.length + pastDeadlines.length, notificationsSent: notifications.length });
+        return NextResponse.json({ 
+            success: true, 
+            processedDeadlines: upcomingDeadlines.length + pastDeadlines.length, 
+            notificationsSent: notifications.length 
+        });
 
     } catch (error: any) {
         console.error(error);

@@ -9,12 +9,10 @@ import {
     getMonthlyTrend,
 } from "@/lib/compliance";
 import { prisma } from "@/lib/prisma";
-import { headers, cookies } from "next/headers";
+
 
 // GET /api/admin/analytics
 export async function GET() {
-    await headers();
-    await cookies();
     const session = await auth();
     if (!session || !session.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -30,7 +28,7 @@ export async function GET() {
     const termId = activeTerm?.id;
 
     const [scores, heatmap, trend] = await Promise.all([
-        computeComplianceScores(deptId),
+        computeComplianceScores(deptId, termId || undefined),
         getDepartmentHeatmap(termId, deptId),
         getMonthlyTrend(termId),
     ]);
@@ -51,14 +49,15 @@ export async function GET() {
         submissionWhere.lecturer = { departmentId: deptId };
     }
 
-    const [totalLecturers, totalSubmissions, totalDeadlines] = await Promise.all([
+    const [totalLecturers, totalSubmissions, totalDeadlines, pendingObservations] = await Promise.all([
         prisma.user.count({ where: userWhere }),
         prisma.submission.count({ where: submissionWhere }),
         prisma.deadline.count({ where: termId ? { termId } : {} }),
+        prisma.observation.count({ where: { status: "PENDING", ...(termId ? { termId } : {}) } }),
     ]);
 
     return NextResponse.json({
-        summary: { totalLecturers, totalSubmissions, totalDeadlines, avgScore, atRiskCount: atRisk.length },
+        summary: { totalLecturers, totalSubmissions, totalDeadlines, pendingObservations, avgScore, atRiskCount: atRisk.length },
         scores,
         atRisk,
         heatmap,

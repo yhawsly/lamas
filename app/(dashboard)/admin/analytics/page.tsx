@@ -5,9 +5,12 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 export default function AdminAnalyticsPage() {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-
-    useEffect(() => { fetch("/api/admin/analytics").then(r => r.json()).then(d => { setData(d); setLoading(false); }); }, []);
-
+    useEffect(() => { 
+        fetch("/api/admin/analytics")
+            .then(r => r.ok ? r.json() : null)
+            .then(d => { if (d) setData(d); setLoading(false); })
+            .catch(() => setLoading(false)); 
+    }, []);
     if (loading) return <div className="flex justify-center py-32"><div className="animate-spin w-8 h-8 border-2" style={{ borderColor: "var(--primary)", borderTopColor: "transparent" }} /></div>;
 
     return (

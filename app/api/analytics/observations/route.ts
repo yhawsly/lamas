@@ -29,28 +29,16 @@ export async function GET() {
             where.lecturer = { departmentId: user.departmentId };
         }
 
-        const observations = await prisma.observation.findMany({ where });
+        const observations = await prisma.observation.count({ where });
 
-        let knowledgeSum = 0, engagementSum = 0, techSum = 0, punctualitySum = 0;
-        let count = 0;
+        if (observations === 0) return NextResponse.json([]);
 
-        observations.forEach(o => {
-            if (o.ratingKnowledge || o.ratingEngagement || o.ratingTech || o.ratingPunctuality) {
-                knowledgeSum += o.ratingKnowledge || 0;
-                engagementSum += o.ratingEngagement || 0;
-                techSum += o.ratingTech || 0;
-                punctualitySum += o.ratingPunctuality || 0;
-                count++;
-            }
-        });
-
-        if (count === 0) return NextResponse.json([]);
-
+        // Ratings are no longer collected as discrete fields, returning neutral values
         const data = [
-            { subject: "Knowledge", A: parseFloat((knowledgeSum / count).toFixed(1)), fullMark: 5 },
-            { subject: "Engagement", A: parseFloat((engagementSum / count).toFixed(1)), fullMark: 5 },
-            { subject: "Technology", A: parseFloat((techSum / count).toFixed(1)), fullMark: 5 },
-            { subject: "Punctuality", A: parseFloat((punctualitySum / count).toFixed(1)), fullMark: 5 }
+            { subject: "Knowledge", A: 0, fullMark: 5 },
+            { subject: "Engagement", A: 0, fullMark: 5 },
+            { subject: "Technology", A: 0, fullMark: 5 },
+            { subject: "Punctuality", A: 0, fullMark: 5 }
         ];
 
         return NextResponse.json(data);

@@ -145,19 +145,23 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        // Notify both parties
+        const message = `Classroom observation scheduled for ${new Date(sessionDate).toLocaleDateString()} (Course: ${courseCode}).`;
         await prisma.notification.createMany({
             data: [
-                {
-                    userId: lecturerId,
-                    message: `You have been scheduled for a classroom observation on ${new Date(sessionDate).toLocaleDateString()}.`,
-                },
-                {
-                    userId: observerId,
-                    message: `You have been assigned to observe a class session on ${new Date(sessionDate).toLocaleDateString()}.`,
-                },
+                { userId: lecturerId, message },
+                { userId: observerId, message },
             ],
         });
+
+        // Trigger Resend Email Alerts
+        const { sendNotificationEmail } = await import("@/lib/email");
+        const [lec, obs] = await Promise.all([
+            prisma.user.findUnique({ where: { id: lecturerId }, select: { email: true } }),
+            prisma.user.findUnique({ where: { id: observerId }, select: { email: true } })
+        ]);
+
+        if (lec?.email) sendNotificationEmail(lec.email, "New Observation Scheduled", message).catch(console.error);
+        if (obs?.email) sendNotificationEmail(obs.email, "Observation Assignment", message).catch(console.error);
 
         return NextResponse.json(observation, { status: 201 });
     } catch (error) {

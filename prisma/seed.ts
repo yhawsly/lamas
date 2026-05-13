@@ -90,10 +90,10 @@ async function main() {
 
     const hod = await prisma.user.upsert({
         where: { email: "hod.cs@lamas.edu" },
-        update: {},
+        update: { email: "ghtrial41922@gmail.com" },
         create: {
             name: "Dr. Ahmad Razif",
-            email: "hod.cs@lamas.edu",
+            email: "ghtrial41922@gmail.com",
             passwordHash: hash,
             role: "HOD",
             departmentId: cs.id,

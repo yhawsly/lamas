@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
         if (status) where.status = status;
     }
 
-    const [resources, totalCount] = await prisma.$transaction([
+    const [resources, totalCount] = await Promise.all([
         prisma.resource.findMany({
             where,
             include: {
@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
                     },
                 });
                 return NextResponse.json(fallbackResource, { status: 201 });
-            } catch (fallbackError) {
+            } catch {
                 return NextResponse.json({ error: "Database error occurred. Please contact support." }, { status: 500 });
             }
         }

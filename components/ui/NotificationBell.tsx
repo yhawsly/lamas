@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 interface Notification {
     id: number;
@@ -10,6 +11,7 @@ interface Notification {
 }
 
 export default function NotificationBell() {
+    const [mounted, setMounted] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -17,13 +19,15 @@ export default function NotificationBell() {
     const unreadCount = notifications.filter((n) => !n.read).length;
 
     useEffect(() => {
-        let mounted = true;
+        Promise.resolve().then(() => setMounted(true));
+        
+        let mountedFlag = true;
         const fetchNotifications = async () => {
             try {
                 const res = await fetch("/api/notifications");
                 if (res.ok) {
                     const json = await res.json();
-                    if (mounted) setNotifications(Array.isArray(json.data) ? json.data : []);
+                    if (mountedFlag) setNotifications(Array.isArray(json.data) ? json.data : []);
                 }
             } catch {
                 console.error("Failed to fetch notifications");
@@ -35,7 +39,7 @@ export default function NotificationBell() {
         // Polling for new notifications every 30s
         const interval = setInterval(fetchNotifications, 30000);
         return () => {
-            mounted = false;
+            mountedFlag = false;
             clearInterval(interval);
         };
     }, []);
@@ -50,18 +54,7 @@ export default function NotificationBell() {
         }
     };
 
-    // Close on outside click
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        if (isOpen) {
-            document.addEventListener("mousedown", handleClickOutside);
-        }
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [isOpen]);
+    // The full-screen overlay handles outside clicks naturally now.
 
     return (
         <div className="relative" ref={dropdownRef}>
@@ -86,51 +79,69 @@ export default function NotificationBell() {
                 </div>
             </button>
 
-            {/* Dropdown menu */}
-            {isOpen && (
-                <div
-                    className="absolute right-0 mt-2 w-80 rounded-2xl shadow-2xl z-50 overflow-hidden"
-                    style={{ background: "var(--bg-surface)" }}
-                >
-                    <div className="px-4 py-3 border-b flex items-center justify-between">
-                        <h3 className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>Notifications</h3>
-                        {unreadCount > 0 && (
-                            <span className="text-xs font-medium" style={{ color: "var(--primary)" }}>
-                                Marked as read
-                            </span>
-                        )}
-                    </div>
+            {/* Sidebar Overlay and Drawer */}
+            {mounted && isOpen && createPortal(
+                <div className="fixed inset-0 z-[99999] pointer-events-none">
+                    <div 
+                        className="absolute inset-0 bg-slate-950/20 backdrop-blur-sm transition-opacity pointer-events-auto"
+                        onClick={() => setIsOpen(false)}
+                    />
+                    
+                    <div
+                        className="absolute inset-y-0 right-0 w-80 sm:w-96 shadow-2xl flex flex-col bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-white/10 pointer-events-auto transform transition-transform"
+                    >
+                        <div className="px-6 py-5 border-b border-slate-200 dark:border-white/10 flex items-center justify-between shrink-0">
+                            <h3 className="font-bold text-lg" style={{ color: "var(--text-primary)" }}>Notifications</h3>
+                            <div className="flex items-center gap-4">
+                                {unreadCount > 0 && (
+                                    <button onClick={markAllAsRead} className="text-xs font-semibold text-emerald-500 hover:text-emerald-600 transition">
+                                        Mark all read
+                                    </button>
+                                )}
+                                <button onClick={() => setIsOpen(false)} className="p-2 -mr-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition" style={{ color: "var(--text-muted)" }}>
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            </div>
+                        </div>
 
-                    <div className="max-h-[350px] overflow-y-auto">
-                        {notifications.length === 0 ? (
-                            <div className="px-4 py-8 text-center" style={{ color: "var(--text-muted)" }}>
-                                <div className="text-3xl mb-2 flex justify-center opacity-50">📭</div>
-                                <p className="text-sm">No notifications yet</p>
-                            </div>
-                        ) : (
-                            <div className="divide-y">
-                                {notifications.map((n) => (
-                                    <div
-                                        key={n.id}
-                                        className="px-4 py-3 transition-colors"
-                                        style={{
-                                            background: !n.read ? "var(--bg-hover)" : "transparent",
-                                        }}
-                                    >
-                                        <p className="text-sm leading-relaxed" style={{ color: "var(--text-primary)" }}>
-                                            {n.message}
-                                        </p>
-                                        <p className="text-[11px] mt-1.5" style={{ color: "var(--text-muted)" }}>
-                                            {new Date(n.createdAt).toLocaleString(undefined, {
-                                                month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
-                                            })}
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        <div className="flex-1 overflow-y-auto">
+                            {notifications.length === 0 ? (
+                                <div className="px-6 py-12 flex flex-col items-center justify-center h-full text-center" style={{ color: "var(--text-muted)" }}>
+                                    <div className="text-5xl mb-4 opacity-50">📭</div>
+                                    <p className="font-medium text-sm">No notifications yet</p>
+                                    <p className="text-xs opacity-70 mt-1">When you get pinged, it&apos;ll show up here.</p>
+                                </div>
+                            ) : (
+                                <div className="divide-y divide-[var(--bg-border)]">
+                                    {notifications.map((n) => (
+                                        <div
+                                            key={n.id}
+                                            className="px-6 py-4 transition-colors"
+                                            style={{
+                                                background: !n.read ? "var(--bg-hover)" : "transparent",
+                                            }}
+                                        >
+                                            <div className="flex items-start gap-3">
+                                                {!n.read && <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0" />}
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium leading-relaxed" style={{ color: "var(--text-primary)" }}>
+                                                        {n.message}
+                                                    </p>
+                                                    <p className="text-[10px] uppercase tracking-wider font-bold mt-2" style={{ color: "var(--text-muted)" }}>
+                                                        {new Date(n.createdAt).toLocaleString(undefined, {
+                                                            month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+                                                        })}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

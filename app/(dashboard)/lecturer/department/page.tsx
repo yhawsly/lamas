@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Pagination from "@/components/ui/Pagination";
 import SearchableSelect from "@/components/ui/SearchableSelect";
+import Loader from "@/components/ui/Loader";
 
 interface Colleague {
     id: number;
@@ -101,7 +102,7 @@ export default function LecturerDepartmentPage() {
         }
     };
 
-    if (loading) return <div className="flex items-center justify-center min-h-[400px]"><div className="animate-spin w-10 h-10 border-2 border-blue-600 border-t-transparent rounded-full" /></div>;
+    if (loading) return <Loader message="Synchronizing Department Directory..." />;
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">

@@ -1,74 +1,90 @@
-import { NextRequest, NextResponse } from "next/server";
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-export const fetchCache = "force-no-store";
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
-import { headers, cookies } from "next/headers";
-import { handleApiError } from "@/lib/api-error";
 
-export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
-    await headers();
-    await cookies();
+export async function GET(
+    req: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const { id } = await params;
     try {
         const session = await auth();
-        if (!session || !session.user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const userId = parseInt(session.user.id!);
-        const { id } = await context.params;
-        const obsId = parseInt(id);
+        if (!session || !session.user) return new NextResponse("Unauthorized", { status: 401 });
 
         const observation = await prisma.observation.findUnique({
-            where: { id: obsId },
+            where: { id: parseInt(id) },
+            include: {
+                lecturer: { select: { name: true, email: true } },
+                observer: { select: { name: true, email: true } },
+            }
         });
 
-        if (!observation) {
-            return NextResponse.json({ error: "Observation not found" }, { status: 404 });
-        }
+        if (!observation) return new NextResponse("Not Found", { status: 404 });
 
-        // Only the assigned observer can complete the report
-        if (observation.observerId !== userId) {
-            return NextResponse.json(
-                { error: "Forbidden: Only the assigned observer can submit the report" },
-                { status: 403 }
-            );
+        return NextResponse.json(observation);
+    } catch {
+        return new NextResponse("Error", { status: 500 });
+    }
+}
+
+export async function PATCH(
+    req: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const { id } = await params;
+    try {
+        const session = await auth();
+        if (!session || !session.user) return new NextResponse("Unauthorized", { status: 401 });
+
+        const userId = parseInt(session.user.id!);
+        const role = (session.user as any).role;
+
+        const observation = await prisma.observation.findUnique({
+            where: { id: parseInt(id) },
+        });
+
+        if (!observation) return new NextResponse("Not Found", { status: 404 });
+
+        // Security: Only the assigned observer or an HOD/Admin can update
+        if (observation.observerId !== userId && !["HOD", "ADMIN", "SUPER_ADMIN"].includes(role)) {
+            return new NextResponse("Forbidden", { status: 403 });
         }
 
         const body = await req.json();
-        const { strengths, improvements, ratingKnowledge, ratingEngagement, ratingTech, ratingPunctuality } = body;
-
-        if (!strengths || !improvements || !ratingKnowledge || !ratingEngagement || !ratingTech || !ratingPunctuality) {
-            return NextResponse.json(
-                { error: "Missing required fields for observation rubric" },
-                { status: 400 }
-            );
+        
+        // Simple status logic: if feedback was provided, it's COMPLETED
+        let status = observation.status;
+        if (body.feedback && body.feedback.trim() !== "") {
+            status = "COMPLETED";
         }
 
         const updated = await prisma.observation.update({
-            where: { id: obsId },
+            where: { id: parseInt(id) },
             data: {
-                strengths: strengths,
-                improvements: improvements,
-                ratingKnowledge: parseInt(ratingKnowledge),
-                ratingEngagement: parseInt(ratingEngagement),
-                ratingTech: parseInt(ratingTech),
-                ratingPunctuality: parseInt(ratingPunctuality),
-                status: "COMPLETED",
+                feedback: body.feedback,
+                status
             },
+            include: { lecturer: { select: { email: true, name: true } } }
         });
 
-        // Notify the observed lecturer
-        await prisma.notification.create({
-            data: {
-                userId: observation.lecturerId,
-                message: `Your class observation report has been submitted for review.`,
-            },
-        });
+        // Trigger Resend Email Alerts if status is COMPLETED
+        if (status === "COMPLETED" && updated.lecturer?.email) {
+            const { sendNotificationEmail } = await import("@/lib/email");
+            const message = `Your classroom observation feedback is now available for review.`;
+            sendNotificationEmail(updated.lecturer.email, "Observation Feedback Available", message).catch(console.error);
+
+            // Also create a DB notification
+            await prisma.notification.create({
+                data: {
+                    userId: updated.lecturerId,
+                    message
+                }
+            });
+        }
 
         return NextResponse.json(updated);
     } catch (error) {
-        return handleApiError(error, "Failed to update observation");
+        console.error("Observation Update Error:", error);
+        return new NextResponse("Internal Error", { status: 500 });
     }
 }

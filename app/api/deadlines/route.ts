@@ -82,16 +82,23 @@ export async function POST(req: NextRequest) {
         // Notify all active lecturers and HODs
         const recipients = await prisma.user.findMany({
             where: { role: { in: ["LECTURER", "HOD"] }, isActive: true },
-            select: { id: true },
+            select: { id: true, email: true },
         });
 
         if (recipients.length > 0) {
+            const message = `New deadline: "${label}" — due ${new Date(dueDate).toLocaleDateString()}`;
             await prisma.notification.createMany({
                 data: recipients.map(r => ({
                     userId: r.id,
-                    message: `New deadline: "${label}" — due ${new Date(dueDate).toLocaleDateString()}`,
+                    message,
                 })),
             });
+
+            // Trigger Resend Email Alerts
+            const { sendNotificationEmail } = await import("@/lib/email");
+            Promise.allSettled(recipients.map(r => 
+                sendNotificationEmail(r.email, "New Deadline Assigned", message)
+            )).catch(e => console.error("[Email] Deadline broadcast failure:", e));
         }
 
         await logAction({

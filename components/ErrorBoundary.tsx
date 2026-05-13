@@ -1,37 +1,47 @@
 "use client";
 
-import { ReactNode, useEffect } from "react";
+import React, { Component, ReactNode } from "react";
 
-interface ErrorBoundaryProps {
+interface Props {
     children: ReactNode;
     fallback?: ReactNode;
-    onError?: (error: Error, errorInfo: string) => void;
 }
 
-export default function ErrorBoundary({ children, fallback, onError }: ErrorBoundaryProps) {
-    useEffect(() => {
-        const handleError = (event: ErrorEvent) => {
-            console.error("Error caught by boundary:", event.error);
-            onError?.(event.error, event.message);
-        };
+interface State {
+    hasError: boolean;
+}
 
-        const handleRejection = (event: PromiseRejectionEvent) => {
-            console.error("Unhandled rejection caught by boundary:", event.reason);
-            onError?.(new Error(String(event.reason)), "Unhandled Promise Rejection");
-        };
+export default class ErrorBoundary extends Component<Props, State> {
+    constructor(props: Props) {
+        super(props);
+        this.state = { hasError: false };
+    }
 
-        window.addEventListener("error", handleError);
-        window.addEventListener("unhandledrejection", handleRejection);
+    static getDerivedStateFromError(): State {
+        return { hasError: true };
+    }
 
-        return () => {
-            window.removeEventListener("error", handleError);
-            window.removeEventListener("unhandledrejection", handleRejection);
-        };
-    }, [onError]);
+    componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+        console.error("Institutional Error Caught:", error, errorInfo);
+    }
 
-    return (
-        <>
-            {fallback ?? children}
-        </>
-    );
+    render() {
+        if (this.state.hasError) {
+            return this.props.fallback || (
+                <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8">
+                    <div className="text-6xl mb-6">⚠️</div>
+                    <h2 className="text-2xl font-bold text-white mb-2">Institutional Circuit Breaker Triggered</h2>
+                    <p className="text-sm text-slate-400 max-w-md">An unexpected interface error has occurred. Please refresh the registry or contact the system administrator if the issue persists.</p>
+                    <button 
+                        onClick={() => window.location.reload()}
+                        className="mt-8 px-6 py-2 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 transition-all"
+                    >
+                        Re-initialize Registry
+                    </button>
+                </div>
+            );
+        }
+
+        return this.props.children;
+    }
 }

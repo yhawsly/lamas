@@ -47,14 +47,8 @@ async function main() {
     if (obs) {
         console.log("\n✅ SAMPLE OBSERVATION FOUND:");
         console.log(`   - Course: ${obs.courseCode}`);
-        console.log(`   - Strengths (JSON):`, JSON.stringify(obs.strengths));
-        console.log(`   - Improvements (JSON):`, JSON.stringify(obs.improvements));
-        
-        if (typeof obs.strengths === 'object' && obs.strengths !== null) {
-            console.log("   - Strengths Verification: SUCCESS (Field is an object)");
-        } else {
-            console.log("   - Strengths Verification: FAILED (Field is NOT an object)");
-        }
+        console.log(`   - Status: ${obs.status}`);
+        console.log(`   - Feedback snippet: ${obs.feedback?.slice(0, 50) || "No feedback"}...`);
     } else {
         console.log("\n❌ NO COMPLETED OBSERVATION FOUND.");
     }

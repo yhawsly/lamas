@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
+import Loader from "@/components/ui/Loader";
 
 export default function HoDObservationsPage() {
     const [observations, setObservations] = useState<any[]>([]);
@@ -73,17 +74,26 @@ export default function HoDObservationsPage() {
                 </div>
                 <div className="rounded-2xl p-6" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
                     <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>📋 Observation List</h3>
-                    {loading ? <div className="flex justify-center py-8"><div className="animate-spin w-6 h-6 border-2" style={{ borderColor: "var(--primary)", borderTopColor: "transparent" }} /></div> :
+                    {loading ? <Loader message="Synchronizing Observation Registry..." /> :
                         observations.length === 0 ? <p className="text-sm text-center py-8" style={{ color: "var(--text-muted)" }}>No observations yet.</p> :
                             <div className="space-y-3">
                                 {observations.map(o => (
                                     <div key={o.id} className="p-4 rounded-xl" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)" }}>
                                         <div className="flex justify-between items-start">
-                                            <div><div className="font-medium" style={{ color: "var(--text-primary)" }}>{o.courseCode}</div>
+                                            <div>
+                                                <div className="font-medium" style={{ color: "var(--text-primary)" }}>{o.courseCode}</div>
                                                 <div className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Observed: {o.lecturer?.name} · Observer: {o.observer?.name}</div>
                                                 <div className="text-xs" style={{ color: "var(--text-muted)" }}>{new Date(o.sessionDate).toLocaleDateString()}</div>
                                             </div>
-                                            <span className="text-xs px-2 py-1 rounded-full" style={statusColors[o.status] ? { backgroundColor: statusColors[o.status].split(" ")[0].replace("bg-", "").replace("text-", ""), color: statusColors[o.status].split(" ")[1].replace("text-", "") } : {}}>{o.status}</span>
+                                            <div className="flex flex-col items-end gap-2">
+                                                <span className="text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter" style={statusColors[o.status] ? { backgroundColor: statusColors[o.status].split(" ")[0].replace("bg-", "").replace("text-", ""), color: statusColors[o.status].split(" ")[1].replace("text-", "") } : {}}>{o.status}</span>
+                                                <button 
+                                                    onClick={() => window.location.href = `/hod/observations/${o.id}`}
+                                                    className="text-[10px] font-black uppercase tracking-widest text-primary hover:underline"
+                                                >
+                                                    {o.status === "PENDING" ? "Conduct →" : "View Artifact →"}
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
