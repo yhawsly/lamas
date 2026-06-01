@@ -1,9 +1,12 @@
 import { PrismaClient } from "@prisma/client";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const prisma = new PrismaClient({
     datasources: {
         db: {
-            url: "postgresql://neondb_owner:npg_UfDwtkd7zoV0@ep-snowy-bread-ai5c6uw4-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&connection_limit=20"
+            url: process.env.DATABASE_URL
         }
     }
 });
