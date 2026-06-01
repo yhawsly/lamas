@@ -17,35 +17,36 @@ async function main() {
   const newPassword = "password123";
   const hash = await bcrypt.hash(newPassword, 12);
 
-  // Reset all user passwords + fix corrupted name
-  const updates = [
-    { id: 1, name: "Super Administrator",   email: "superadmin@lamas.edu" },
-    { id: 2, name: "System Administrator",  email: "admin@lamas.edu"      },
-    { id: 3, name: "Dr. Ahmad Razif",       email: "ahmad@lamas.edu"      },  // HOD
-    { id: 4, name: "Dr. Sarah Lim",         email: "slyyhaw@gmail.com"    },  // Lecturer
-    { id: 5, name: "Mr. Hafiz Rahman",      email: "rahman@lamas.edu"     },  // Lecturer
-    { id: 12, name: "Ms. Priya Nair",       email: "priya@lamas.edu"      },  // Lecturer
-    { id: 25, name: "Mr. Kofi Mensah",      email: "kofi@lamas.edu"       },  // Lecturer (fixed broken name)
-  ];
+  // Fetch all users currently in the database dynamically
+  const users = await prisma.user.findMany();
+  
+  console.log(`📡 Found ${users.length} users in database. Resetting all passwords...`);
 
-  for (const u of updates) {
+  for (const u of users) {
     await prisma.user.update({
       where: { id: u.id },
-      data: { passwordHash: hash, name: u.name, isActive: true },
+      data: { passwordHash: hash, isActive: true },
     });
-    console.log(`✅ Reset password for ${u.name} (${u.email})`);
+    console.log(`   ✅ Reset password for ${u.role}: ${u.name} (${u.email})`);
   }
 
-  console.log("\n🔑 All passwords reset to: password123");
-  console.log("\n📋 Login Credentials Summary:");
+  console.log("\n🔑 All passwords successfully reset to: password123");
+  console.log("\n📋 Login Credentials Summary of Primary Accounts:");
   console.log("─".repeat(55));
   console.log("Role         | Email                  | Password");
   console.log("─".repeat(55));
-  for (const u of updates) {
-    const role = u.id === 1 ? "SUPER_ADMIN" : u.id === 2 ? "ADMIN" : u.id === 3 ? "HOD" : "LECTURER";
-    console.log(`${role.padEnd(12)} | ${u.email.padEnd(22)} | ${newPassword}`);
+  const primaryAccounts = [
+    { role: "SUPER_ADMIN", email: "superadmin@lamas.edu" },
+    { role: "ADMIN",       email: "admin@lamas.edu" },
+    { role: "HOD",         email: "ahmad@lamas.edu" },
+    { role: "LECTURER",    email: "slyyhaw@gmail.com" },
+    { role: "LECTURER",    email: "rahman@lamas.edu" },
+  ];
+  for (const acc of primaryAccounts) {
+    console.log(`${acc.role.padEnd(12)} | ${acc.email.padEnd(22)} | ${newPassword}`);
   }
   console.log("─".repeat(55));
+
 }
 
 main()
