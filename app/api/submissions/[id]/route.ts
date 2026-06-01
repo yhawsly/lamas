@@ -14,7 +14,7 @@ const ReviewSchema = z.object({
 
 export async function PATCH(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth();
@@ -22,7 +22,8 @@ export async function PATCH(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const submissionId = parseInt(params.id);
+        const { id } = await params;
+        const submissionId = parseInt(id);
         const userId = parseInt(session.user.id!);
         const role = (session.user as any).role;
 
@@ -96,7 +97,7 @@ export async function PATCH(
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth();
@@ -104,7 +105,8 @@ export async function GET(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const submissionId = parseInt(params.id);
+        const { id } = await params;
+        const submissionId = parseInt(id);
         const userId = parseInt(session.user.id!);
         const role = (session.user as any).role;
 
