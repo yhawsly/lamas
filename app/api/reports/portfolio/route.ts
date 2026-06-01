@@ -64,27 +64,39 @@ export async function GET() {
             { subject: 'Communication', A: getAvg('ratingCommunication'), fullMark: 100 },
         ] : null; // null signals "no rated observations yet" to the frontend
 
-        // 3. Syllabus Velocity (Weekly Trends based on mandatory topic coverage)
+        // 3. Syllabus Velocity (Real data based on Registry Weeks)
         const weeklySubmissions = await prisma.submission.findMany({
             where: {
-                type: SubmissionType.WEEKLY_TOPICS,
+                type: { in: [SubmissionType.WEEKLY_TOPICS, SubmissionType.COURSE_TOPICS] },
                 status: { in: [SubmissionStatus.SUBMITTED, SubmissionStatus.LATE] },
                 ...(role === "LECTURER" ? { lecturerId: userId } : {}),
                 ...(role === "HOD" ? { lecturer: { departmentId: deptId } } : {}),
                 ...(termId ? { termId } : {})
             },
-            select: { content: true, createdAt: true }
+            select: { content: true }
         });
 
-        // Simple velocity approximation: Proportion of expected weeks filled
-        // In a more complex version, we'd cross-reference 'content' with MasterSyllabus here too.
+        const filledWeeks = new Set<number>();
+
+        weeklySubmissions.forEach(s => {
+            const content = s.content as any;
+            if (content?.weeks && Array.isArray(content.weeks)) {
+                content.weeks.forEach((w: any) => {
+                    if (w.sessions && w.sessions.some((sess: any) => sess.topic?.trim())) {
+                        filledWeeks.add(Number(w.week));
+                    }
+                });
+            }
+        });
+
         const velocity = [
-            { week: 'Wk 1', planned: 100, actual: weeklySubmissions.length > 0 ? 100 : 0 },
-            { week: 'Wk 5', planned: 100, actual: Math.min(100, Math.round((weeklySubmissions.length / 5) * 100)) },
-            { week: 'Wk 10', planned: 100, actual: Math.min(100, Math.round((weeklySubmissions.length / 10) * 100)) },
-            { week: 'Wk 15', planned: 100, actual: Math.min(100, Math.round((weeklySubmissions.length / 15) * 100)) },
-            { week: 'Wk 20', planned: 100, actual: Math.min(100, Math.round((weeklySubmissions.length / 20) * 100)) },
+            { week: 'Wk 1', planned: 100, actual: filledWeeks.has(1) ? 100 : 0 },
+            { week: 'Wk 5', planned: 100, actual: Math.min(100, Math.round((Array.from(filledWeeks).filter(w => w <= 5).length / 5) * 100)) },
+            { week: 'Wk 10', planned: 100, actual: Math.min(100, Math.round((Array.from(filledWeeks).filter(w => w <= 10).length / 10) * 100)) },
+            { week: 'Wk 15', planned: 100, actual: Math.min(100, Math.round((Array.from(filledWeeks).filter(w => w <= 15).length / 15) * 100)) },
+            { week: 'Wk 20', planned: 100, actual: Math.min(100, Math.round((Array.from(filledWeeks).filter(w => w <= 20).length / 20) * 100)) },
         ];
+
 
         // 4. Audit Trail
         const auditHistory = await prisma.activityLog.findMany({
@@ -123,6 +135,22 @@ export async function GET() {
             { title: "Final Compliance", desc: "No Active Term", date: "---", icon: "✅" }
         ];
 
+        // 6. Leadership & Metrics (for Final Compliance)
+        let leaderboard: any[] = [];
+        if (role !== "LECTURER") {
+            const scores = await computeComplianceScores(role === "HOD" ? deptId : undefined);
+            leaderboard = scores
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 3)
+                .map(s => ({ name: s.lecturerName, score: s.score }));
+        }
+
+        const metrics = {
+            outlines: weeklySubmissions.length, // approximation
+            observations: observations.length,
+            alerts: auditHistory.length
+        };
+
         return NextResponse.json({
             stats: {
                 compliance: complianceScore,
@@ -132,7 +160,9 @@ export async function GET() {
             radarData,
             velocity,
             auditHistory,
-            auditArtifacts
+            auditArtifacts,
+            leaderboard,
+            metrics
         });
     } catch (error) {
         console.error("Portfolio Data Fetch Error:", error);

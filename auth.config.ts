@@ -20,6 +20,8 @@ export const authConfig = {
                 nextUrl.pathname.startsWith("/api/hod") ||
                 nextUrl.pathname.startsWith("/api/lecturer");
 
+            console.log(`[AUTH] Path: ${nextUrl.pathname}, User: ${auth?.user?.email}, ResetRequired: ${(auth?.user as any)?.requirePasswordReset}`);
+
             if (isOnDashboard) {
                 if (isLoggedIn) return true;
                 return false; // Redirect unauthenticated users to login page
@@ -31,6 +33,7 @@ export const authConfig = {
                 token.id = user.id;
                 token.role = (user as any).role;
                 token.departmentId = (user as any).departmentId;
+                token.requirePasswordReset = (user as any).requirePasswordReset;
                 token.lastActivity = Date.now();
                 console.log(`[AUTH] JWT Created for user: ${user.email}, role: ${token.role}`);
             }
@@ -48,6 +51,7 @@ export const authConfig = {
                 session.user.id = String(token.id || token.sub);
                 (session.user as any).role = token.role as string;
                 (session.user as any).departmentId = token.departmentId as number;
+                (session.user as any).requirePasswordReset = token.requirePasswordReset as boolean;
                 (session.user as any).lastActivity = token.lastActivity as number;
                 
                 console.debug(`[SESSION] Final Session User - ID: ${session.user.id}, Role: ${(session.user as any).role}`);

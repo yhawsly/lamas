@@ -16,16 +16,29 @@ export async function GET() {
     const session = await auth();
     if (!session || !session.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+
     const role = (session.user as any).role;
+    const userId = Number(session.user.id);
+
     if (!["ADMIN", "SUPER_ADMIN", "HOD"].includes(role)) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const deptId =
-        role === "HOD" ? (session.user as any).departmentId : undefined;
+    // For HODs: always do a live DB lookup so we never depend on a potentially stale JWT
+    let deptId: number | undefined = undefined;
+    if (role === "HOD") {
+        const hodUser = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { departmentId: true },
+        });
+        deptId = hodUser?.departmentId ?? undefined;
+        console.log(`[Analytics API] HOD ${userId} resolved departmentId: ${deptId}`);
+    }
 
     const activeTerm = await prisma.academicTerm.findFirst({ where: { isActive: true } });
     const termId = activeTerm?.id;
+    console.log(`[Analytics API] Active Term ID: ${termId}`);
+
 
     const [scores, heatmap, trend] = await Promise.all([
         computeComplianceScores(deptId, termId || undefined),

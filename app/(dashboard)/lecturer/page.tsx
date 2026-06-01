@@ -20,6 +20,7 @@ export default function LecturerDashboard() {
     const { data: session } = useSession();
     const [submissions, setSubmissions] = useState<Submission[]>([]);
     const [deadlines, setDeadlines] = useState<Deadline[]>([]);
+    const [resources, setResources] = useState<any[]>([]);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
     const [now, setNow] = useState<number | null>(null);
@@ -27,20 +28,23 @@ export default function LecturerDashboard() {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const [subsRes, dlsRes, notifsRes] = await Promise.all([
+                const [subsRes, dlsRes, notifsRes, resRes] = await Promise.all([
                     fetch("/api/submissions").then(r => r.ok ? r.json().catch(() => ({ data: [] })) : ({ data: [] })),
                     fetch("/api/deadlines").then(r => r.ok ? r.json().catch(() => []) : []),
                     fetch("/api/notifications").then(r => r.ok ? r.json().catch(() => ({ data: [] })) : ({ data: [] })),
+                    fetch("/api/resources").then(r => r.ok ? r.json().catch(() => ({ data: [] })) : ({ data: [] })),
                 ]);
 
                 // Safe extraction with type-casting/guards
                 const subData = (subsRes as any).data || [];
                 const dlData = Array.isArray(dlsRes) ? dlsRes : [];
                 const notifData = (notifsRes as any).data || [];
+                const resData = (resRes as any).data || [];
 
                 setSubmissions(subData);
                 setDeadlines(dlData);
                 setNotifications(notifData);
+                setResources(resData);
             } catch (err) {
                 console.error("Dashboard fetch error:", err);
             } finally {
@@ -55,14 +59,17 @@ export default function LecturerDashboard() {
         return () => clearTimeout(t);
     }, []);
 
-
-
     if (loading) return <div className="flex items-center justify-center min-h-[400px]"><div className="animate-spin w-10 h-10 border-2 border-blue-600 border-t-transparent rounded-full" /></div>;
 
     const recentSubmissions = submissions.slice(0, 5);
     const pendingDeadlines = deadlines.filter(d => !submissions.find(s => s.deadlineId === d.id && s.status === "SUBMITTED")).slice(0, 3);
     const unreadNotifs = notifications.filter(n => !n.read);
     const compliance = deadlines.length > 0 ? Math.round((submissions.filter(s => s.status === "SUBMITTED").length / deadlines.length) * 100) : 100;
+    
+    // Dynamic Weekly Goal Logic
+    const weeklySubmissions = submissions.filter(s => s.type === 'WEEKLY_TOPICS');
+    const currentWeekTarget = 15; // Standard semester week count
+    const weeklyProgress = Math.min(100, Math.round((weeklySubmissions.length / currentWeekTarget) * 100));
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -79,15 +86,15 @@ export default function LecturerDashboard() {
                 </div>
             </div>
 
-            {/* Role-Aware Onboarding (Shows if compliance is low or no submissions) */}
-            {(submissions.length < 3 || compliance < 50) && (
+            {/* Role-Aware Onboarding */}
+            {(submissions.length < 3 || compliance < 50 || resources.length === 0) && (
                 <div className="animate-in slide-in-from-top-4 duration-700 delay-100">
                     <OnboardingCard
                         role="Lecturer"
                         steps={[
                             { title: "Course Outline", description: "Submit your semester course outline for departmental review.", actionLabel: "Submit Outline", href: "/lecturer/submissions", completed: submissions.some(s => s.type === 'SEMESTER_CALENDAR') },
-                            { title: "Weekly Topics", description: "Plan your weekly teaching topics using the calendar view.", actionLabel: "Add Topics", href: "/lecturer/submissions?mode=weekly", completed: submissions.some(s => s.type === 'COURSE_TOPICS') },
-                            { title: "Upload Resources", description: "Share lecture notes or slides with your students.", actionLabel: "Upload File", href: "/lecturer/resources", completed: submissions.length > 5 }, // Mock heuristic
+                            { title: "Weekly Topics", description: "Plan your weekly teaching topics using the registry view.", actionLabel: "Add Topics", href: "/lecturer/submissions?type=WEEKLY_TOPICS", completed: weeklySubmissions.length > 0 },
+                            { title: "Upload Resources", description: "Share lecture notes or slides with your students.", actionLabel: "Upload File", href: "/lecturer/resources", completed: resources.length > 0 },
                             { title: "Department Sync", description: "Connect with colleagues and stay updated on department news.", actionLabel: "Go to Department", href: "/lecturer/department", completed: true }
                         ]}
                     />
@@ -99,7 +106,7 @@ export default function LecturerDashboard() {
                 {[
                     { label: "Overall Compliance", value: `${compliance}%`, sub: "Target: 100%", icon: "🎯", color: compliance >= 80 ? "text-green-400" : compliance >= 60 ? "text-yellow-400" : "text-red-400", bg: "from-blue-600/10 to-transparent" },
                     { label: "Total Submissions", value: submissions.filter(s => s.status !== "DRAFT").length, sub: "This semester", icon: "📄", color: "text-blue-400", bg: "from-blue-600/10 to-transparent" },
-                    { label: "Open Deadlines", value: pendingDeadlines.length, sub: "Action required", icon: "⏰", color: "text-amber-400", bg: "from-amber-600/10 to-transparent" },
+                    { label: "Uploaded Resources", value: resources.length, sub: "Shared documents", icon: "📚", color: "text-amber-400", bg: "from-amber-600/10 to-transparent" },
                     { label: "Unread Alerts", value: unreadNotifs.length, sub: "In your inbox", icon: "🔔", color: "text-purple-400", bg: "from-purple-600/10 to-transparent" },
                 ].map((stat, i) => (
                     <div key={i} className={`bg-gradient-to-br ${stat.bg} rounded-3xl p-6 relative overflow-hidden group transition-all`}>
@@ -157,13 +164,13 @@ export default function LecturerDashboard() {
 
                     <div className="rounded-3xl p-6 relative overflow-hidden" style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(79,70,229,0.08) 100%)" }}>
                         <h3 className="font-bold mb-2" style={{ color: "var(--text-primary)" }}>Weekly Goal</h3>
-                        <p className="text-xs mb-4" style={{ color: "var(--text-secondary)" }}>Complete all course topic entries for Week 8 by Friday.</p>
+                        <p className="text-xs mb-4" style={{ color: "var(--text-secondary)" }}>Maintain consistent teaching records. Aim for 15 weeks of topics.</p>
                         <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "var(--bg-border)" }}>
-                            <div className="h-full bg-blue-500 transition-all" style={{ width: '65%' }} />
+                            <div className="h-full bg-blue-500 transition-all" style={{ width: `${weeklyProgress}%` }} />
                         </div>
                         <div className="flex justify-between mt-2 font-mono text-[10px]" style={{ color: "var(--text-muted)" }}>
                             <span>PROGRESS</span>
-                            <span>65%</span>
+                            <span>{weeklyProgress}%</span>
                         </div>
                         <div className="absolute -right-2 -bottom-2 opacity-10 pointer-events-none">
                             <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V7h2v9zm4 0h-2V7h2v9z" /></svg>

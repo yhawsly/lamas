@@ -13,8 +13,9 @@ model User {
   email          String         @unique
   passwordHash   String
   phone          String?
-  isActive       Boolean        @default(true)
-  lastLogin      DateTime?
+  isActive             Boolean        @default(true)
+  requirePasswordReset Boolean        @default(false)
+  lastLogin            DateTime?
   departmentId   Int?
   createdAt      DateTime       @default(now())
   deletedAt      DateTime?
@@ -22,7 +23,6 @@ model User {
   role           Role           @default(LECTURER)
   createdTerms   AcademicTerm[]
   activityLogs   ActivityLog[]
-  classSessions  ClassSession[]
   hodDepartments Department[]   @relation("HoDepartment")
   notifications  Notification[]
   observedBy     Observation[]  @relation("ObservedLecturer")
@@ -240,36 +240,7 @@ model Observation {
   @@index([termId])
 }
 
-/// Scheduled teaching sessions
-model ClassSession {
-  id          Int          @id @default(autoincrement())
-  lecturerId  Int
-  courseCode  String
-  topic       String
-  sessionDate DateTime
-  qrToken     String       @unique @default(uuid())
-  qrExpiresAt DateTime
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @default(now()) @updatedAt
-  attendance  Attendance[]
-  lecturer    User         @relation(fields: [lecturerId], references: [id])
 
-  @@index([lecturerId])
-  @@index([qrToken])
-}
-
-/// Student attendance records for specific sessions
-model Attendance {
-  id            Int              @id @default(autoincrement())
-  sessionId     Int
-  studentMatric String
-  checkedInAt   DateTime         @default(now())
-  method        AttendanceMethod @default(QR)
-  session       ClassSession     @relation(fields: [sessionId], references: [id])
-
-  @@index([sessionId])
-  @@index([studentMatric])
-}
 
 model Notification {
   id        Int      @id @default(autoincrement())
@@ -357,10 +328,7 @@ enum ObservationStatus {
   REVIEWED
 }
 
-enum AttendanceMethod {
-  QR
-  MANUAL
-}
+
 
 enum ReportType {
   lecturer_summary

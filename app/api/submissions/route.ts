@@ -82,7 +82,14 @@ export async function GET(req: NextRequest) {
                 where.lecturerId = -1;
             }
         }
-        if (status) where.status = status;
+        if (status) {
+            const statusArray = status.split(",");
+            if (statusArray.length > 1) {
+                where.status = { in: statusArray };
+            } else {
+                where.status = status;
+            }
+        }
         if (type) where.type = type;
 
         const [submissions, totalCount] = await Promise.all([

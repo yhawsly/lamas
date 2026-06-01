@@ -18,6 +18,7 @@ const navByRole: Record<string, { label: string; href: string; icon: string }[]>
     ],
     HOD: [
         { label: "Dashboard", href: "/hod", icon: "🏠" },
+        { label: "Review Center", href: "/hod/submissions", icon: "📥" },
         { label: "My Lecturers", href: "/hod/lecturers", icon: "👥" },
         { label: "Observations", href: "/hod/observations", icon: "👁️" },
         { label: "Reports", href: "/hod/reports", icon: "📄" },

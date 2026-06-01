@@ -36,14 +36,17 @@ export async function GET() {
             "PENDING": 0,
             "LATE": 0,
             "APPROVED": 0,
+            "REVIEWED": 0,
             "REJECTED": 0,
             "DRAFT": 0
         };
 
         submissions.forEach(sub => {
-            if (counts[sub.status] !== undefined) counts[sub.status]++;
-            else counts[sub.status] = 1;
+            const status = sub.status;
+            if (counts[status] !== undefined) counts[status]++;
+            else counts[status] = 1;
         });
+
 
         const data = Object.keys(counts).map(key => ({
             name: key,

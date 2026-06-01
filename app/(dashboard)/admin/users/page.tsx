@@ -125,7 +125,7 @@ export default function AdminUsersPage() {
                                     <th className="pb-3 pr-4">Name & Email</th>
                                     <th className="pb-3 pr-4">Role</th>
                                     <th className="pb-3 pr-4">Department</th>
-                                    <th className="pb-3 pr-4">Joined</th>
+                                    <th className="pb-3 pr-4">Security</th>
                                     <th className="pb-3 text-right">Actions</th>
                                 </tr>
                             </thead>
@@ -141,9 +141,28 @@ export default function AdminUsersPage() {
                                                 {u.role}
                                             </span>
                                         </td>
-                                        <td className="py-3 pr-4" style={{ color: "var(--text-muted)" }}>{u.department?.name || "-"}</td>
-                                        <td className="py-3 pr-4" style={{ color: "var(--text-muted)" }}>{new Date(u.createdAt).toLocaleDateString()}</td>
-                                        <td className="py-3 text-right">
+                                        <td className="py-3 pr-4">
+                                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${u.requirePasswordReset ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}`}>
+                                                {u.requirePasswordReset ? "Reset Required" : "Secure"}
+                                            </span>
+                                        </td>
+                                        <td className="py-3 text-right flex items-center justify-end gap-2">
+                                            {!u.requirePasswordReset && (
+                                                <button
+                                                    onClick={async () => {
+                                                        const res = await fetch(`/api/admin/users/${u.id}`, {
+                                                            method: 'PATCH',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({ requirePasswordReset: true })
+                                                        });
+                                                        if (res.ok) fetchUsers();
+                                                    }}
+                                                    className="p-1.5 rounded-lg text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors opacity-0 group-hover:opacity-100"
+                                                    title="Force Password Reset"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => confirmDelete(u.id)}
                                                 className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"

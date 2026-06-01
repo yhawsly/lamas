@@ -67,6 +67,7 @@ export async function POST(req: Request) {
                 passwordHash,
                 role,
                 departmentId: departmentId || null,
+                requirePasswordReset: true,
             },
         });
 

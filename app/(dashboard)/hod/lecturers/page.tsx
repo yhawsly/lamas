@@ -6,21 +6,50 @@ export default function HoDLecturersPage() {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
+    const [error, setError] = useState<string | null>(null);
+
     useEffect(() => {
-        fetch("/api/admin/analytics")
-            .then(r => r.ok ? r.json().catch(() => ({ scores: [] })) : ({ scores: [] }))
-            .then(d => { setData(d); setLoading(false); })
-            .catch(() => setLoading(false));
+        async function load() {
+            try {
+                const r = await fetch("/api/admin/analytics");
+                if (!r.ok) {
+                    const err = await r.json().catch(() => ({}));
+                    throw new Error(err.error || `Server error: ${r.status}`);
+                }
+                const d = await r.json();
+                setData(d);
+            } catch (e: any) {
+                console.error("Fetch error:", e);
+                setError(e.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+        load();
     }, []);
 
+
     const scores = data?.scores ?? [];
+    const deptName = scores.length > 0 ? scores[0].department : "Department";
 
     return (
         <div className="max-w-5xl mx-auto">
-            <div className="mb-8"><h1 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>My Lecturers</h1><p className="mt-1" style={{ color: "var(--text-muted)" }}>Compliance overview for your department</p></div>
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>My Lecturers</h1>
+                <p className="mt-1" style={{ color: "var(--text-muted)" }}>Compliance overview for {deptName}</p>
+            </div>
             <div className="rounded-2xl p-6" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
                 {loading ? <Loader message="Synchronizing Lecturer Compliance Registry..." /> :
+                    error ? (
+                        <div className="text-center py-12" style={{ color: "#ef4444" }}>
+                            <div className="text-3xl mb-2">📡</div>
+                            <div className="font-bold">Database Synchronization Error</div>
+                            <div className="text-sm opacity-80">{error}</div>
+                            <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 transition text-sm">Retry Connection</button>
+                        </div>
+                    ) :
                     scores.length === 0 ? <div className="text-center py-12" style={{ color: "var(--text-muted)" }}>No lecturers in your department yet.</div> :
+
                         <div className="space-y-3">
                             {scores.sort((a: any, b: any) => b.score - a.score).map((s: any, i: number) => (
                                 <div key={s.lecturerId} className="flex items-center gap-4 p-4 rounded-xl transition" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)" }}>

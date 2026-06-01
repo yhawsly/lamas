@@ -33,3 +33,29 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
         return NextResponse.json({ error: "Failed to delete user" }, { status: 500 });
     }
 }
+
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+    await headers();
+    await cookies();
+    try {
+        const resolvedParams = await params;
+        const userId = parseInt(resolvedParams.id);
+        const body = await req.json();
+
+        if (isNaN(userId)) return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
+
+        const updated = await prisma.user.update({
+            where: { id: userId },
+            data: {
+                requirePasswordReset: body.requirePasswordReset ?? false,
+                isActive: body.isActive ?? undefined,
+                updatedAt: new Date(),
+            },
+        });
+
+        return NextResponse.json(updated);
+    } catch (error) {
+        console.error("Failed to update user:", error);
+        return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
+    }
+}

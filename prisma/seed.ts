@@ -1,7 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import "dotenv/config";
+import { prisma } from "../lib/prisma";
 import { hashPassword } from "../lib/password";
-
-const prisma = new PrismaClient();
 
 async function main() {
     console.log("🌱 STARTING PROFESSIONAL DATABASE SEEDING...");
@@ -97,6 +96,7 @@ async function main() {
             passwordHash: hash,
             role: "HOD",
             departmentId: cs.id,
+            requirePasswordReset: true,
         },
     });
 
@@ -114,6 +114,7 @@ async function main() {
             passwordHash: hash,
             role: "LECTURER",
             departmentId: cs.id,
+            requirePasswordReset: true,
         },
     });
 
@@ -126,6 +127,7 @@ async function main() {
             passwordHash: hash,
             role: "LECTURER",
             departmentId: eng.id,
+            requirePasswordReset: true,
         },
     });
 

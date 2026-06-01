@@ -11,10 +11,12 @@ interface PortfolioData {
         activeTerm: string;
         institution: string;
     };
-    radarData: any[] | null; // null = no rated observations yet
+    radarData: any[] | null; 
     velocity: any[];
     auditHistory: any[];
     auditArtifacts: any[];
+    leaderboard?: { name: string; score: number }[];
+    metrics?: { outlines: number; observations: number; alerts: number };
 }
 
 export default function InstitutionalIntelligenceSuite({ role }: { role: string }) {
@@ -229,56 +231,132 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
                 </div>
             )}
 
-            {/* HIDDEN PRINT TEMPLATE */}
+            {/* HIDDEN PRINT TEMPLATE - DYNAMIC REPLACEMENTS */}
             <div style={{ display: 'none' }}>
-                <div ref={printRef} className="p-16 text-black bg-white font-serif max-w-[210mm] mx-auto min-h-[297mm]">
-                    <div className="flex justify-between items-start border-b-2 border-black pb-8 mb-10">
-                        <div className="w-24 h-24 bg-black flex items-center justify-center text-white font-black text-3xl rounded-none underline decoration-4">FUT</div>
+                <div ref={printRef} className="p-12 text-black bg-white font-serif max-w-[210mm] mx-auto min-h-[297mm]">
+                    {/* Official Header */}
+                    <div className="flex justify-between items-start border-b-4 border-black pb-6 mb-10">
+                        <div className="w-20 h-20 bg-black flex items-center justify-center text-white font-black text-2xl">LAMAS</div>
                         <div className="text-right">
-                            <h1 className="text-2xl font-black uppercase italic tracking-tighter">Institutional Compliance Report</h1>
-                            <p className="text-sm font-bold opacity-80">HO University of Technology</p>
-                            <p className="text-[10px] font-mono mt-4">REF-ID: LAMAS-SYS-{Math.floor(100000 + Math.random() * 900000)}</p>
+                            <h1 className="text-xl font-black uppercase tracking-tighter">{generating || "Compliance Report"}</h1>
+                            <p className="text-[10px] font-bold opacity-70">Generated via LAMAS Academic Intelligence</p>
+                            <p className="text-[10px] font-mono mt-2">DOC-ID: {Math.random().toString(36).substring(7).toUpperCase()}</p>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-10 mb-16">
-                        <div className="p-8 border-l-4 border-black bg-slate-50">
-                            <h4 className="text-[10px] font-black uppercase mb-4 text-slate-500 tracking-[0.2em]">Institutional Health</h4>
-                            <p className="text-6xl font-black tracking-tighter">{data.stats.compliance}%</p>
-                            <p className="text-xs font-black uppercase mt-2 text-emerald-700">Audit-Verified Integrity Score</p>
-                        </div>
-                        <div className="p-8 border-l-4 border-black bg-slate-50">
-                            <h4 className="text-[10px] font-black uppercase mb-4 text-slate-500 tracking-[0.2em]">Active Term</h4>
-                            <p className="text-2xl font-black">{data.stats.activeTerm}</p>
-                            <p className="text-sm font-bold mt-2">Academic Session 2025/2026</p>
-                        </div>
-                    </div>
-
-                    <div className="mb-16">
-                        <h4 className="text-xs font-black uppercase border-b-2 border-black pb-3 mb-8 tracking-[0.3em]">Pedagogical Benchmarks</h4>
-                        <div className="space-y-6">
-                            {(data.radarData ?? []).map((d, i) => (
-                                <div key={i} className="flex items-center justify-between group">
-                                    <span className="text-sm font-black uppercase tracking-tight">{d.subject}</span>
-                                    <div className="flex items-center gap-6">
-                                        <div className="w-48 h-3 bg-slate-100 rounded-none overflow-hidden border border-black/10">
-                                            <div className="h-full bg-black" style={{ width: `${d.A}%` }} />
+                    {/* Report Specific Content */}
+                    {generating === "Excellence Dossier" ? (
+                        <div className="space-y-12">
+                            <div className="p-8 bg-slate-50 border-l-4 border-black">
+                                <h2 className="text-2xl font-black mb-2">Faculty Performance Summary</h2>
+                                <p className="text-sm">Comprehensive pedagogical audit for the {data.stats.activeTerm} session.</p>
+                            </div>
+                            
+                            <div>
+                                <h3 className="text-xs font-black uppercase mb-6 tracking-widest border-b border-black/20 pb-2">Instructional Radar Benchmarks</h3>
+                                <div className="space-y-4">
+                                    {(data.radarData ?? []).map((d, i) => (
+                                        <div key={i} className="flex justify-between items-center">
+                                            <span className="text-sm font-bold uppercase">{d.subject}</span>
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-48 h-2 bg-slate-100"><div className="h-full bg-black" style={{ width: `${d.A}%` }} /></div>
+                                                <span className="text-xs font-mono font-bold">{d.A}%</span>
+                                            </div>
                                         </div>
-                                        <span className="text-sm font-mono font-black w-12 text-right">{d.A}%</span>
-                                    </div>
+                                    ))}
                                 </div>
-                            ))}
+                            </div>
                         </div>
-                    </div>
+                    ) : generating === "Pre-Cycle Audit" ? (
+                        <div className="space-y-12">
+                            <div className="p-8 bg-blue-50 border-l-4 border-blue-900">
+                                <h2 className="text-2xl font-black mb-2">Pre-Cycle Syllabus Verification</h2>
+                                <p className="text-sm">Official audit of course outline readiness and registry synchronization.</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-8">
+                                <div className="p-6 border border-black">
+                                    <h4 className="text-[10px] font-black uppercase mb-2">Validated Outlines</h4>
+                                    <p className="text-4xl font-black">{data.metrics?.outlines || 0}</p>
+                                </div>
+                                <div className="p-6 border border-black">
+                                    <h4 className="text-[10px] font-black uppercase mb-2">Compliance Rating</h4>
+                                    <p className="text-4xl font-black">{data.stats.compliance}%</p>
+                                </div>
+                            </div>
+                        </div>
+                    ) : generating === "Mid-Term Review" ? (
+                        <div className="space-y-12">
+                            <div className="p-8 bg-amber-50 border-l-4 border-amber-900">
+                                <h2 className="text-2xl font-black mb-2">Mid-Term Academic Velocity</h2>
+                                <p className="text-sm">Assessment of curriculum delivery speed and observational consistency.</p>
+                            </div>
+                            <div>
+                                <h3 className="text-xs font-black uppercase mb-6 tracking-widest border-b border-black/20 pb-2">Delivery Velocity (Actual vs Planned)</h3>
+                                <div className="space-y-6">
+                                    {data.velocity.map((v, i) => (
+                                        <div key={i} className="space-y-2">
+                                            <div className="flex justify-between text-[10px] font-bold">
+                                                <span>{v.week}</span>
+                                                <span>{v.actual}% DELIVERED</span>
+                                            </div>
+                                            <div className="h-4 bg-slate-100 relative">
+                                                <div className="absolute inset-y-0 left-0 bg-emerald-500" style={{ width: `${v.actual}%` }} />
+                                                <div className="absolute inset-y-0 left-0 border-r-2 border-dashed border-black/20" style={{ width: `${v.planned}%` }} />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-12">
+                            {/* Final Compliance / Default Template */}
+                            <div className="grid grid-cols-3 gap-8">
+                                <div className="col-span-2 p-8 bg-emerald-50 border-l-4 border-emerald-900">
+                                    <h2 className="text-2xl font-black mb-2">Final Accountability Report</h2>
+                                    <p className="text-sm">End-of-cycle institutional health and pedagogical achievements.</p>
+                                </div>
+                                <div className="p-8 border-4 border-black flex flex-col items-center justify-center">
+                                    <h4 className="text-[10px] font-black mb-1">TOTAL SCORE</h4>
+                                    <p className="text-4xl font-black">{data.stats.compliance}%</p>
+                                </div>
+                            </div>
 
-                    <div className="mt-auto pt-20 border-t-2 border-black flex justify-between items-end">
-                        <div className="space-y-4">
-                            <div className="w-48 h-12 border-b-2 border-black"></div>
-                            <p className="text-[10px] font-black uppercase tracking-widest">Registrar Content Seal</p>
+                            {data.leaderboard && data.leaderboard.length > 0 && (
+                                <div>
+                                    <h3 className="text-xs font-black uppercase mb-6 tracking-widest border-b border-black/20 pb-2">Faculty Excellence Leaderboard</h3>
+                                    <table className="w-full border-collapse">
+                                        <thead>
+                                            <tr className="border-b-2 border-black">
+                                                <th className="text-left py-2 text-[10px] uppercase font-black">Rank</th>
+                                                <th className="text-left py-2 text-[10px] uppercase font-black">Academic Staff</th>
+                                                <th className="text-right py-2 text-[10px] uppercase font-black">Compliance Score</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {data.leaderboard.map((staff, i) => (
+                                                <tr key={i} className="border-b border-black/10">
+                                                    <td className="py-3 font-bold text-sm">#0{i + 1}</td>
+                                                    <td className="py-3 font-bold text-sm">{staff.name}</td>
+                                                    <td className="py-3 font-black text-right text-sm">{staff.score}%</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
                         </div>
-                        <div className="text-right max-w-[300px]">
-                            <p className="text-[8px] font-mono text-slate-400 break-all leading-none">{Math.random().toString(36).substring(2).toUpperCase()}{Math.random().toString(36).substring(2).toUpperCase()}</p>
-                            <p className="text-[10px] font-black mt-2 uppercase">Official Audit Artifact</p>
+                    )}
+
+                    {/* Footer / Auth Seal */}
+                    <div className="mt-auto pt-24 flex justify-between items-end border-t border-black/10">
+                        <div className="space-y-4">
+                            <div className="w-48 h-10 border-b border-black"></div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest">Office of the Registrar (Audit Seal)</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-[8px] font-mono text-slate-400">TIMESTAMP: {new Date().toLocaleString()}</p>
+                            <p className="text-[10px] font-black uppercase tracking-tighter mt-1">Official Institutional Artifact</p>
                         </div>
                     </div>
                 </div>

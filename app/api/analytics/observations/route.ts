@@ -29,19 +29,37 @@ export async function GET() {
             where.lecturer = { departmentId: user.departmentId };
         }
 
-        const observations = await prisma.observation.count({ where });
+        const completedObservations = await prisma.observation.findMany({
+            where,
+            select: {
+                ratingEngagement: true,
+                ratingKnowledge: true,
+                ratingOrganization: true,
+                ratingActivities: true,
+                ratingTech: true,
+                ratingCommunication: true
+            }
+        });
 
-        if (observations === 0) return NextResponse.json([]);
+        if (completedObservations.length === 0) return NextResponse.json([]);
 
-        // Ratings are no longer collected as discrete fields, returning neutral values
+        const getAvg = (field: keyof typeof completedObservations[0]) => {
+            const values = completedObservations.map(o => o[field]).filter(v => v !== null && v !== undefined) as number[];
+            if (values.length === 0) return 0;
+            return parseFloat((values.reduce((a, b) => a + b, 0) / values.length).toFixed(1));
+        };
+
         const data = [
-            { subject: "Knowledge", A: 0, fullMark: 5 },
-            { subject: "Engagement", A: 0, fullMark: 5 },
-            { subject: "Technology", A: 0, fullMark: 5 },
-            { subject: "Punctuality", A: 0, fullMark: 5 }
+            { subject: "Knowledge", A: getAvg("ratingKnowledge"), fullMark: 5 },
+            { subject: "Engagement", A: getAvg("ratingEngagement"), fullMark: 5 },
+            { subject: "Organization", A: getAvg("ratingOrganization"), fullMark: 5 },
+            { subject: "Activities", A: getAvg("ratingActivities"), fullMark: 5 },
+            { subject: "Technology", A: getAvg("ratingTech"), fullMark: 5 },
+            { subject: "Communication", A: getAvg("ratingCommunication"), fullMark: 5 }
         ];
 
         return NextResponse.json(data);
+
     } catch {
         return NextResponse.json({ error: "Failed to fetch analytics" }, { status: 500 });
     }

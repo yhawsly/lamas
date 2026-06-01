@@ -9,8 +9,10 @@ const COLORS: Record<string, string> = {
     PENDING: "#f59e0b",
     LATE: "#ef4444",
     REJECTED: "#f43f5e",
+    REVIEWED: "#818cf8",
     DRAFT: "#64748b"
 };
+
 
 export default function ComplianceChart() {
     const [data, setData] = useState<{ name: string; value: number }[]>([]);

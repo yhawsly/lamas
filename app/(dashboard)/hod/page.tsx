@@ -107,10 +107,10 @@ export default function HoDDashboard() {
             <OnboardingCard
                 role="HOD"
                 steps={[
-                    { title: "Review Resources", description: "Review and approve pending resources from your department lecturers.", actionLabel: "Review Resources", href: "/lecturer/resources", completed: scores.length > 0 },
-                    { title: "Departmental Broadcast", description: "Send a welcome message or important update to your team.", actionLabel: "Send Broadcast", href: "#", completed: false },
+                    { title: "Academic Audit", description: "Review and approve pending Course Outlines and Weekly Topics.", actionLabel: "Open Review Center", href: "/hod/submissions", completed: false },
+                    { title: "Resource Approvals", description: "Review teaching materials uploaded by your department faculty.", actionLabel: "Review Resources", href: "/hod/resources", completed: scores.length > 0 },
                     { title: "Assign Observations", description: "Schedule peer observations for effective academic monitoring.", actionLabel: "Schedule Now", href: "#", completed: false },
-                    { title: "Compliance Check", description: "Audit the overall submission rates of your department.", actionLabel: "Check Analytics", href: "#", completed: true }
+                    { title: "Compliance Intelligence", description: "Audit the overall submission rates and pedagogical health.", actionLabel: "Check Analytics", href: "/hod/reports", completed: true }
                 ]}
             />
 
