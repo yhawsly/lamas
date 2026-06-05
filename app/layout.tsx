@@ -4,6 +4,7 @@ import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { auth } from "@/auth";
+import PWARegister from "@/components/PWARegister";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,11 @@ export const metadata: Metadata = {
   title: "LAMAS — Lecturer Academic Management System",
   description: "Academic accountability and monitoring platform for higher education",
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: "LAMAS",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -23,8 +29,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <meta name="theme-color" content="#0f172a" />
       </head>
       <body style={{ fontFamily: "'Inter', sans-serif" }}>
+        <PWARegister />
         <ErrorBoundary>
           <SessionProvider session={session}>
             <ThemeProvider>{children}</ThemeProvider>
@@ -34,3 +42,4 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     </html>
   );
 }
+
