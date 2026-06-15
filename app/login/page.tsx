@@ -110,7 +110,7 @@ export default function LoginPage() {
                             {[
                                 { label: "Super Admin", email: "superadmin@lamas.edu" },
                                 { label: "Admin", email: "admin@lamas.edu" },
-                                { label: "Head of Dept", email: "ahmad@lamas.edu" },
+                                { label: "Head of Dept", email: "hod.cs@lamas.edu" },
                                 { label: "Lecturer (Sarah)", email: "slyyhaw@gmail.com" },
                                 { label: "Lecturer (Hafiz)", email: "rahman@lamas.edu" },
                             ].map((acc) => (

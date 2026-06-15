@@ -22,6 +22,13 @@ export function hasHodPrivileges(role: string | null | undefined): boolean {
 }
 
 /**
+ * Checks if a given role has Lecturer privileges (either LECTURER, HOD, ADMIN, or SUPER_ADMIN).
+ */
+export function hasLecturerPrivileges(role: string | null | undefined): boolean {
+    return role === ROLES.LECTURER || hasHodPrivileges(role);
+}
+
+/**
  * Formats user checks requiring Department-level scope.
  * - Admins can intrinsically access all departments.
  * - HODs and Lecturers must explicitly match the requested department.

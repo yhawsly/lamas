@@ -1,24 +1,5 @@
 import type { NextConfig } from "next";
 
-const securityHeaders = [
-    { key: "X-DNS-Prefetch-Control", value: "on" },
-    { key: "X-Frame-Options", value: "SAMEORIGIN" },
-    { key: "X-Content-Type-Options", value: "nosniff" },
-    { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-    {
-        key: "Permissions-Policy",
-        value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
-    },
-    {
-        key: "Strict-Transport-Security",
-        value: "max-age=63072000; includeSubDomains; preload",
-    },
-    {
-        key: "Content-Security-Policy",
-        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self'; frame-src 'self'; worker-src 'self' blob:; connect-src 'self' http://localhost:3000 http://127.0.0.1:3000;",
-    },
-];
-
 const nextConfig: NextConfig = {
     // Don't leak Next.js version in response headers
     poweredByHeader: false,
@@ -35,10 +16,30 @@ const nextConfig: NextConfig = {
 
     // Security headers on every response
     async headers() {
+        const isDev = process.env.NODE_ENV !== "production";
+        const cspHeader = `
+            default-src 'self';
+            script-src 'self' ${isDev ? "'unsafe-eval' 'unsafe-inline'" : ""};
+            style-src 'self' 'unsafe-inline';
+            img-src 'self' blob: data:;
+            font-src 'self';
+            frame-src 'self';
+            worker-src 'self' blob:;
+            connect-src 'self' ${isDev ? "http://localhost:3000 http://127.0.0.1:3000 ws://localhost:3000" : ""};
+        `.replace(/\s{2,}/g, ' ').trim();
+
         return [
             {
                 source: "/:path*",
-                headers: securityHeaders,
+                headers: [
+                    { key: "X-DNS-Prefetch-Control", value: "on" },
+                    { key: "X-Frame-Options", value: "SAMEORIGIN" },
+                    { key: "X-Content-Type-Options", value: "nosniff" },
+                    { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+                    { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
+                    { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+                    { key: "Content-Security-Policy", value: cspHeader },
+                ],
             },
         ];
     },

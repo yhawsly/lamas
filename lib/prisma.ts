@@ -8,14 +8,14 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 const createPrismaClient = () => {
-    const config: any = { log: ["query"] };
+    const config: any = process.env.NODE_ENV === "development" ? { log: ["query", "error", "warn"] } : { log: ["error"] };
 
     if (process.env.DATABASE_URL) {
         if (!globalForPrisma.pgPool) {
             console.log("   ➤ Creating NEW PostgreSQL Pool...");
             globalForPrisma.pgPool = new Pool({
                 connectionString: process.env.DATABASE_URL,
-                ssl: { rejectUnauthorized: false },
+                ssl: process.env.NODE_ENV === "production" ? true : { rejectUnauthorized: false },
                 max: 10, // Reduced from 20 to be more conservative with serverless limits
                 idleTimeoutMillis: 10000, // Reduced to 10s to cycle connections faster
                 connectionTimeoutMillis: 5000, // Fail faster if we can't connect

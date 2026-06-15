@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import { authConfig } from "./auth.config";
 import { NextResponse } from "next/server";
-import { ROLES, isAdmin, hasHodPrivileges } from "@/lib/permissions";
+import { ROLES, isAdmin, hasHodPrivileges, hasLecturerPrivileges } from "@/lib/permissions";
 
 const { auth } = NextAuth({
     ...authConfig,
@@ -44,7 +44,7 @@ export default auth((req) => {
         if (isHodPath && !hasHodPrivileges(userRole)) {
             return isApiPath ? NextResponse.json({ error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL("/", nextUrl));
         }
-        if (isLecturerPath && !Object.values(ROLES).includes(userRole)) {
+        if (isLecturerPath && !hasLecturerPrivileges(userRole)) {
             return isApiPath ? NextResponse.json({ error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL("/", nextUrl));
         }
     }
