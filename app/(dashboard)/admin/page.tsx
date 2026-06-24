@@ -7,6 +7,9 @@ import {
 } from "recharts";
 import ComplianceChart from "@/components/analytics/ComplianceChart";
 import ObservationRadar from "@/components/analytics/ObservationRadar";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 interface Analytics {
     summary: { totalLecturers: number; totalSubmissions: number; totalDeadlines: number; avgScore: number; atRiskCount: number };
@@ -16,18 +19,15 @@ interface Analytics {
     trend: any[];
 }
 export default function AdminDashboard() {
-    const [data, setData] = useState<Analytics | null>(null);
-    const [loading, setLoading] = useState(true);
+    // Use SWR for client-side caching of institution analytics
+    const { data: analyticsData } = useSWR<Analytics>("/api/admin/analytics", fetcher);
+
+    const data = analyticsData;
+    const loading = !analyticsData;
+
     const [tab, setTab] = useState<"overview" | "lecturers" | "atRisk" | "trend">("overview");
     const [notify, setNotify] = useState({ message: "", show: false, sent: false });
     const [sending, setSending] = useState(false);
-
-    useEffect(() => {
-        fetch("/api/admin/analytics")
-            .then(r => r.ok ? r.json().catch(() => ({ summary: { totalLecturers: 0, totalSubmissions: 0, totalDeadlines: 0, avgScore: 0, atRiskCount: 0 }, scores: [], atRisk: [], heatmap: [], trend: [] })) : null)
-            .then(d => { if (d) setData(d); setLoading(false); })
-            .catch(() => setLoading(false));
-    }, []);
 
     async function sendBroadcast() {
         if (!notify.message.trim()) return;

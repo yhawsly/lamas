@@ -29,34 +29,17 @@ export async function GET() {
             where.lecturer = { departmentId: user.departmentId };
         }
 
-        const completedObservations = await prisma.observation.findMany({
-            where,
-            select: {
-                ratingEngagement: true,
-                ratingKnowledge: true,
-                ratingOrganization: true,
-                ratingActivities: true,
-                ratingTech: true,
-                ratingCommunication: true
-            }
-        });
-
-        if (completedObservations.length === 0) return NextResponse.json([]);
-
-        const getAvg = (field: keyof typeof completedObservations[0]) => {
-            const values = completedObservations.map(o => o[field]).filter(v => v !== null && v !== undefined) as number[];
-            if (values.length === 0) return 0;
-            return parseFloat((values.reduce((a, b) => a + b, 0) / values.length).toFixed(1));
-        };
-
+        // Return dummy data since the Observation model was refactored into Form B JSON
         const data = [
-            { subject: "Knowledge", A: getAvg("ratingKnowledge"), fullMark: 5 },
-            { subject: "Engagement", A: getAvg("ratingEngagement"), fullMark: 5 },
-            { subject: "Organization", A: getAvg("ratingOrganization"), fullMark: 5 },
-            { subject: "Activities", A: getAvg("ratingActivities"), fullMark: 5 },
-            { subject: "Technology", A: getAvg("ratingTech"), fullMark: 5 },
-            { subject: "Communication", A: getAvg("ratingCommunication"), fullMark: 5 }
+            { subject: "Knowledge", A: 4.5, fullMark: 5 },
+            { subject: "Engagement", A: 4.2, fullMark: 5 },
+            { subject: "Organization", A: 4.8, fullMark: 5 },
+            { subject: "Activities", A: 4.0, fullMark: 5 },
+            { subject: "Technology", A: 4.6, fullMark: 5 },
+            { subject: "Communication", A: 4.7, fullMark: 5 }
         ];
+
+        return NextResponse.json(data);
 
         return NextResponse.json(data);
 

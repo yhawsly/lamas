@@ -22,5 +22,6 @@ export default async function RootPage() {
   if (role === "LECTURER") redirect("/lecturer");
   if (role === "HOD") redirect("/hod");
   if (role === "ADMIN" || role === "SUPER_ADMIN") redirect("/admin");
+  if (role === "DEO") redirect("/deo");
   redirect("/login");
 }

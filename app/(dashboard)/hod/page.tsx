@@ -5,6 +5,9 @@ import OnboardingCard from "@/components/ui/OnboardingCard";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import ComplianceChart from "@/components/analytics/ComplianceChart";
 import ObservationRadar from "@/components/analytics/ObservationRadar";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 interface LecturerScore {
     lecturerId: number; lecturerName: string; email: string;
@@ -12,31 +15,20 @@ interface LecturerScore {
 }
 
 export default function HoDDashboard() {
-    const [data, setData] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+    // Use SWR for client-side caching of all dashboard datasets
+    const { data: analyticsData } = useSWR("/api/admin/analytics", fetcher);
+    const { data: coursesData } = useSWR("/api/courses", fetcher);
+    const { data: lecturersData } = useSWR("/api/lecturers", fetcher);
+
+    const data = analyticsData;
+    const courses = Array.isArray(coursesData) ? coursesData : [];
+    const lecturers = Array.isArray(lecturersData) ? lecturersData : [];
+    const loading = !analyticsData || !coursesData || !lecturersData;
+
     const [obsForm, setObsForm] = useState({ lecturerId: "", observerId: "", sessionDate: "", courseCode: "" });
     const [obsMsg, setObsMsg] = useState("");
     const [tab, setTab] = useState<"overview" | "observations" | "notify">("overview");
     const [notify, setNotify] = useState({ message: "", sent: false });
-    const [courses, setCourses] = useState<any[]>([]);
-    const [lecturers, setLecturers] = useState<any[]>([]);
-
-    useEffect(() => {
-        fetch("/api/admin/analytics")
-            .then(r => r.ok ? r.json().catch(() => ({ scores: [] })) : ({ scores: [] }))
-            .then(d => { setData(d); setLoading(false); })
-            .catch(() => setLoading(false));
-
-        fetch("/api/courses")
-            .then(r => r.ok ? r.json().catch(() => []) : [])
-            .then(d => setCourses(Array.isArray(d) ? d : []))
-            .catch(() => setCourses([]));
-
-        fetch("/api/lecturers")
-            .then(r => r.ok ? r.json().catch(() => []) : [])
-            .then(d => setLecturers(Array.isArray(d) ? d : []))
-            .catch(() => setLecturers([]));
-    }, []);
 
     async function assignObservation(e: React.FormEvent) {
         e.preventDefault();
@@ -99,6 +91,22 @@ export default function HoDDashboard() {
                         <div className="text-2xl mb-3">{k.icon}</div>
                         <div className="text-4xl font-bold" style={{ color: k.color }}>{k.value}</div>
                         <div className="text-[10px] font-bold uppercase tracking-widest mt-1" style={{ color: "var(--text-muted)" }}>{k.label}</div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Course Assignment Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+                {[
+                    { label: "Total Courses", value: courses.length, icon: "📚", color: "#2563eb" },
+                    { label: "Assigned Workload", value: courses.filter(c => c.lecturerId).length, icon: "✅", color: "#16a34a" },
+                    { label: "Pending Assignment", value: courses.length - courses.filter(c => c.lecturerId).length, icon: "⚠️", color: "#d97706" },
+                    { label: "Staff Coverage", value: courses.length > 0 ? `${Math.round((courses.filter(c => c.lecturerId).length / courses.length) * 100)}%` : "0%", icon: "📊", color: "#9333ea" },
+                ].map(stat => (
+                    <div key={stat.label} className="rounded-3xl p-6 transition-all" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
+                        <div className="text-2xl mb-3">{stat.icon}</div>
+                        <div className="text-4xl font-bold" style={{ color: stat.color }}>{stat.value}</div>
+                        <div className="text-[10px] font-bold uppercase tracking-widest mt-1" style={{ color: "var(--text-muted)" }}>{stat.label}</div>
                     </div>
                 ))}
             </div>
@@ -280,6 +288,8 @@ export default function HoDDashboard() {
                         )}
                     </div>
                 )}
+
+
             </div>
         </div>
     );

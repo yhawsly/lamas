@@ -51,7 +51,7 @@ export default function SearchableSelect({
             {/* Toggle Button */}
             <div
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full px-4 py-3 rounded-xl text-sm flex items-center justify-between cursor-pointer transition-all border"
+                className="w-full px-4 py-3 rounded-xl text-sm flex items-start justify-between cursor-pointer transition-all border gap-2"
                 style={{
                     backgroundColor: "var(--bg-hover)",
                     borderColor: isOpen ? "var(--primary)" : "var(--bg-border)",
@@ -59,8 +59,8 @@ export default function SearchableSelect({
                     boxShadow: isOpen ? "0 0 0 2px rgba(99, 102, 241, 0.2)" : "none"
                 }}
             >
-                <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
-                <svg className={`w-4 h-4 transition-transform duration-200 flex-shrink-0 ml-2 ${isOpen ? "rotate-180" : ""}`} style={{ color: "var(--text-muted)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className="whitespace-normal break-words text-left flex-1">{selectedOption ? selectedOption.label : placeholder}</span>
+                <svg className={`w-4 h-4 transition-transform duration-200 flex-shrink-0 mt-0.5 ${isOpen ? "rotate-180" : ""}`} style={{ color: "var(--text-muted)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </div>
@@ -119,15 +119,15 @@ export default function SearchableSelect({
                                         onMouseEnter={e => { if (!isDisabled && !isSelected) e.currentTarget.style.backgroundColor = "var(--bg-surface)" }}
                                         onMouseLeave={e => { if (!isDisabled) e.currentTarget.style.backgroundColor = isSelected ? "rgba(99, 102, 241, 0.12)" : "transparent" }}
                                     >
-                                        <div className="flex items-center justify-between">
-                                            <span className="truncate">{opt.label}</span>
+                                        <div className="flex items-start justify-between gap-2">
+                                            <span className="whitespace-normal break-words text-left flex-1">{opt.label}</span>
                                             {isSelected && (
-                                                <svg className="w-4 h-4 ml-2 flex-shrink-0" style={{ color: "var(--primary)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "var(--primary)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                                                 </svg>
                                             )}
                                             {isDisabled && !isSelected && (
-                                                <svg className="w-4 h-4 ml-2 flex-shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg className="w-4 h-4 flex-shrink-0 text-slate-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                                                 </svg>
                                             )}

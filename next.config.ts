@@ -46,6 +46,11 @@ const nextConfig: NextConfig = {
 
     // Strict mode for catching React issues early
     reactStrictMode: true,
+
+
+
+    // Externalize problematic CommonJS packages so Turbopack doesn't break them
+    serverExternalPackages: ["pdf-parse"],
 };
 
 export default nextConfig;

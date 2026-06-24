@@ -1,6 +1,7 @@
 export const ROLES = {
     LECTURER: "LECTURER",
     HOD: "HOD",
+    DEO: "DEO",
     ADMIN: "ADMIN",
     SUPER_ADMIN: "SUPER_ADMIN",
 } as const;
@@ -22,10 +23,17 @@ export function hasHodPrivileges(role: string | null | undefined): boolean {
 }
 
 /**
- * Checks if a given role has Lecturer privileges (either LECTURER, HOD, ADMIN, or SUPER_ADMIN).
+ * Checks if a given role has Lecturer privileges (either LECTURER, HOD, DEO, ADMIN, or SUPER_ADMIN).
  */
 export function hasLecturerPrivileges(role: string | null | undefined): boolean {
-    return role === ROLES.LECTURER || hasHodPrivileges(role);
+    return role === ROLES.LECTURER || role === ROLES.DEO || hasHodPrivileges(role);
+}
+
+/**
+ * Checks if a given role has DEO privileges (either DEO, ADMIN, or SUPER_ADMIN).
+ */
+export function hasDeoPrivileges(role: string | null | undefined): boolean {
+    return role === ROLES.DEO || isAdmin(role);
 }
 
 /**

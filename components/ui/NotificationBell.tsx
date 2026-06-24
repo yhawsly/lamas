@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 interface Notification {
     id: number;
@@ -12,45 +15,41 @@ interface Notification {
 
 export default function NotificationBell() {
     const [mounted, setMounted] = useState(false);
-    const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const unreadCount = notifications.filter((n) => !n.read).length;
+    const { data: notificationsData, mutate } = useSWR("/api/notifications", fetcher, {
+        refreshInterval: 30000,
+        dedupingInterval: 5000,
+    });
+
+    const notifications = Array.isArray(notificationsData?.data) ? notificationsData.data : [];
+    const unreadCount = notifications.filter((n: any) => !n.read).length;
 
     useEffect(() => {
         Promise.resolve().then(() => setMounted(true));
-        
-        let mountedFlag = true;
-        const fetchNotifications = async () => {
-            try {
-                const res = await fetch("/api/notifications");
-                if (res.ok) {
-                    const json = await res.json();
-                    if (mountedFlag) setNotifications(Array.isArray(json.data) ? json.data : []);
-                }
-            } catch {
-                console.error("Failed to fetch notifications");
-            }
-        };
-
-        fetchNotifications();
-
-        // Polling for new notifications every 30s
-        const interval = setInterval(fetchNotifications, 30000);
-        return () => {
-            mountedFlag = false;
-            clearInterval(interval);
-        };
     }, []);
 
     const markAllAsRead = async () => {
         if (unreadCount === 0) return;
+        
+        // Optimistically mark all as read locally
+        const optimisticData = {
+            ...notificationsData,
+            data: notifications.map((n: any) => ({ ...n, read: true }))
+        };
+        
+        mutate(optimisticData, false);
+
         try {
-            await fetch("/api/notifications", { method: "PATCH" });
-            setNotifications(notifications.map(n => ({ ...n, read: true })));
+            const res = await fetch("/api/notifications", { method: "PATCH" });
+            if (!res.ok) throw new Error("Failed to sync read status");
+            // Revalidate to ensure local state is in sync with server
+            mutate();
         } catch {
             console.error("Failed to mark read");
+            // Rollback on error
+            mutate();
         }
     };
 
@@ -113,7 +112,7 @@ export default function NotificationBell() {
                                 </div>
                             ) : (
                                 <div className="divide-y divide-[var(--bg-border)]">
-                                    {notifications.map((n) => (
+                                    {notifications.map((n: Notification) => (
                                         <div
                                             key={n.id}
                                             className="px-6 py-4 transition-colors"

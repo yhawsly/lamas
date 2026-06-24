@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 export default function ResetPasswordPage() {
     const [password, setPassword] = useState("");
@@ -10,7 +9,6 @@ export default function ResetPasswordPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
-    const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -44,7 +42,7 @@ export default function ResetPasswordPage() {
                 const data = await res.json();
                 setError(data.error || "Failed to reset password.");
             }
-        } catch (err) {
+        } catch {
             setError("An unexpected error occurred.");
         } finally {
             setLoading(false);

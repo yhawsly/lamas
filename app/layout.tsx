@@ -25,6 +25,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
       <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            if (typeof window !== 'undefined' && window.performance && window.performance.measure) {
+              var orig = window.performance.measure;
+              window.performance.measure = function() {
+                try {
+                  return orig.apply(this, arguments);
+                } catch(e) {
+                  // Suppress Next.js/Turbopack HMR performance.measure negative duration DOMExceptions
+                }
+              };
+            }
+          })();
+        ` }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}

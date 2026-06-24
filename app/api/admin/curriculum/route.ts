@@ -11,13 +11,53 @@ export async function GET() {
 
         const [programs, categories, courses] = await Promise.all([
             prisma.program.findMany({
-                include: { _count: { select: { courses: true } } }
+                include: {
+                    _count: { select: { curriculumMaps: true } },
+                    curriculumMaps: {
+                        include: {
+                            course: {
+                                select: {
+                                    id: true,
+                                    code: true,
+                                    title: true,
+                                    credits: true,
+                                    departmentId: true,
+                                    isInstitutional: true,
+                                    department: {
+                                        select: { id: true, name: true, code: true }
+                                    },
+                                    sections: {
+                                        include: {
+                                            lecturer: {
+                                                select: { id: true, name: true, email: true }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        orderBy: [{ level: "asc" }, { semester: "asc" }]
+                    }
+                },
+                orderBy: { name: "asc" }
             }),
             prisma.courseCategory.findMany({
                 include: { _count: { select: { courses: true } } }
             }),
             prisma.course.findMany({
-                include: { category: true, programs: true, masterSyllabus: true }
+                include: {
+                    category: true,
+                    curriculumMaps: { include: { program: { select: { id: true, name: true, code: true } } } },
+                    masterSyllabus: true,
+                    sections: {
+                        include: {
+                            lecturer: {
+                                select: { id: true, name: true, email: true }
+                            }
+                        }
+                    }
+                },
+                orderBy: { code: "asc" }
             })
         ]);
 

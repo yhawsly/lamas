@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import OnboardingCard from "@/components/ui/OnboardingCard";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 interface Submission { id: number; type: string; title: string; status: string; submittedAt: string | null; deadlineId: number | null; deadline: { label: string; dueDate: string } | null; }
 interface Deadline { id: number; label: string; dueDate: string; type: string; }
@@ -18,42 +21,24 @@ const statusColors: Record<string, string> = {
 
 export default function LecturerDashboard() {
     const { data: session } = useSession();
-    const [submissions, setSubmissions] = useState<Submission[]>([]);
-    const [deadlines, setDeadlines] = useState<Deadline[]>([]);
-    const [resources, setResources] = useState<any[]>([]);
-    const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [loading, setLoading] = useState(true);
+
+    // Use SWR for client-side caching of all dashboard datasets
+    const { data: subsData } = useSWR("/api/submissions", fetcher);
+    const { data: dlsData } = useSWR("/api/deadlines", fetcher);
+    const { data: notifsData } = useSWR("/api/notifications", fetcher);
+    const { data: resData } = useSWR("/api/resources", fetcher);
+    const { data: coursesData } = useSWR("/api/courses", fetcher);
+
+    const submissions = subsData?.data || [];
+    const deadlines = Array.isArray(dlsData) ? dlsData : [];
+    const notifications = notifsData?.data || [];
+    const resources = resData?.data || [];
+    const courses = Array.isArray(coursesData) ? coursesData : [];
+
+    const loading = !subsData || !dlsData || !notifsData || !resData || !coursesData;
     const [now, setNow] = useState<number | null>(null);
 
     useEffect(() => {
-        const fetchDashboardData = async () => {
-            try {
-                const [subsRes, dlsRes, notifsRes, resRes] = await Promise.all([
-                    fetch("/api/submissions").then(r => r.ok ? r.json().catch(() => ({ data: [] })) : ({ data: [] })),
-                    fetch("/api/deadlines").then(r => r.ok ? r.json().catch(() => []) : []),
-                    fetch("/api/notifications").then(r => r.ok ? r.json().catch(() => ({ data: [] })) : ({ data: [] })),
-                    fetch("/api/resources").then(r => r.ok ? r.json().catch(() => ({ data: [] })) : ({ data: [] })),
-                ]);
-
-                // Safe extraction with type-casting/guards
-                const subData = (subsRes as any).data || [];
-                const dlData = Array.isArray(dlsRes) ? dlsRes : [];
-                const notifData = (notifsRes as any).data || [];
-                const resData = (resRes as any).data || [];
-
-                setSubmissions(subData);
-                setDeadlines(dlData);
-                setNotifications(notifData);
-                setResources(resData);
-            } catch (err) {
-                console.error("Dashboard fetch error:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchDashboardData();
-
         // Safe hydration-friendly timestamp
         const t = setTimeout(() => setNow(Date.now()), 0);
         return () => clearTimeout(t);
@@ -62,14 +47,17 @@ export default function LecturerDashboard() {
     if (loading) return <div className="flex items-center justify-center min-h-[400px]"><div className="animate-spin w-10 h-10 border-2 border-blue-600 border-t-transparent rounded-full" /></div>;
 
     const recentSubmissions = submissions.slice(0, 5);
-    const pendingDeadlines = deadlines.filter(d => !submissions.find(s => s.deadlineId === d.id && s.status === "SUBMITTED")).slice(0, 3);
-    const unreadNotifs = notifications.filter(n => !n.read);
-    const compliance = deadlines.length > 0 ? Math.round((submissions.filter(s => s.status === "SUBMITTED").length / deadlines.length) * 100) : 100;
+    const pendingDeadlines = deadlines.filter((d: Deadline) => !submissions.find((s: Submission) => s.deadlineId === d.id && s.status === "SUBMITTED")).slice(0, 3);
+    const unreadNotifs = notifications.filter((n: Notification) => !n.read);
+    const compliance = deadlines.length > 0 ? Math.round((submissions.filter((s: Submission) => s.status === "SUBMITTED").length / deadlines.length) * 100) : 100;
     
     // Dynamic Weekly Goal Logic
-    const weeklySubmissions = submissions.filter(s => s.type === 'WEEKLY_TOPICS');
+    const weeklySubmissions = submissions.filter((s: Submission) => s.type === 'WEEKLY_TOPICS');
     const currentWeekTarget = 15; // Standard semester week count
     const weeklyProgress = Math.min(100, Math.round((weeklySubmissions.length / currentWeekTarget) * 100));
+
+    const currentLecturerId = session?.user?.id;
+    const lecturerCourses = currentLecturerId ? courses.filter((c: any) => c.sections?.some((s: any) => s.lecturerId === parseInt(currentLecturerId))) : [];
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -92,7 +80,7 @@ export default function LecturerDashboard() {
                     <OnboardingCard
                         role="Lecturer"
                         steps={[
-                            { title: "Course Outline", description: "Submit your semester course outline for departmental review.", actionLabel: "Submit Outline", href: "/lecturer/submissions", completed: submissions.some(s => s.type === 'SEMESTER_CALENDAR') },
+                            { title: "Course Outline", description: "Submit your semester course outline for departmental review.", actionLabel: "Submit Outline", href: "/lecturer/submissions", completed: submissions.some((s: Submission) => s.type === 'SEMESTER_CALENDAR') },
                             { title: "Weekly Topics", description: "Plan your weekly teaching topics using the registry view.", actionLabel: "Add Topics", href: "/lecturer/submissions?type=WEEKLY_TOPICS", completed: weeklySubmissions.length > 0 },
                             { title: "Upload Resources", description: "Share lecture notes or slides with your students.", actionLabel: "Upload File", href: "/lecturer/resources", completed: resources.length > 0 },
                             { title: "Department Sync", description: "Connect with colleagues and stay updated on department news.", actionLabel: "Go to Department", href: "/lecturer/department", completed: true }
@@ -101,11 +89,45 @@ export default function LecturerDashboard() {
                 </div>
             )}
 
+            {/* Assigned Courses Grid */}
+            <div className="space-y-4">
+                <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>My Assigned Courses</h2>
+                {lecturerCourses.length === 0 ? (
+                    <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center shadow-sm">
+                        <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 mx-auto mb-3 border border-slate-100">📚</div>
+                        <h3 className="text-lg font-bold text-slate-800">No Courses Assigned</h3>
+                        <p className="text-slate-500 max-w-sm mx-auto mt-2 text-sm">
+                            You currently do not have any courses assigned to you by the HOD.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {lecturerCourses.map(course => (
+                            <Link href={`/lecturer/courses/${course.id}`} key={course.id} className="block group">
+                                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-blue-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between h-full">
+                                    <div>
+                                        <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 font-bold mb-4 border border-blue-100">
+                                            {course.code}
+                                        </div>
+                                        <h3 className="text-xl font-bold text-slate-800 group-hover:text-blue-600 transition">{course.title}</h3>
+                                        <p className="mt-2 text-sm text-slate-500">{course.credits} Credits</p>
+                                    </div>
+                                    <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-blue-600 font-semibold group-hover:text-blue-700">
+                                        <span>Manage Syllabus Workspace</span>
+                                        <svg className="w-4 h-4 transform group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                )}
+            </div>
+
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
                     { label: "Overall Compliance", value: `${compliance}%`, sub: "Target: 100%", icon: "🎯", color: compliance >= 80 ? "text-green-400" : compliance >= 60 ? "text-yellow-400" : "text-red-400", bg: "from-blue-600/10 to-transparent" },
-                    { label: "Total Submissions", value: submissions.filter(s => s.status !== "DRAFT").length, sub: "This semester", icon: "📄", color: "text-blue-400", bg: "from-blue-600/10 to-transparent" },
+                    { label: "Total Submissions", value: submissions.filter((s: Submission) => s.status !== "DRAFT").length, sub: "This semester", icon: "📄", color: "text-blue-400", bg: "from-blue-600/10 to-transparent" },
                     { label: "Uploaded Resources", value: resources.length, sub: "Shared documents", icon: "📚", color: "text-amber-400", bg: "from-amber-600/10 to-transparent" },
                     { label: "Unread Alerts", value: unreadNotifs.length, sub: "In your inbox", icon: "🔔", color: "text-purple-400", bg: "from-purple-600/10 to-transparent" },
                 ].map((stat, i) => (
@@ -207,7 +229,7 @@ export default function LecturerDashboard() {
                                 </div>
                             ) : (
                                 <div className="divide-y">
-                                    {recentSubmissions.map(s => (
+                                    {recentSubmissions.map((s: Submission) => (
                                         <div key={s.id} className="px-6 py-4 flex items-center justify-between transition-colors" style={{ background: "transparent" }} onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-hover)"} onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
                                             <div className="flex items-center gap-4">
                                                 <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl" style={{ background: "var(--bg-hover)" }}>

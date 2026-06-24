@@ -34,6 +34,7 @@ export default function HODSubmissionReview() {
 
     useEffect(() => {
         fetchSubmissions();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, tab]);
 
     const fetchSubmissions = async () => {
@@ -191,18 +192,154 @@ export default function HODSubmissionReview() {
 
                         {/* Content Rendering */}
                         <div className="max-h-[400px] overflow-y-auto pr-2 space-y-4">
-                            {selectedSub.type === "COURSE_TOPICS" && selectedSub.content?.weeks && (
-                                <div className="space-y-3">
-                                    <div className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>Course Roadmap</div>
-                                    {selectedSub.content.weeks.map((w: any) => (
-                                        <div key={w.week} className="p-4 rounded-xl border border-dashed" style={{ borderColor: "var(--bg-border)" }}>
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <span className="w-6 h-6 rounded bg-primary/20 flex items-center justify-center text-[10px] font-bold">Wk {w.week}</span>
-                                                <div className="font-bold text-xs">{w.sessions[0]?.topic || "No topic"}</div>
+                            {selectedSub.type === "COURSE_TOPICS" && (
+                                <div className="space-y-6">
+                                    {selectedSub.content?.basicInfo ? (
+                                        <div className="space-y-6">
+                                            {/* Basic Info Overview */}
+                                            <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                                                <div className="text-xs font-black uppercase tracking-wider text-slate-400">Basic Info</div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <span className="text-[10px] text-slate-400 uppercase font-bold">Course Code</span>
+                                                        <div className="text-sm font-bold text-slate-800">{selectedSub.content.basicInfo.courseCode || "N/A"}</div>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-[10px] text-slate-400 uppercase font-bold">Credits</span>
+                                                        <div className="text-sm font-bold text-slate-800">{selectedSub.content.basicInfo.credits || "N/A"}</div>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <span className="text-[10px] text-slate-400 uppercase font-bold">Course Title</span>
+                                                    <div className="text-sm font-bold text-slate-800">{selectedSub.content.basicInfo.title || "N/A"}</div>
+                                                </div>
+                                                {selectedSub.content.basicInfo.description && (
+                                                    <div>
+                                                        <span className="text-[10px] text-slate-400 uppercase font-bold">Description</span>
+                                                        <div className="text-xs text-slate-655 mt-1 leading-relaxed">{selectedSub.content.basicInfo.description}</div>
+                                                    </div>
+                                                )}
                                             </div>
-                                            {w.sessions[0]?.description && <p className="text-[11px] opacity-60 ml-9">{w.sessions[0].description}</p>}
+
+                                            {/* Learning Outcomes list (CLOs) */}
+                                            {selectedSub.content.outcomes && selectedSub.content.outcomes.length > 0 && (
+                                                <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                                                    <div className="text-xs font-black uppercase tracking-wider text-slate-400">Course Learning Outcomes (CLOs)</div>
+                                                    <div className="space-y-2">
+                                                        {selectedSub.content.outcomes.map((o: any) => (
+                                                            <div key={o.id} className="flex gap-3 text-xs">
+                                                                <span className="font-bold text-blue-600 shrink-0 uppercase w-12">{o.id}</span>
+                                                                <span className="text-slate-700">{o.text || "No description provided."}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Topics List with Outcome badges */}
+                                            {selectedSub.content.topics && selectedSub.content.topics.length > 0 && (
+                                                <div className="space-y-3">
+                                                    <div className="text-xs font-black uppercase tracking-wider text-slate-400">Course Topics</div>
+                                                    <div className="space-y-2">
+                                                        {selectedSub.content.topics.map((t: any) => (
+                                                            <div key={t.id} className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm space-y-2">
+                                                                <div>
+                                                                    <div className="text-xs font-bold text-slate-800">{t.title}</div>
+                                                                    {t.description && <div className="text-[11px] text-slate-500 mt-1">{t.description}</div>}
+                                                                </div>
+                                                                {t.outcomeIds && t.outcomeIds.length > 0 && (
+                                                                    <div className="flex flex-wrap gap-1 mt-1">
+                                                                        {t.outcomeIds.map((id: string) => (
+                                                                            <span key={id} className="px-1.5 py-0.5 bg-blue-50 border border-blue-100 text-[9px] font-bold text-blue-600 rounded">
+                                                                                {id}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Assessments Weights allocations */}
+                                            {selectedSub.content.assessments && selectedSub.content.assessments.length > 0 && (
+                                                <div className="space-y-3">
+                                                    <div className="text-xs font-black uppercase tracking-wider text-slate-400">Assessments Registry</div>
+                                                    <div className="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                                                        <table className="w-full text-left text-xs border-collapse">
+                                                            <thead>
+                                                                <tr className="border-b border-slate-100 text-slate-400 font-bold">
+                                                                    <th className="py-2">Assessment Name</th>
+                                                                    <th className="py-2 text-right">Weight</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-slate-50">
+                                                                {selectedSub.content.assessments.map((a: any) => (
+                                                                    <tr key={a.id} className="text-slate-700">
+                                                                        <td className="py-2">
+                                                                            <div className="font-bold">{a.name}</div>
+                                                                            {a.description && <div className="text-[10px] text-slate-400 mt-0.5">{a.description}</div>}
+                                                                        </td>
+                                                                        <td className="py-2 text-right font-black text-slate-900">{a.weight}%</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Classes & Weekly Schedules */}
+                                            {selectedSub.content.classes && selectedSub.content.classes.length > 0 && (
+                                                <div className="space-y-4">
+                                                    <div className="text-xs font-black uppercase tracking-wider text-slate-400">Weekly Classes & Modules</div>
+                                                    <div className="space-y-4">
+                                                        {selectedSub.content.classes.map((cls: any) => (
+                                                            <div key={cls.id} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                                                                <div className="flex justify-between items-center pb-2 border-b border-slate-200">
+                                                                    <span className="text-xs font-bold text-slate-700">{cls.name}</span>
+                                                                </div>
+                                                                {cls.modules && cls.modules.length > 0 ? (
+                                                                    <div className="space-y-2.5">
+                                                                        {cls.modules.map((m: any) => (
+                                                                            <div key={m.id} className="p-3 bg-white border border-slate-200 rounded-xl space-y-1">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <span className="text-[9px] px-1.5 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded font-bold uppercase">Week {m.week}</span>
+                                                                                    <span className="text-xs font-bold text-slate-800">{m.title}</span>
+                                                                                </div>
+                                                                                {m.description && <p className="text-[11px] text-slate-505 ml-[52px]">{m.description}</p>}
+                                                                                {m.lesson_plan && (
+                                                                                    <div className="text-[10px] text-slate-400 italic ml-[52px]">Lesson Plan: {m.lesson_plan}</div>
+                                                                                )}
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="text-[11px] text-slate-400 italic text-center py-2">No weekly modules mapped for this class.</div>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                    ))}
+                                    ) : (
+                                        selectedSub.content?.weeks && (
+                                            <div className="space-y-3">
+                                                <div className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>Course Roadmap</div>
+                                                {selectedSub.content.weeks.map((w: any) => (
+                                                    <div key={w.week} className="p-4 rounded-xl border border-dashed" style={{ borderColor: "var(--bg-border)" }}>
+                                                        <div className="flex items-center gap-3 mb-2">
+                                                            <span className="w-6 h-6 rounded bg-primary/20 flex items-center justify-center text-[10px] font-bold">Wk {w.week}</span>
+                                                            <div className="font-bold text-xs">{w.sessions[0]?.topic || "No topic"}</div>
+                                                        </div>
+                                                        {w.sessions[0]?.description && <p className="text-[11px] opacity-60 ml-9">{w.sessions[0].description}</p>}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )
+                                    )}
                                 </div>
                             )}
 

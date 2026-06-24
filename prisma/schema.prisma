@@ -13,6 +13,7 @@ model User {
   email          String         @unique
   passwordHash   String
   phone          String?
+  avatarUrl      String?
   isActive             Boolean        @default(true)
   requirePasswordReset Boolean        @default(false)
   lastLogin            DateTime?
@@ -27,10 +28,17 @@ model User {
   notifications  Notification[]
   observedBy     Observation[]  @relation("ObservedLecturer")
   observing      Observation[]  @relation("ObserverUser")
+  moderationsAsInternal ExamModeration[] @relation("ModerationInternalExaminer")
+  moderationsAsModerator ExamModeration[] @relation("ModerationModerator")
+  moderationsAssigned ExamModeration[]   @relation("ModerationAssignedBy")
+  teachingObserved   TeachingObservation[] @relation("TeachingObservedLecturer")
+  teachingObserver   TeachingObservation[] @relation("TeachingObserverUser")
+  teachingAssigned   TeachingObservation[] @relation("TeachingAssignedBy")
   passwordResets PasswordReset?
   resources      Resource[]     @relation("LecturerResources")
   submissions    Submission[]
   department     Department?    @relation("UserDepartment", fields: [departmentId], references: [id])
+  assignedSections CourseSection[] @relation("SectionLecturer")
 
   @@index([departmentId])
   @@index([role])
@@ -115,7 +123,8 @@ model Course {
   category        CourseCategory? @relation(fields: [categoryId], references: [id])
   department      Department?     @relation(fields: [departmentId], references: [id])
   masterSyllabus  MasterSyllabus?
-  programs        Program[]       @relation("CoursePrograms")
+  sections        CourseSection[]
+  curriculumMaps  CurriculumMap[]
 
   @@index([departmentId])
   @@index([categoryId])
@@ -123,13 +132,30 @@ model Course {
 
 /// Academic programs (e.g., BSc Computer Science, BEng Electrical)
 model Program {
+  id             Int             @id @default(autoincrement())
+  name           String          @unique
+  code           String          @unique
+  description    String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @default(now()) @updatedAt
+  curriculumMaps CurriculumMap[]
+}
+
+model CurriculumMap {
   id          Int      @id @default(autoincrement())
-  name        String   @unique
-  code        String   @unique
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now()) @updatedAt
-  courses     Course[] @relation("CoursePrograms")
+  programId   Int
+  courseId    Int
+  level       Int      // 100, 200, 300, 400
+  semester    Int      // 1 or 2
+  isMandatory Boolean  @default(true)
+
+  program     Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, courseId])
+  @@index([programId])
+  @@index([courseId])
+  @@index([programId, level, semester])
 }
 
 /// Categorization for courses (e.g., Core, Elective, Gen Ed)
@@ -158,6 +184,28 @@ model MasterSyllabus {
   @@index([courseId])
 }
 
+enum SessionType {
+  REGULAR
+  WEEKEND
+}
+
+model CourseSection {
+  id            Int          @id @default(autoincrement())
+  courseId      Int
+  termId        Int
+  lecturerId    Int?
+  name          String
+  session       SessionType  @default(REGULAR)
+  
+  course        Course       @relation(fields: [courseId], references: [id])
+  term          AcademicTerm @relation(fields: [termId], references: [id])
+  lecturer      User?        @relation("SectionLecturer", fields: [lecturerId], references: [id])
+  
+  @@index([courseId])
+  @@index([termId])
+  @@index([lecturerId])
+}
+
 /// Specific academic periods (semesters/terms)
 model AcademicTerm {
   id           Int           @id @default(autoincrement())
@@ -171,7 +219,10 @@ model AcademicTerm {
   admin        User          @relation(fields: [createdBy], references: [id])
   deadlines    Deadline[]
   observations Observation[]
+  examModerations ExamModeration[]
+  teachingObservations TeachingObservation[]
   submissions  Submission[]
+  courseSections CourseSection[]
 }
 
 /// Lecturers academic submissions (calendars, topics, etc.)
@@ -215,20 +266,16 @@ model Observation {
   id                  Int               @id @default(autoincrement())
   lecturerId          Int
   observerId          Int
-  sessionDate         DateTime
+  sessionDate         DateTime?
+  venue               String?
   courseCode          String
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @default(now()) @updatedAt
   status              ObservationStatus @default(PENDING)
   feedback            String?
   termId              Int?
-  // Structured rating fields (scale 1–5)
-  ratingEngagement    Float?
-  ratingKnowledge     Float?
-  ratingOrganization  Float?
-  ratingActivities    Float?
-  ratingTech          Float?
-  ratingCommunication Float?
+  // Structured APR Form A fields
+  reviewData          Json?
   lecturer            User              @relation("ObservedLecturer", fields: [lecturerId], references: [id])
   observer            User              @relation("ObserverUser", fields: [observerId], references: [id])
   term                AcademicTerm?     @relation(fields: [termId], references: [id])
@@ -236,6 +283,58 @@ model Observation {
 
   @@index([lecturerId])
   @@index([observerId])
+  @@index([status])
+  @@index([termId])
+}
+
+/// Examination Moderation Form C Records
+model ExamModeration {
+  id            Int               @id @default(autoincrement())
+  courseCode    String
+  lecturerId    Int               // Internal Examiner
+  moderatorId   Int               // Peer Moderator
+  deoId         Int               // Assigned by DEO
+  termId        Int?
+  status        ObservationStatus @default(PENDING)
+  reviewData    Json?             // APR Form C data
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @default(now()) @updatedAt
+
+  lecturer      User              @relation("ModerationInternalExaminer", fields: [lecturerId], references: [id])
+  moderator     User              @relation("ModerationModerator", fields: [moderatorId], references: [id])
+  deo           User              @relation("ModerationAssignedBy", fields: [deoId], references: [id])
+  term          AcademicTerm?     @relation(fields: [termId], references: [id])
+
+  @@index([lecturerId])
+  @@index([moderatorId])
+  @@index([deoId])
+  @@index([status])
+  @@index([termId])
+}
+
+/// Teaching Observation Form B Records
+model TeachingObservation {
+  id            Int               @id @default(autoincrement())
+  courseCode    String
+  lecturerId    Int               // Teacher Observed
+  observerId    Int               // Teaching Observer
+  deoId         Int               // Assigned by DEO
+  termId        Int?
+  sessionDate   DateTime?         // Date of lesson
+  venue         String?
+  status        ObservationStatus @default(PENDING)
+  formBData     Json?             // APR Form B data
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @default(now()) @updatedAt
+
+  lecturer      User              @relation("TeachingObservedLecturer", fields: [lecturerId], references: [id])
+  observer      User              @relation("TeachingObserverUser", fields: [observerId], references: [id])
+  deo           User              @relation("TeachingAssignedBy", fields: [deoId], references: [id])
+  term          AcademicTerm?     @relation(fields: [termId], references: [id])
+
+  @@index([lecturerId])
+  @@index([observerId])
+  @@index([deoId])
   @@index([status])
   @@index([termId])
 }
@@ -283,6 +382,7 @@ model Report {
 enum Role {
   LECTURER
   HOD
+  DEO
   ADMIN
   SUPER_ADMIN
 }

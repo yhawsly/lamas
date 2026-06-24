@@ -5,7 +5,7 @@ import { headers, cookies } from "next/headers";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import { z } from "zod";
 
 const UserSchema = z.object({

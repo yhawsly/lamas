@@ -5,19 +5,24 @@ import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useTheme } from "@/components/ThemeProvider";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 const navByRole: Record<string, { label: string; href: string; icon: string }[]> = {
     LECTURER: [
         { label: "Dashboard", href: "/lecturer", icon: "🏠" },
         { label: "My Department", href: "/lecturer/department", icon: "📢" },
-        { label: "Course Outline", href: "/lecturer/submissions?mode=outline", icon: "📋" },
-        { label: "Weekly Topics", href: "/lecturer/submissions?mode=weekly", icon: "📅" },
-        { label: "Observations", href: "/lecturer/observations", icon: "👁️" },
+        { label: "Course Syllabus", href: "/lecturer/courses", icon: "📋" },
+        { label: "Appraisals & Reviews", href: "/lecturer/appraisals", icon: "👁️" },
         { label: "Resources", href: "/lecturer/resources", icon: "📚" },
         { label: "My Reports", href: "/lecturer/reports", icon: "📄" },
+        { label: "Notifications", href: "/notifications", icon: "🔔" },
     ],
     HOD: [
         { label: "Dashboard", href: "/hod", icon: "🏠" },
+        { label: "Course Assignments", href: "/hod/assignments", icon: "📝" },
+        { label: "Curriculum Map", href: "/hod/curriculum", icon: "🗺️" },
         { label: "Review Center", href: "/hod/submissions", icon: "📥" },
         { label: "My Lecturers", href: "/hod/lecturers", icon: "👥" },
         { label: "Observations", href: "/hod/observations", icon: "👁️" },
@@ -25,34 +30,45 @@ const navByRole: Record<string, { label: string; href: string; icon: string }[]>
         { label: "Courses", href: "/hod/courses", icon: "📖" },
         { label: "Resources", href: "/lecturer/resources", icon: "📚" },
         { label: "Resource Approvals", href: "/hod/resources", icon: "✅" },
+        { label: "Notifications", href: "/notifications", icon: "🔔" },
+    ],
+    DEO: [
+        { label: "Dashboard", href: "/deo", icon: "🏠" },
+        { label: "Notifications", href: "/notifications", icon: "🔔" },
     ],
     ADMIN: [
         { label: "Dashboard", href: "/admin", icon: "🏠" },
         { label: "Users", href: "/admin/users", icon: "👤" },
+        { label: "Course Assignments", href: "/hod/assignments", icon: "📝" },
         { label: "Submissions", href: "/admin/submissions", icon: "📋" },
         { label: "Lecturers", href: "/admin/lecturers", icon: "👥" },
         { label: "Deadlines", href: "/admin/deadlines", icon: "⏰" },
         { label: "Analytics", href: "/admin/analytics", icon: "📊" },
         { label: "Reports", href: "/admin/reports", icon: "📄" },
+        { label: "Curriculum Map", href: "/admin/curriculum", icon: "🗺️" },
         { label: "Courses", href: "/admin/courses", icon: "📖" },
         { label: "Academic Terms", href: "/admin/terms", icon: "🗓️" },
         { label: "Departments", href: "/admin/departments", icon: "🏢" },
         { label: "Audit Log", href: "/admin/audit", icon: "🔍" },
         { label: "Notify All", href: "/admin/notify", icon: "📢" },
+        { label: "Notifications", href: "/notifications", icon: "🔔" },
     ],
     SUPER_ADMIN: [
         { label: "Dashboard", href: "/admin", icon: "🏠" },
         { label: "Users", href: "/admin/users", icon: "👤" },
+        { label: "Course Assignments", href: "/hod/assignments", icon: "📝" },
         { label: "Submissions", href: "/admin/submissions", icon: "📋" },
         { label: "Lecturers", href: "/admin/lecturers", icon: "👥" },
         { label: "Deadlines", href: "/admin/deadlines", icon: "⏰" },
         { label: "Analytics", href: "/admin/analytics", icon: "📊" },
         { label: "Reports", href: "/admin/reports", icon: "📄" },
+        { label: "Curriculum Map", href: "/admin/curriculum", icon: "🗺️" },
         { label: "Courses", href: "/admin/courses", icon: "📖" },
         { label: "Academic Terms", href: "/admin/terms", icon: "🗓️" },
         { label: "Departments", href: "/admin/departments", icon: "🏢" },
         { label: "Audit Log", href: "/admin/audit", icon: "🔍" },
         { label: "Notify All", href: "/admin/notify", icon: "📢" },
+        { label: "Notifications", href: "/notifications", icon: "🔔" },
     ],
 };
 
@@ -66,7 +82,21 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     const pathname = usePathname();
     const role = (session?.user as any)?.role || "LECTURER";
     const nav = navByRole[role] || navByRole.LECTURER;
-    const [unread, setUnread] = useState(0);
+    const profileRoutes: Record<string, string> = {
+        LECTURER: "/profile/lecturer",
+        HOD: "/profile/hod",
+        DEO: "/profile/deo",
+        ADMIN: "/profile/admin",
+        SUPER_ADMIN: "/profile/admin",
+    };
+    const profileHref = profileRoutes[role] ?? "/profile";
+    const { data: notificationsData } = useSWR("/api/notifications", fetcher, {
+        refreshInterval: 30000,
+        dedupingInterval: 5000,
+    });
+    const unread = Array.isArray(notificationsData?.data)
+        ? notificationsData.data.filter((n: any) => !n.read).length
+        : 0;
     useTheme();
 
     // Close sidebar on route change (mobile)
@@ -92,17 +122,13 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         return () => clearTimeout(t);
     }, [searchQ]);
 
-    useEffect(() => {
-        fetch("/api/notifications")
-            .then((r) => r.json())
-            .then((data) => setUnread(data.filter((n: any) => !n.read).length))
-            .catch(() => { });
-    }, []);
+    // SWR handles fetching and caching automatically
 
     const roleColors: Record<string, string> = {
         SUPER_ADMIN: "from-purple-600 to-violet-700",
         ADMIN: "from-rose-600 to-red-700",
         HOD: "from-amber-500 to-orange-600",
+        DEO: "from-emerald-500 to-teal-700",
         LECTURER: "from-blue-600 to-indigo-700",
     };
 
@@ -110,6 +136,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         SUPER_ADMIN: "bg-purple-500/20 text-purple-300",
         ADMIN: "bg-rose-500/20 text-rose-300",
         HOD: "bg-amber-500/20 text-amber-300",
+        DEO: "bg-emerald-500/20 text-emerald-300",
         LECTURER: "bg-blue-500/20 text-blue-300",
     };
 
@@ -272,7 +299,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                         >
                             <span>{item.icon}</span>
                             <span>{item.label}</span>
-                            {item.label === "Dashboard" && unread > 0 && (
+                            {item.label === "Notifications" && unread > 0 && (
                                 <span className="ml-auto text-xs bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center">
                                     {unread > 9 ? "9+" : unread}
                                 </span>
@@ -282,8 +309,24 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 })}
             </nav>
 
-            {/* Bottom: Sign Out */}
+            {/* Bottom: Profile & Sign Out */}
             <div className="p-3" style={{ borderTop: "1px solid var(--bg-border)" }}>
+                <Link
+                    href={profileHref}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all mb-1"
+                    style={{ color: "var(--text-muted)" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-hover)"; (e.currentTarget as HTMLElement).style.color = "var(--text-primary)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"; }}
+                >
+                    <span className="w-6 h-6 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center text-xs shadow-inner">
+                        {session?.user?.image ? (
+                            <img src={session.user.image} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                            "👤"
+                        )}
+                    </span>
+                    <span>My Profile</span>
+                </Link>
                 <button
                     onClick={() => signOut({ callbackUrl: "/login" })}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all"
@@ -291,7 +334,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-hover)"; (e.currentTarget as HTMLElement).style.color = "var(--text-primary)"; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"; }}
                 >
-                    <span>🚪</span>
+                    <span className="w-6 text-center">🚪</span>
                     <span>Sign Out</span>
                 </button>
             </div>

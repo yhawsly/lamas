@@ -26,39 +26,99 @@ async function main() {
     // 2. Courses
     console.log("   ➤ Syncing course list...");
     const courseData = [
-        { code: "CS101", title: "Introduction to Computer Science", departmentId: cs.id, credits: 3 },
-        { code: "CS102", title: "Programming Fundamentals", departmentId: cs.id, credits: 3 },
-        { code: "CS201", title: "Data Structures & Algorithms", departmentId: cs.id, credits: 4 },
-        { code: "CS202", title: "Object-Oriented Programming", departmentId: cs.id, credits: 3 },
-        { code: "CS203", title: "Discrete Mathematics", departmentId: cs.id, credits: 3 },
-        { code: "CS301", title: "Web Development", departmentId: cs.id, credits: 3 },
-        { code: "CS302", title: "Database Systems", departmentId: cs.id, credits: 3 },
-        { code: "CS303", title: "Operating Systems", departmentId: cs.id, credits: 3 },
-        { code: "CS401", title: "Artificial Intelligence", departmentId: cs.id, credits: 4 },
-        { code: "CS402", title: "Software Engineering", departmentId: cs.id, credits: 3 },
-        { code: "CS403", title: "Computer Networks", departmentId: cs.id, credits: 3 },
-        { code: "ENG101", title: "Engineering Fundamentals", departmentId: eng.id, credits: 3 },
-        { code: "ENG102", title: "Engineering Mathematics I", departmentId: eng.id, credits: 4 },
-        { code: "ENG201", title: "Engineering Mathematics II", departmentId: eng.id, credits: 4 },
-        { code: "ENG202", title: "Thermodynamics", departmentId: eng.id, credits: 4 },
-        { code: "ENG203", title: "Fluid Mechanics", departmentId: eng.id, credits: 3 },
-        { code: "ENG301", title: "Structural Analysis", departmentId: eng.id, credits: 3 },
-        { code: "ENG302", title: "Electrical Circuits", departmentId: eng.id, credits: 3 },
-        { code: "ENG401", title: "Control Systems Engineering", departmentId: eng.id, credits: 4 },
-        { code: "BIZ101", title: "Business Management Principles", departmentId: biz.id, credits: 3 },
-        { code: "BIZ102", title: "Principles of Accounting", departmentId: biz.id, credits: 3 },
-        { code: "BIZ201", title: "Marketing Strategy", departmentId: biz.id, credits: 3 },
-        { code: "BIZ202", title: "Organisational Behaviour", departmentId: biz.id, credits: 3 },
-        { code: "BIZ301", title: "Financial Management", departmentId: biz.id, credits: 4 },
-        { code: "BIZ302", title: "Business Ethics & Governance", departmentId: biz.id, credits: 3 },
-        { code: "BIZ401", title: "Strategic Management", departmentId: biz.id, credits: 3 },
+        { code: "CS101", title: "Introduction to Computer Science", departmentId: cs.id, credits: 3, level: 100, semester: 1 },
+        { code: "CS102", title: "Programming Fundamentals", departmentId: cs.id, credits: 3, level: 100, semester: 2 },
+        { code: "CS201", title: "Data Structures & Algorithms", departmentId: cs.id, credits: 4, level: 200, semester: 1 },
+        { code: "CS202", title: "Object-Oriented Programming", departmentId: cs.id, credits: 3, level: 200, semester: 2 },
+        { code: "CS203", title: "Discrete Mathematics", departmentId: cs.id, credits: 3, level: 200, semester: 1 },
+        { code: "CS301", title: "Web Development", departmentId: cs.id, credits: 3, level: 300, semester: 1 },
+        { code: "CS302", title: "Database Systems", departmentId: cs.id, credits: 3, level: 300, semester: 2 },
+        { code: "CS303", title: "Operating Systems", departmentId: cs.id, credits: 3, level: 300, semester: 1 },
+        { code: "CS401", title: "Artificial Intelligence", departmentId: cs.id, credits: 4, level: 400, semester: 1 },
+        { code: "CS402", title: "Software Engineering", departmentId: cs.id, credits: 3, level: 400, semester: 2 },
+        { code: "CS403", title: "Computer Networks", departmentId: cs.id, credits: 3, level: 400, semester: 1 },
+        { code: "ENG101", title: "Engineering Fundamentals", departmentId: eng.id, credits: 3, level: 100, semester: 1 },
+        { code: "ENG102", title: "Engineering Mathematics I", departmentId: eng.id, credits: 4, level: 100, semester: 2 },
+        { code: "ENG201", title: "Engineering Mathematics II", departmentId: eng.id, credits: 4, level: 200, semester: 1 },
+        { code: "ENG202", title: "Thermodynamics", departmentId: eng.id, credits: 4, level: 200, semester: 2 },
+        { code: "ENG203", title: "Fluid Mechanics", departmentId: eng.id, credits: 3, level: 200, semester: 1 },
+        { code: "ENG301", title: "Structural Analysis", departmentId: eng.id, credits: 3, level: 300, semester: 1 },
+        { code: "ENG302", title: "Electrical Circuits", departmentId: eng.id, credits: 3, level: 300, semester: 2 },
+        { code: "ENG401", title: "Control Systems Engineering", departmentId: eng.id, credits: 4, level: 400, semester: 1 },
+        { code: "BIZ101", title: "Business Management Principles", departmentId: biz.id, credits: 3, level: 100, semester: 1 },
+        { code: "BIZ102", title: "Principles of Accounting", departmentId: biz.id, credits: 3, level: 100, semester: 2 },
+        { code: "BIZ201", title: "Marketing Strategy", departmentId: biz.id, credits: 3, level: 200, semester: 1 },
+        { code: "BIZ202", title: "Organisational Behaviour", departmentId: biz.id, credits: 3, level: 200, semester: 2 },
+        { code: "BIZ301", title: "Financial Management", departmentId: biz.id, credits: 4, level: 300, semester: 1 },
+        { code: "BIZ302", title: "Business Ethics & Governance", departmentId: biz.id, credits: 3, level: 300, semester: 2 },
+        { code: "BIZ401", title: "Strategic Management", departmentId: biz.id, credits: 3, level: 400, semester: 1 },
     ];
+
+    // 2b. Programs
+    console.log("   ➤ Syncing academic programs...");
+    const btechCS = await prisma.program.upsert({
+        where: { code: "BTECH_CS" },
+        update: {},
+        create: { name: "BTech Computer Science", code: "BTECH_CS", description: "BTech in Computer Science" }
+    });
+    const btechIT = await prisma.program.upsert({
+        where: { code: "BTECH_IT" },
+        update: {},
+        create: { name: "BTech Information Technology", code: "BTECH_IT", description: "BTech in Information Technology" }
+    });
+    const bengEE = await prisma.program.upsert({
+        where: { code: "BENG_EE" },
+        update: {},
+        create: { name: "BEng Electrical Engineering", code: "BENG_EE", description: "BEng in Electrical Engineering" }
+    });
+    const bbaACC = await prisma.program.upsert({
+        where: { code: "BBA_ACC" },
+        update: {},
+        create: { name: "BBA Accounting", code: "BBA_ACC", description: "BBA in Accounting" }
+    });
+
     for (const c of courseData) {
+        const { level: _level, semester: _semester, ...cleanCourse } = c;
         await prisma.course.upsert({
             where: { code: c.code },
             update: { title: c.title, credits: c.credits },
-            create: c,
+            create: cleanCourse,
         });
+    }
+
+    console.log("   ➤ Creating Program Curriculum Mappings...");
+    const allCoursesDb = await prisma.course.findMany();
+    for (const c of courseData) {
+        const dbCourse = allCoursesDb.find(dc => dc.code === c.code);
+        if (!dbCourse) continue;
+
+        if (c.code.startsWith("CS")) {
+            await prisma.curriculumMap.upsert({
+                where: { programId_courseId: { programId: btechCS.id, courseId: dbCourse.id } },
+                update: { level: c.level, semester: c.semester },
+                create: { programId: btechCS.id, courseId: dbCourse.id, level: c.level, semester: c.semester }
+            });
+            
+            if (["CS101", "CS102", "CS301", "CS302"].includes(c.code)) {
+                await prisma.curriculumMap.upsert({
+                    where: { programId_courseId: { programId: btechIT.id, courseId: dbCourse.id } },
+                    update: { level: c.level, semester: c.semester },
+                    create: { programId: btechIT.id, courseId: dbCourse.id, level: c.level, semester: c.semester }
+                });
+            }
+        } else if (c.code.startsWith("ENG")) {
+            await prisma.curriculumMap.upsert({
+                where: { programId_courseId: { programId: bengEE.id, courseId: dbCourse.id } },
+                update: { level: c.level, semester: c.semester },
+                create: { programId: bengEE.id, courseId: dbCourse.id, level: c.level, semester: c.semester }
+            });
+        } else if (c.code.startsWith("BIZ")) {
+            await prisma.curriculumMap.upsert({
+                where: { programId_courseId: { programId: bbaACC.id, courseId: dbCourse.id } },
+                update: { level: c.level, semester: c.semester },
+                create: { programId: bbaACC.id, courseId: dbCourse.id, level: c.level, semester: c.semester }
+            });
+        }
     }
 
     const hash = await hashPassword("password123");
@@ -88,8 +148,8 @@ async function main() {
     });
 
     const hod = await prisma.user.upsert({
-        where: { email: "hod.cs@lamas.edu" },
-        update: { email: "ghtrial41922@gmail.com" },
+        where: { email: "ghtrial41922@gmail.com" },
+        update: {},
         create: {
             name: "Dr. Ahmad Razif",
             email: "ghtrial41922@gmail.com",
@@ -131,6 +191,19 @@ async function main() {
         },
     });
 
+    await prisma.user.upsert({
+        where: { email: "deo@lamas.edu" },
+        update: {},
+        create: {
+            name: "Department Exam Officer",
+            email: "deo@lamas.edu",
+            passwordHash: hash,
+            role: "DEO",
+            departmentId: cs.id,
+            requirePasswordReset: true,
+        },
+    });
+
     // 4. Academic Term
     console.log("   ➤ Setting up active semester...");
     const term = await prisma.academicTerm.upsert({
@@ -144,6 +217,54 @@ async function main() {
             createdBy: 1, 
         }
     });
+
+    // 4b. Course Sections
+    console.log("   ➤ Seeding default course sections...");
+    const allCourses = await prisma.course.findMany({
+        include: { curriculumMaps: true }
+    });
+    for (const course of allCourses) {
+        const sectionCount = await prisma.courseSection.count({
+            where: { courseId: course.id }
+        });
+
+        if (sectionCount === 0) {
+            const mapLevel = course.curriculumMaps[0]?.level || 100;
+            let regularName = "";
+            let weekendName = "";
+
+            if (course.code.startsWith("CS")) {
+                regularName = `BTECH COMPUTER SCIENCE LVL ${mapLevel}`;
+                weekendName = `BTECH ICT LVL ${mapLevel}`;
+            } else if (course.code.startsWith("ENG")) {
+                regularName = `BENG ELECTRICAL LVL ${mapLevel}`;
+                weekendName = `BENG MECHANICAL LVL ${mapLevel}`;
+            } else if (course.code.startsWith("BIZ")) {
+                regularName = `BBA ACCOUNTING LVL ${mapLevel}`;
+                weekendName = `BBA MARKETING LVL ${mapLevel}`;
+            } else {
+                regularName = `GENERAL LEVEL ${mapLevel}`;
+                weekendName = `GENERAL WEEKEND LEVEL ${mapLevel}`;
+            }
+
+            await prisma.courseSection.createMany({
+                data: [
+                    {
+                        courseId: course.id,
+                        termId: term.id,
+                        name: regularName,
+                        session: "REGULAR"
+                    },
+                    {
+                        courseId: course.id,
+                        termId: term.id,
+                        name: weekendName,
+                        session: "WEEKEND"
+                    }
+                ]
+            });
+        }
+    }
 
     // 5. Deadlines
     console.log("   ➤ Initializing core deadlines...");

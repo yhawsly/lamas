@@ -21,7 +21,24 @@ export async function GET(
 
         if (!observation) return new NextResponse("Not Found", { status: 404 });
 
-        return NextResponse.json(observation);
+        const isAssigned = await prisma.courseSection.findFirst({
+            where: {
+                lecturerId: observation.lecturerId,
+                course: {
+                    code: observation.courseCode
+                }
+            }
+        });
+
+        if (!isAssigned) {
+            const { notifyDeoIfMismatch } = await import("@/lib/deo-notification");
+            notifyDeoIfMismatch("A", observation.id, observation.lecturer.name, observation.courseCode).catch(console.error);
+        }
+
+        return NextResponse.json({
+            ...observation,
+            isObserveeAssigned: !!isAssigned
+        });
     } catch {
         return new NextResponse("Error", { status: 500 });
     }
@@ -45,8 +62,21 @@ export async function PATCH(
 
         if (!observation) return new NextResponse("Not Found", { status: 404 });
 
-        // Security: Only the assigned observer or an HOD/Admin can update
-        if (observation.observerId !== userId && !["HOD", "ADMIN", "SUPER_ADMIN"].includes(role)) {
+        const isAssigned = await prisma.courseSection.findFirst({
+            where: {
+                lecturerId: observation.lecturerId,
+                course: {
+                    code: observation.courseCode
+                }
+            }
+        });
+
+        if (!isAssigned) {
+            return new NextResponse("Review blocked: Lecturer is not assigned to this course.", { status: 400 });
+        }
+
+        // Security: Only the assigned observer or an HOD/DEO/Admin can update
+        if (observation.observerId !== userId && !["HOD", "DEO", "ADMIN", "SUPER_ADMIN"].includes(role)) {
             return new NextResponse("Forbidden", { status: 403 });
         }
 
@@ -63,13 +93,9 @@ export async function PATCH(
             data: {
                 feedback: body.feedback,
                 status,
-                // Structured ratings (1–5 scale), only update if provided
-                ...(body.ratingEngagement    !== undefined && { ratingEngagement:    body.ratingEngagement }),
-                ...(body.ratingKnowledge     !== undefined && { ratingKnowledge:     body.ratingKnowledge }),
-                ...(body.ratingOrganization  !== undefined && { ratingOrganization:  body.ratingOrganization }),
-                ...(body.ratingActivities    !== undefined && { ratingActivities:    body.ratingActivities }),
-                ...(body.ratingTech          !== undefined && { ratingTech:          body.ratingTech }),
-                ...(body.ratingCommunication !== undefined && { ratingCommunication: body.ratingCommunication }),
+                ...(body.reviewData !== undefined && { reviewData: body.reviewData }),
+                ...(body.sessionDate && { sessionDate: new Date(body.sessionDate) }),
+                ...(body.venue !== undefined && { venue: body.venue }),
             },
             include: { lecturer: { select: { email: true, name: true } } }
         });

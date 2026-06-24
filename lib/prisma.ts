@@ -7,6 +7,7 @@ const globalForPrisma = globalThis as unknown as {
     pgPool: Pool | undefined;
 };
 
+
 const createPrismaClient = () => {
     const config: any = process.env.NODE_ENV === "development" ? { log: ["query", "error", "warn"] } : { log: ["error"] };
 
@@ -18,7 +19,7 @@ const createPrismaClient = () => {
                 ssl: process.env.NODE_ENV === "production" ? true : { rejectUnauthorized: false },
                 max: 10, // Reduced from 20 to be more conservative with serverless limits
                 idleTimeoutMillis: 10000, // Reduced to 10s to cycle connections faster
-                connectionTimeoutMillis: 5000, // Fail faster if we can't connect
+                connectionTimeoutMillis: 30000, // Increased to 30s to allow Neon cold starts to complete
                 maxUses: 7500, // Recycle connections after 7500 uses
                 keepAlive: true,
             });

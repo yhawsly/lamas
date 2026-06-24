@@ -52,7 +52,7 @@ export async function GET(req?: any) {
         let where: any = {};
         if (role === ROLES.LECTURER) {
             where = { OR: [{ lecturerId: userId }, { observerId: userId }] };
-        } else if (hasHodPrivileges(role) && !["ADMIN", "SUPER_ADMIN"].includes(role) && departmentId) {
+        } else if ((hasHodPrivileges(role) || role === ROLES.DEO) && !["ADMIN", "SUPER_ADMIN"].includes(role) && departmentId) {
             where = {
                 OR: [
                     { lecturer: { departmentId: departmentId } },
@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
         }
 
         const role = (session.user as any).role;
-        if (!hasHodPrivileges(role)) {
+        if (!hasHodPrivileges(role) && role !== ROLES.DEO) {
             return NextResponse.json(
                 { error: "You do not have permission to assign observations" },
                 { status: 403 }
@@ -116,11 +116,11 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { lecturerId, observerId, sessionDate, courseCode } = body;
+        const { lecturerId, observerId, courseCode } = body;
 
-        if (!lecturerId || !observerId || !sessionDate || !courseCode) {
+        if (!lecturerId || !observerId || !courseCode) {
             return NextResponse.json(
-                { error: "Missing required fields: lecturerId, observerId, sessionDate, courseCode" },
+                { error: "Missing required fields: lecturerId, observerId, courseCode" },
                 { status: 400 }
             );
         }
@@ -132,20 +132,36 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        // Validate that the lecturer is assigned to the course
+        const isAssigned = await prisma.courseSection.findFirst({
+            where: {
+                lecturerId: Number(lecturerId),
+                course: {
+                    code: courseCode
+                }
+            }
+        });
+
+        if (!isAssigned) {
+            return NextResponse.json(
+                { error: `Assignment blocked: The observed lecturer is not assigned to course ${courseCode}.` },
+                { status: 400 }
+            );
+        }
+
         const activeTerm = await prisma.academicTerm.findFirst({ where: { isActive: true } });
 
         const observation = await prisma.observation.create({
             data: {
                 lecturerId,
                 observerId,
-                sessionDate: new Date(sessionDate),
                 courseCode,
                 termId: activeTerm?.id || null,
                 status: ObservationStatus.PENDING,
             },
         });
 
-        const message = `Classroom observation scheduled for ${new Date(sessionDate).toLocaleDateString()} (Course: ${courseCode}).`;
+        const message = `Peer observation assigned for course ${courseCode}. Please negotiate and schedule a date with your peer.`;
         await prisma.notification.createMany({
             data: [
                 { userId: lecturerId, message },

@@ -4,6 +4,7 @@ export const revalidate = 0;
 export const fetchCache = "force-no-store";
 import { auth } from "@/auth";
 import { headers, cookies } from "next/headers";
+import { checkRateLimit } from "@/lib/rate-limit";
 import fs from "fs";
 import path from "path";
 
@@ -55,6 +56,18 @@ const ALLOWED_MIME_TYPES = [
 export async function POST(req: NextRequest) {
     await headers();
     await cookies();
+    
+    const rateLimit = checkRateLimit(req, "general");
+    if (!rateLimit.allowed) {
+        return NextResponse.json(
+            { error: "Rate limit exceeded. Please try again later." },
+            {
+                status: 429,
+                headers: { "Retry-After": String(rateLimit.retryAfter || 900) }
+            }
+        );
+    }
+
     const session = await auth();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
