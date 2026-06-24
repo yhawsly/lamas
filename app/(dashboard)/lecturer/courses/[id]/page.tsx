@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import useSWR, { useSWRConfig } from "swr";
 
 type Module = { id: number, week: number, title: string, description: string, lesson_plan: string, completed?: boolean };
 type Class = { id: string, name: string, modules: Module[] };
 
 import { useParams, useRouter } from "next/navigation";
+
+const fetcher = (url: string) => fetch(url).then(res => res.ok ? res.json() : null);
 
 export default function CourseOutlinePrototype() {
   const params = useParams();
@@ -41,89 +44,96 @@ export default function CourseOutlinePrototype() {
   const [isDirty, setIsDirty] = useState(false);
   const isInitialLoadRef = useRef(true);
 
+  // SWR Caching for instant page loads
+  const courseId = params?.id ? Number(params.id) : null;
+  const { data: courseData } = useSWR(courseId ? `/api/courses/${courseId}` : null, fetcher);
+  const { data: sectionsData } = useSWR("/api/courses/my-sections", fetcher);
+  const { data: syllabusData } = useSWR(courseId ? `/api/courses/${courseId}/syllabus` : null, fetcher);
+  const { mutate } = useSWRConfig();
+
+  const [loadedCourseId, setLoadedCourseId] = useState<number | null>(null);
+
+  // Reset load state when courseId changes
   useEffect(() => {
-    if (!params?.id) return;
-    const courseId = Number(params.id);
+    isInitialLoadRef.current = true;
+    setLoadedCourseId(null);
+  }, [courseId]);
 
-    setIsSaving(true);
-    Promise.all([
-      fetch(`/api/courses/${courseId}`).then(res => res.ok ? res.json() : null),
-      fetch("/api/courses/my-sections").then(res => res.ok ? res.json() : { sections: [] }),
-      fetch(`/api/courses/${courseId}/syllabus`).then(res => res.ok ? res.json() : null)
-    ])
-    .then(([courseData, sectionsData, syllabusData]) => {
-      // 1. Basic Course Info
-      if (courseData && courseData.code) {
-        setBasicInfo(prev => ({
-          ...prev,
-          courseCode: courseData.code,
-          title: courseData.title,
-          description: courseData.description || "",
-          credits: String(courseData.credits ?? 3),
-        }));
-      }
+  // Synchronize fetched data with local form states on load
+  useEffect(() => {
+    if (!courseId) return;
+    if (loadedCourseId === courseId) return;
+    if (!courseData || !sectionsData || !syllabusData) return;
 
-      // 2. Syllabus Data (Saved State)
-      let savedClasses: any = null;
-      if (syllabusData) {
-        if (syllabusData.lecturer) {
-          const lec = syllabusData.lecturer;
-          if (lec.topics) setTopics(lec.topics);
-          if (lec.assessments) setAssessments(lec.assessments);
-          if (lec.classes) savedClasses = lec.classes;
-          if (lec.basicInfo) {
-             setBasicInfo(prev => ({
-               courseCode: lec.basicInfo.courseCode || prev.courseCode,
-               title: lec.basicInfo.title || prev.title,
-               description: lec.basicInfo.description || prev.description,
-               credits: lec.basicInfo.credits || prev.credits,
-             }));
-          }
-          setSubmissionStatus(syllabusData.status || "DRAFT");
-        } else if (syllabusData.master) {
-          // Fallback to master syllabus topics if no lecturer edits exist yet
-          const master = syllabusData.master;
-          if (master.mandatoryTopics) {
-            const parsedTopics = typeof master.mandatoryTopics === "string" 
-              ? JSON.parse(master.mandatoryTopics) 
-              : master.mandatoryTopics;
-            
-            if (Array.isArray(parsedTopics)) {
-              setTopics(parsedTopics.map((t: any, index: number) => ({
-                id: t.id || index + 1,
-                title: t.title || t.name || "",
-                description: t.description || ""
-              })));
-            }
+    // 1. Basic Course Info
+    if (courseData && courseData.code) {
+      setBasicInfo(prev => ({
+        ...prev,
+        courseCode: courseData.code,
+        title: courseData.title,
+        description: courseData.description || "",
+        credits: String(courseData.credits ?? 3),
+      }));
+    }
+
+    // 2. Syllabus Data (Saved State)
+    let savedClasses: any = null;
+    if (syllabusData) {
+      if (syllabusData.lecturer) {
+        const lec = syllabusData.lecturer;
+        if (lec.topics) setTopics(lec.topics);
+        if (lec.assessments) setAssessments(lec.assessments);
+        if (lec.classes) savedClasses = lec.classes;
+        if (lec.basicInfo) {
+           setBasicInfo(prev => ({
+             courseCode: lec.basicInfo.courseCode || prev.courseCode,
+             title: lec.basicInfo.title || prev.title,
+             description: lec.basicInfo.description || prev.description,
+             credits: lec.basicInfo.credits || prev.credits,
+           }));
+        }
+        setSubmissionStatus(syllabusData.status || "DRAFT");
+      } else if (syllabusData.master) {
+        // Fallback to master syllabus topics if no lecturer edits exist yet
+        const master = syllabusData.master;
+        if (master.mandatoryTopics) {
+          const parsedTopics = typeof master.mandatoryTopics === "string" 
+            ? JSON.parse(master.mandatoryTopics) 
+            : master.mandatoryTopics;
+          
+          if (Array.isArray(parsedTopics)) {
+            setTopics(parsedTopics.map((t: any, index: number) => ({
+              id: t.id || index + 1,
+              title: t.title || t.name || "",
+              description: t.description || ""
+            })));
           }
         }
       }
+    }
 
-      // 3. Classes (Merge saved classes with assigned sections)
-      const mySections = (sectionsData.sections || []).filter((sec: any) => sec.courseId === courseId);
-      if (mySections.length > 0) {
-        setClasses(mySections.map((sec: any) => {
-          const savedClass = savedClasses?.find((c: any) => c.id === sec.id.toString());
-          return {
-            id: sec.id.toString(),
-            name: sec.name,
-            modules: savedClass ? savedClass.modules : [],
-          };
-        }));
-      } else {
-        setClasses(savedClasses || []);
-      }
+    // 3. Classes (Merge saved classes with assigned sections)
+    const mySections = (sectionsData.sections || []).filter((sec: any) => sec.courseId === courseId);
+    if (mySections.length > 0) {
+      setClasses(mySections.map((sec: any) => {
+        const savedClass = savedClasses?.find((c: any) => c.id === sec.id.toString());
+        return {
+          id: sec.id.toString(),
+          name: sec.name,
+          modules: savedClass ? savedClass.modules : [],
+        };
+      }));
+    } else {
+      setClasses(savedClasses || []);
+    }
 
-      // Mark initial load complete in the next tick to prevent triggering auto-save on initial set
-      setTimeout(() => {
-        isInitialLoadRef.current = false;
-      }, 100);
-    })
-    .catch(console.error)
-    .finally(() => {
-      setIsSaving(false);
-    });
-  }, [params?.id]);
+    setLoadedCourseId(courseId);
+
+    // Mark initial load complete in the next tick to prevent triggering auto-save on initial set
+    setTimeout(() => {
+      isInitialLoadRef.current = false;
+    }, 100);
+  }, [courseId, courseData, sectionsData, syllabusData, loadedCourseId]);
 
   // Auto-save effect
   useEffect(() => {
@@ -149,6 +159,7 @@ export default function CourseOutlinePrototype() {
             })
           });
           if (res.ok) {
+            mutate(`/api/courses/${params.id}/syllabus`);
             setSaveIndicator("saved");
             setIsDirty(false);
             setTimeout(() => setSaveIndicator("idle"), 2000);
@@ -164,7 +175,7 @@ export default function CourseOutlinePrototype() {
     }, 3000); // 3 seconds of inactivity
 
     return () => clearTimeout(delayDebounceFn);
-  }, [basicInfo, topics, classes, assessments, params?.id]);
+  }, [basicInfo, topics, classes, assessments, params?.id, mutate]);
 
   // Warn about unsaved changes on tab close/refresh
   useEffect(() => {
@@ -198,6 +209,7 @@ export default function CourseOutlinePrototype() {
         })
       });
       if (res.ok) {
+        mutate(`/api/courses/${params.id}/syllabus`);
         if (submit) {
           setToastMessage("Submitted successfully!");
           setSubmissionStatus("SUBMITTED");

@@ -6,6 +6,13 @@ import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
+interface Notification {
+    id: number;
+    message: string;
+    read: boolean;
+    createdAt: string;
+}
+
 export default function NotificationsPage() {
     const { data: session } = useSession();
     
@@ -15,16 +22,16 @@ export default function NotificationsPage() {
         dedupingInterval: 5000,
     });
 
-    const notifications = Array.isArray(notificationsData?.data) ? notificationsData.data : [];
+    const notifications: Notification[] = Array.isArray(notificationsData?.data) ? notificationsData.data : [];
     const loading = !notificationsData;
 
     const markAllAsRead = async () => {
-        if (!notifications.some(n => !n.read)) return;
+        if (!notifications.some((n: Notification) => !n.read)) return;
 
         // Optimistically mark all as read locally across the shared SWR cache
         const optimisticData = {
             ...notificationsData,
-            data: notifications.map((n: any) => ({ ...n, read: true }))
+            data: notifications.map((n: Notification) => ({ ...n, read: true }))
         };
         
         mutate(optimisticData, false);
@@ -45,7 +52,7 @@ export default function NotificationsPage() {
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Notification Center</h1>
                     <p className="text-gray-500 text-sm mt-1">View your latest alerts and department messages.</p>
                 </div>
-                {notifications.some(n => !n.read) && (
+                {notifications.some((n: Notification) => !n.read) && (
                     <button
                         onClick={markAllAsRead}
                         className="px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-sm font-medium transition-colors"
@@ -68,7 +75,7 @@ export default function NotificationsPage() {
                     </div>
                 ) : (
                     <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                        {notifications.map((n) => (
+                        {notifications.map((n: Notification) => (
                             <div key={n.id} className={`p-5 flex gap-4 transition-colors ${n.read ? 'bg-white dark:bg-gray-800' : 'bg-indigo-50/50 dark:bg-indigo-900/10'}`}>
                                 <div className="mt-1">
                                     <div className={`w-2.5 h-2.5 rounded-full ${n.read ? 'bg-transparent' : 'bg-indigo-500'}`} />

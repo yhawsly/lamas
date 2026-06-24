@@ -8,7 +8,7 @@ import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
-interface Submission { id: number; type: string; title: string; status: string; submittedAt: string | null; deadlineId: number | null; deadline: { label: string; dueDate: string } | null; }
+interface Submission { id: number; type: string; title: string; status: string; submittedAt: string | null; deadlineId: number | null; deadline: { label: string; dueDate: string } | null; content?: any; }
 interface Deadline { id: number; label: string; dueDate: string; type: string; }
 interface Notification { id: number; message: string; read: boolean; createdAt: string; }
 
@@ -59,16 +59,34 @@ export default function LecturerDashboard() {
     const currentLecturerId = session?.user?.id;
     const lecturerCourses = currentLecturerId ? courses.filter((c: any) => c.sections?.some((s: any) => s.lecturerId === parseInt(currentLecturerId))) : [];
 
+    const fullName = session?.user?.name || "";
+    const nameTokens = fullName.trim().split(/\s+/);
+    const titles = ["dr.", "dr", "prof.", "prof", "mr.", "mr", "ms.", "ms", "mrs.", "mrs"];
+    let firstName = nameTokens[0] || "";
+    if (firstName && titles.includes(firstName.toLowerCase()) && nameTokens.length > 1) {
+        firstName = nameTokens[1];
+    }
+
+    const hasWeeklyProgress = submissions.some((s: Submission) => {
+        if (s.type !== 'COURSE_TOPICS') return false;
+        try {
+            const content = typeof s.content === 'string' ? JSON.parse(s.content) : s.content;
+            return Array.isArray(content?.classes) && content.classes.some((c: any) => Array.isArray(c.modules) && c.modules.length > 0);
+        } catch {
+            return false;
+        }
+    });
+
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
             {/* Welcome Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>Welcome back, {session?.user?.name?.split(' ')[0]} 👋</h1>
+                    <h1 className="text-3xl font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>Welcome back, {firstName} 👋</h1>
                     <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>Here&apos;s what&apos;s happening in your academic portfolio today.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Link href="/lecturer/submissions" className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-all shadow-lg shadow-blue-500/20">
+                    <Link href="/lecturer/courses" className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-all shadow-lg shadow-blue-500/20">
                         New Submission
                     </Link>
                 </div>
@@ -80,9 +98,9 @@ export default function LecturerDashboard() {
                     <OnboardingCard
                         role="Lecturer"
                         steps={[
-                            { title: "Course Outline", description: "Submit your semester course outline for departmental review.", actionLabel: "Submit Outline", href: "/lecturer/submissions", completed: submissions.some((s: Submission) => s.type === 'SEMESTER_CALENDAR') },
-                            { title: "Weekly Topics", description: "Plan your weekly teaching topics using the registry view.", actionLabel: "Add Topics", href: "/lecturer/submissions?type=WEEKLY_TOPICS", completed: weeklySubmissions.length > 0 },
-                            { title: "Upload Resources", description: "Share lecture notes or slides with your students.", actionLabel: "Upload File", href: "/lecturer/resources", completed: resources.length > 0 },
+                            { title: "Course Outline", description: "Select a course workspace below to prepare and submit your syllabus outline.", actionLabel: "Open Workspace", href: "/lecturer/courses", completed: submissions.some((s: Submission) => s.type === 'COURSE_TOPICS') },
+                            { title: "Weekly Progress", description: "Track weekly teaching topics and lesson plans in the My Classes tab.", actionLabel: "Manage Schedule", href: "/lecturer/courses", completed: hasWeeklyProgress },
+                            { title: "Upload Resources", description: "Share slides, syllabus guides, and reference files with your students.", actionLabel: "Upload Files", href: "/lecturer/resources", completed: resources.length > 0 },
                             { title: "Department Sync", description: "Connect with colleagues and stay updated on department news.", actionLabel: "Go to Department", href: "/lecturer/department", completed: true }
                         ]}
                     />

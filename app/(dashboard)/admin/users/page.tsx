@@ -209,6 +209,7 @@ export default function AdminUsersPage() {
                                         options={[
                                             { label: "Lecturer", value: "LECTURER" },
                                             { label: "Head of Department", value: "HOD" },
+                                            { label: "Department Examination Officer", value: "DEO" },
                                             { label: "Admin", value: "ADMIN" }
                                         ]}
                                     />

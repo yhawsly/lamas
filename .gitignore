@@ -56,3 +56,7 @@ public/uploads/*.7z
 public/uploads/*.tar
 public/uploads/*.gz
 
+# Playwright
+/playwright-report/
+/test-results/
+

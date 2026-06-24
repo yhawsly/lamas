@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { prisma } from "./lib/prisma.ts";
+import { prisma } from "./lib/prisma";
 
 async function main() {
   const course = await prisma.course.findUnique({

@@ -1,32 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 import Link from "next/link";
 import Loader from "@/components/ui/Loader";
 
 export default function LecturerCoursesPage() {
-    const [courses, setCourses] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    const { data, error: swrError, mutate } = useSWR("/api/courses/my-sections", (url) =>
+        fetch(url).then(async (r) => {
+            if (!r.ok) {
+                const d = await r.json().catch(() => ({}));
+                throw new Error(d.error || "Failed to load courses");
+            }
+            return r.json();
+        })
+    );
 
-    useEffect(() => {
-        fetch("/api/courses/my-sections")
-            .then(async (r) => {
-                if (!r.ok) {
-                    const d = await r.json().catch(() => ({}));
-                    throw new Error(d.error || "Failed to load courses");
-                }
-                return r.json();
-            })
-            .then((data) => {
-                setCourses(Array.isArray(data.courses) ? data.courses : []);
-            })
-            .catch((err) => {
-                console.error(err);
-                setError(err.message || "Failed to load your assigned courses.");
-            })
-            .finally(() => setLoading(false));
-    }, []);
+    const courses = data?.courses || [];
+    const loading = !data && !swrError;
+    const error = swrError?.message || "";
 
     if (loading) return <Loader message="Loading your courses..." />;
 
@@ -63,7 +54,7 @@ export default function LecturerCoursesPage() {
                         <p className="font-bold mb-1">Could not load courses</p>
                         <p className="text-sm opacity-80">{error}</p>
                         <button
-                            onClick={() => { setError(""); setLoading(true); fetch("/api/courses/my-sections").then(r => r.json()).then(d => setCourses(d.courses || [])).catch(e => setError(e.message)).finally(() => setLoading(false)); }}
+                            onClick={() => mutate()}
                             className="mt-3 px-4 py-1.5 text-xs font-bold rounded-lg border border-red-400/30 hover:bg-red-500/10 transition-colors"
                         >
                             Retry
@@ -95,7 +86,7 @@ export default function LecturerCoursesPage() {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {courses.map(({ course, sections, activeTerm }) => (
+                                {courses.map(({ course, sections, activeTerm }: any) => (
                                     <Link
                                         href={`/lecturer/courses/${course.id}`}
                                         key={course.id}
@@ -165,13 +156,13 @@ export default function LecturerCoursesPage() {
                         <div className="h-px" style={{ backgroundColor: "var(--bg-border)" }} />
                         <div className="flex items-center justify-between">
                             <span className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>Active Term Courses</span>
-                            <span className="text-xl font-black text-emerald-500">{courses.filter(c => c.activeTerm).length}</span>
+                            <span className="text-xl font-black text-emerald-500">{courses.filter((c: any) => c.activeTerm).length}</span>
                         </div>
                         <div className="h-px" style={{ backgroundColor: "var(--bg-border)" }} />
                         <div className="flex items-center justify-between">
                             <span className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>Total Sections</span>
                             <span className="text-xl font-black text-amber-500">
-                                {courses.reduce((sum, c) => sum + (c.sections?.length || 0), 0)}
+                                {courses.reduce((sum: number, c: any) => sum + (c.sections?.length || 0), 0)}
                             </span>
                         </div>
                     </div>
