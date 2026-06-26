@@ -110,7 +110,7 @@ export default function LoginPage() {
                             {[
                                 { label: "Super Admin", email: "superadmin@lamas.edu" },
                                 { label: "Admin", email: "admin@lamas.edu" },
-                                { label: "Head of Dept (CS)", email: "ahmad@lamas.edu" },
+                                { label: "Head of Dept (CS)", email: "ghtrial41922@gmail.com" },
                                 { label: "Dept Exam Officer", email: "deo@lamas.edu" },
                                 { label: "Lecturer (Sarah)", email: "lecturer1@lamas.edu" },
                                 { label: "Lecturer (Hafiz)", email: "lecturer2@lamas.edu" },
