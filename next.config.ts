@@ -19,10 +19,10 @@ const nextConfig: NextConfig = {
         const isDev = process.env.NODE_ENV !== "production";
         const cspHeader = `
             default-src 'self';
-            script-src 'self' ${isDev ? "'unsafe-eval' 'unsafe-inline'" : ""};
-            style-src 'self' 'unsafe-inline';
+            script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""};
+            style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
             img-src 'self' blob: data:;
-            font-src 'self';
+            font-src 'self' https://fonts.gstatic.com;
             frame-src 'self';
             worker-src 'self' blob:;
             connect-src 'self' ${isDev ? "http://localhost:3000 http://127.0.0.1:3000 ws://localhost:3000" : ""};
