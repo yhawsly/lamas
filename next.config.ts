@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
             font-src 'self' https://fonts.gstatic.com;
             frame-src 'self';
             worker-src 'self' blob:;
-            connect-src 'self' ${isDev ? "http://localhost:3000 http://127.0.0.1:3000 ws://localhost:3000" : ""};
+            connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com ${isDev ? "http://localhost:3000 http://127.0.0.1:3000 ws://localhost:3000" : ""};
         `.replace(/\s{2,}/g, ' ').trim();
 
         return [
