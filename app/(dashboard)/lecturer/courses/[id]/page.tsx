@@ -18,7 +18,7 @@ export default function CourseOutlinePrototype() {
 
   const [selectedCourseId] = useState<string | null>((params?.id as string) || "c1");
   const [topics, setTopics] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState("basic-info");
+  const [activeTab, setActiveTab] = useState("topics");
   
   const [basicInfo, setBasicInfo] = useState({
     courseCode: "",
@@ -86,8 +86,8 @@ export default function CourseOutlinePrototype() {
         if (lec.classes) savedClasses = lec.classes;
         if (lec.basicInfo) {
            setBasicInfo(prev => ({
-             courseCode: lec.basicInfo.courseCode || prev.courseCode,
-             title: lec.basicInfo.title || prev.title,
+             courseCode: courseData?.code || lec.basicInfo.courseCode || prev.courseCode,
+             title: courseData?.title || lec.basicInfo.title || prev.title,
              description: lec.basicInfo.description || prev.description,
              credits: lec.basicInfo.credits || prev.credits,
            }));
@@ -482,7 +482,6 @@ export default function CourseOutlinePrototype() {
                 
                 <nav className="flex items-center gap-2 overflow-x-auto">
                   {[
-                    { id: "basic-info", label: "Basic Info" },
                     { id: "topics", label: "Course Topics" },
                     { id: "classes", label: "My Classes" },
                     { id: "assessments", label: "Assessments" },
@@ -504,47 +503,6 @@ export default function CourseOutlinePrototype() {
                   ))}
                 </nav>
               </header>
-              {activeTab === "basic-info" && (
-                <section id="basic-info" className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-                  <header className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-2xl font-bold text-slate-800">Basic Info</h2>
-                      <p className="text-slate-500">General details about the course.</p>
-                    </div>
-                    <button 
-                      onClick={handleExport}
-                      disabled={isExporting}
-                      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition shadow-sm flex items-center gap-2 disabled:opacity-50"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                      {isExporting ? "Exporting..." : "Export to Excel"}
-                    </button>
-                  </header>
-                  <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Course Code</label>
-                        <input type="text" value={basicInfo.courseCode} onChange={e => setBasicInfo({...basicInfo, courseCode: e.target.value})} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/50 transition" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Credits</label>
-                        <input type="text" value={basicInfo.credits} onChange={e => setBasicInfo({...basicInfo, credits: e.target.value})} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/50 transition" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Course Title</label>
-                      <input type="text" value={basicInfo.title} onChange={e => setBasicInfo({...basicInfo, title: e.target.value})} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/50 transition" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-                      <textarea value={basicInfo.description} onChange={e => setBasicInfo({...basicInfo, description: e.target.value})} rows={4} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/50 transition" />
-                    </div>
-                    <div className="flex justify-end pt-4 border-t border-slate-100">
-                      <button onClick={() => handleSaveToDB()} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition">Save Info</button>
-                    </div>
-                  </div>
-                </section>
-              )}
 
               {activeTab === "topics" && (
                 <section id="topics" className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
@@ -577,7 +535,7 @@ export default function CourseOutlinePrototype() {
                         type="file" 
                         ref={fileInputRef} 
                         className="hidden" 
-                        accept=".xlsx,.xls,.csv,.pdf"
+                        accept=".xlsx,.xls,.csv"
                         onChange={(e) => e.target.files && handleFileUpload(e.target.files[0])}
                       />
 

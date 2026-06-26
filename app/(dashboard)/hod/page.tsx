@@ -5,6 +5,7 @@ import OnboardingCard from "@/components/ui/OnboardingCard";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import ComplianceChart from "@/components/analytics/ComplianceChart";
 import ObservationRadar from "@/components/analytics/ObservationRadar";
+import GreetingHeader from "@/components/ui/GreetingHeader";
 import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
@@ -75,8 +76,7 @@ export default function HoDDashboard() {
     return (
         <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
             <div className="mb-4">
-                <h1 className="text-3xl font-bold tracking-tight text-center sm:text-left" style={{ color: "var(--text-primary)" }}>Head of Department</h1>
-                <p className="mt-1 text-center sm:text-left" style={{ color: "var(--text-muted)" }}>Department compliance and observation management</p>
+                <GreetingHeader subtitle="Department compliance and observation management" />
             </div>
 
             {/* KPI Cards */}

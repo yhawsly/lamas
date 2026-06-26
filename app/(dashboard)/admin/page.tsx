@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import ComplianceChart from "@/components/analytics/ComplianceChart";
 import ObservationRadar from "@/components/analytics/ObservationRadar";
+import GreetingHeader from "@/components/ui/GreetingHeader";
 import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
@@ -60,8 +61,7 @@ export default function AdminDashboard() {
     return (
         <div className="max-w-7xl mx-auto">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>Admin Dashboard</h1>
-                <p className="mt-1" style={{ color: "var(--text-muted)" }}>Institution-wide academic compliance overview</p>
+                <GreetingHeader subtitle="Institution-wide academic compliance overview" />
             </div>
 
             {/* KPI Strip */}

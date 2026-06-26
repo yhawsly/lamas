@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import Loader from "@/components/ui/Loader";
+import GreetingHeader from "@/components/ui/GreetingHeader";
 import { useRouter } from "next/navigation";
 
 export default function DeoDashboard() {
@@ -104,8 +105,7 @@ export default function DeoDashboard() {
     return (
         <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>Review Assignments</h1>
-                <p className="mt-1" style={{ color: "var(--text-muted)" }}>Centralized dispatch for peer reviews, teaching observations, and moderations.</p>
+                <GreetingHeader subtitle="Centralized dispatch for peer reviews, teaching observations, and moderations." />
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
 import ExcelJS from "exceljs";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-// @ts-expect-error pdf-parse has no default export in its types
-import pdfParse from "pdf-parse";
 
 export async function POST(request: Request) {
   try {
@@ -13,11 +10,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    const validExtensions = [".xlsx", ".xls", ".csv", ".pdf"];
+    const validExtensions = [".xlsx", ".xls", ".csv"];
     const ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
     if (!validExtensions.includes(ext)) {
       return NextResponse.json(
-        { error: "Invalid file type. Please upload an Excel file (.xlsx, .xls), CSV, or PDF." },
+        { error: "Invalid file type. Please upload an Excel file (.xlsx, .xls) or CSV." },
         { status: 400 }
       );
     }
@@ -25,55 +22,6 @@ export async function POST(request: Request) {
     // 1. Read the file into a buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-
-    // If PDF, process with Gemini
-    if (ext === ".pdf") {
-      try {
-        const pdfData = await pdfParse(buffer);
-        const text = pdfData.text;
-
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        
-        const prompt = `
-You are an academic assistant. Please extract the course outline from the following syllabus text.
-Return ONLY a valid JSON object with the following structure:
-{
-  "topics": [
-    { "id": 1, "title": "Topic Name", "description": "Topic Description", "reading_list": "Optional readings" }
-  ],
-  "modules": [
-    { "id": 1, "week": 1, "title": "Week 1 or Module 1 title", "description": "Description", "lesson_plan": "Lesson plan or activities" }
-  ]
-}
-
-Ensure that 'id' for topics starts at 1, and 'id' for modules starts at 100.
-If 'modules' or 'topics' cannot be clearly found, try to infer them or leave the arrays empty.
-Do NOT wrap the output in markdown code blocks. Just output raw JSON.
-
-Syllabus Text:
-${text.substring(0, 40000)}
-`;
-
-        const result = await model.generateContent(prompt);
-        let output = result.response.text().trim();
-        if (output.startsWith("\`\`\`json")) {
-           output = output.replace(/^\`\`\`json/, "").replace(/\`\`\`$/, "").trim();
-        } else if (output.startsWith("\`\`\`")) {
-           output = output.replace(/^\`\`\`/, "").replace(/\`\`\`$/, "").trim();
-        }
-
-        const data = JSON.parse(output);
-        return NextResponse.json({
-          topics: data.topics || [],
-          modules: data.modules || [],
-          sheetInfo: { topicsSheet: "PDF Document", modulesSheet: null, totalSheets: 1 }
-        });
-      } catch (err: any) {
-        console.error("PDF Parsing/AI Error:", err);
-        return NextResponse.json({ error: "Failed to extract data from PDF: " + err.message }, { status: 500 });
-      }
-    }
 
     // 2. Parse with ExcelJS
     const workbook = new ExcelJS.Workbook();

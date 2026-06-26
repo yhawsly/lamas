@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import OnboardingCard from "@/components/ui/OnboardingCard";
+import GreetingHeader from "@/components/ui/GreetingHeader";
 import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
@@ -59,14 +60,6 @@ export default function LecturerDashboard() {
     const currentLecturerId = session?.user?.id;
     const lecturerCourses = currentLecturerId ? courses.filter((c: any) => c.sections?.some((s: any) => s.lecturerId === parseInt(currentLecturerId))) : [];
 
-    const fullName = session?.user?.name || "";
-    const nameTokens = fullName.trim().split(/\s+/);
-    const titles = ["dr.", "dr", "prof.", "prof", "mr.", "mr", "ms.", "ms", "mrs.", "mrs"];
-    let firstName = nameTokens[0] || "";
-    if (firstName && titles.includes(firstName.toLowerCase()) && nameTokens.length > 1) {
-        firstName = nameTokens[1];
-    }
-
     const hasWeeklyProgress = submissions.some((s: Submission) => {
         if (s.type !== 'COURSE_TOPICS') return false;
         try {
@@ -80,17 +73,14 @@ export default function LecturerDashboard() {
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
             {/* Welcome Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>Welcome back, {firstName} 👋</h1>
-                    <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>Here&apos;s what&apos;s happening in your academic portfolio today.</p>
-                </div>
-                <div className="flex items-center gap-3">
+            <GreetingHeader 
+                subtitle="Here's what's happening in your academic portfolio today."
+                action={
                     <Link href="/lecturer/courses" className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-all shadow-lg shadow-blue-500/20">
                         New Submission
                     </Link>
-                </div>
-            </div>
+                }
+            />
 
             {/* Role-Aware Onboarding */}
             {(submissions.length < 3 || compliance < 50 || resources.length === 0) && (
@@ -106,40 +96,6 @@ export default function LecturerDashboard() {
                     />
                 </div>
             )}
-
-            {/* Assigned Courses Grid */}
-            <div className="space-y-4">
-                <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>My Assigned Courses</h2>
-                {lecturerCourses.length === 0 ? (
-                    <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center shadow-sm">
-                        <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 mx-auto mb-3 border border-slate-100">📚</div>
-                        <h3 className="text-lg font-bold text-slate-800">No Courses Assigned</h3>
-                        <p className="text-slate-500 max-w-sm mx-auto mt-2 text-sm">
-                            You currently do not have any courses assigned to you by the HOD.
-                        </p>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {lecturerCourses.map(course => (
-                            <Link href={`/lecturer/courses/${course.id}`} key={course.id} className="block group">
-                                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-blue-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between h-full">
-                                    <div>
-                                        <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 font-bold mb-4 border border-blue-100">
-                                            {course.code}
-                                        </div>
-                                        <h3 className="text-xl font-bold text-slate-800 group-hover:text-blue-600 transition">{course.title}</h3>
-                                        <p className="mt-2 text-sm text-slate-500">{course.credits} Credits</p>
-                                    </div>
-                                    <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-blue-600 font-semibold group-hover:text-blue-700">
-                                        <span>Manage Syllabus Workspace</span>
-                                        <svg className="w-4 h-4 transform group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                                    </div>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                )}
-            </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -162,6 +118,40 @@ export default function LecturerDashboard() {
                         <div className="absolute -right-4 -bottom-4 text-8xl opacity-5 group-hover:scale-110 transition-transform pointer-events-none">{stat.icon}</div>
                     </div>
                 ))}
+            </div>
+
+            {/* Assigned Courses Grid */}
+            <div className="space-y-4">
+                <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>My Assigned Courses</h2>
+                {lecturerCourses.length === 0 ? (
+                    <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center shadow-sm">
+                        <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 mx-auto mb-3 border border-slate-100">📚</div>
+                        <h3 className="text-lg font-bold text-slate-800">No Courses Assigned</h3>
+                        <p className="text-slate-500 max-w-sm mx-auto mt-2 text-sm">
+                            You currently do not have any courses assigned to you by the HOD.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {lecturerCourses.map((course: any) => (
+                            <Link href={`/lecturer/courses/${course.id}`} key={course.id} className="block group">
+                                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-blue-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between h-full">
+                                    <div>
+                                        <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 font-bold mb-4 border border-blue-100">
+                                            {course.code}
+                                        </div>
+                                        <h3 className="text-xl font-bold text-slate-800 group-hover:text-blue-600 transition">{course.title}</h3>
+                                        <p className="mt-2 text-sm text-slate-500">{course.credits} Credits</p>
+                                    </div>
+                                    <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-blue-600 font-semibold group-hover:text-blue-700">
+                                        <span>Manage Syllabus Workspace</span>
+                                        <svg className="w-4 h-4 transform group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
