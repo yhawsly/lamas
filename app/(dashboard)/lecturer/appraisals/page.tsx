@@ -1,8 +1,8 @@
 "use client";
+import { ClipboardList } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Loader from "@/components/ui/Loader";
 
 export default function AppraisalsPage() {
     const { data: session } = useSession();
@@ -48,13 +48,13 @@ export default function AppraisalsPage() {
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>Appraisals & Reviews</h1>
                 <p className="mt-1" style={{ color: "var(--text-secondary)" }}>Track all your peer observations, teaching observations, and exam moderations.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
                 <div className="bg-emerald-500/10 border border-emerald-500/20 p-5 rounded-2xl flex flex-col justify-center">
                     <div className="text-emerald-500 text-sm font-bold mb-1 tracking-widest uppercase">Assigned to Observe</div>
                     <div className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>{assignments.filter(o => o.observerId === userId).length}</div>
@@ -71,10 +71,22 @@ export default function AppraisalsPage() {
 
             <div className="border rounded-2xl p-6 shadow-xl relative overflow-hidden" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
                 <h3 className="font-semibold mb-6 flex items-center gap-2 relative z-10" style={{ color: "var(--text-primary)" }}>
-                    <span>📋</span> Appraisals Registry
+                    <ClipboardList className="w-5 h-5 text-blue-500" /> Appraisals Registry
                 </h3>
-                {loading ? <Loader message="Synchronizing Registry..." /> :
-                    assignments.length === 0 ? <p className="text-center py-12" style={{ color: "var(--text-muted)" }}>No assignments found.</p> :
+                {loading ? (
+                    <div className="space-y-4 mt-6">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="flex items-center gap-4 w-full p-4 border rounded-xl border-slate-100 dark:border-slate-800/50">
+                                <div className="w-16 h-10 rounded-md bg-slate-100 dark:bg-slate-800/50 animate-pulse" />
+                                <div className="flex-1 space-y-2">
+                                    <div className="w-1/3 h-4 rounded bg-slate-100 dark:bg-slate-800/50 animate-pulse" />
+                                    <div className="w-1/4 h-3 rounded bg-slate-100 dark:bg-slate-800/50 animate-pulse" />
+                                </div>
+                                <div className="w-24 h-8 rounded-full bg-slate-100 dark:bg-slate-800/50 animate-pulse" />
+                            </div>
+                        ))}
+                    </div>
+                ) : assignments.length === 0 ? <p className="text-center py-12" style={{ color: "var(--text-muted)" }}>No assignments found.</p> :
                         <div className="overflow-x-auto relative z-10">
                             <table className="w-full text-sm text-left">
                                 <thead>

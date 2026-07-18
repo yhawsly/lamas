@@ -223,7 +223,7 @@ export default function ConductObservationPage() {
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
             <button onClick={() => router.back()} className="mt-4 mb-2 flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 transition-colors">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                 Back to Dashboard
@@ -366,7 +366,7 @@ export default function ConductObservationPage() {
             {/* Overall Rating */}
             <div className="rounded-2xl shadow-sm border p-6" style={{ borderColor: "var(--bg-border)", backgroundColor: "var(--bg-surface)" }}>
                 <h4 className="font-bold mb-6" style={{ color: "var(--text-primary)" }}>17. Overall, how would you rate the instructional materials?</h4>
-                <div className="flex flex-wrap gap-6 items-center justify-between max-w-2xl">
+                <div className="flex flex-wrap gap-6 items-center justify-between max-w-7xl">
                     {["Excellent", "Very Good", "Good", "Fair", "Poor"].map(rating => (
                         <label key={rating} className="flex items-center gap-2 cursor-pointer p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border" style={{ borderColor: reviewData.overallRating === rating ? "var(--primary)" : "transparent" }}>
                             <input

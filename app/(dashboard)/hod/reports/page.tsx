@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import ExcelJS from "exceljs";
-import html2pdf from "html2pdf.js";
+import { FileText, Download, Table2, Users, AlertCircle } from "lucide-react";
 
 export default function HODReportsPage() {
     const [data, setData] = useState<any[]>([]);
@@ -22,16 +22,7 @@ export default function HODReportsPage() {
     }, []);
 
     const exportPDF = () => {
-        const element = document.getElementById("report-table");
-        if (!element) return;
-        const opt = {
-            margin: 1,
-            filename: 'department-compliance-report.pdf',
-            image: { type: 'jpeg' as const, quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'in' as const, format: 'letter', orientation: 'landscape' as const }
-        };
-        html2pdf().set(opt).from(element).save();
+        window.print();
     };
 
     const exportExcel = async () => {
@@ -71,66 +62,102 @@ export default function HODReportsPage() {
         window.URL.revokeObjectURL(url);
     };
 
-    if (loading) return <div className="p-8 text-center text-gray-500">Loading department data...</div>;
+    if (loading) return (
+        <div className="flex items-center justify-center h-[60vh]">
+            <div className="animate-spin w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full" />
+        </div>
+    );
 
     return (
-        <div className="p-6 max-w-6xl mx-auto space-y-6">
-            <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+            <style jsx global>{`
+                @media print {
+                    body * {
+                        visibility: hidden;
+                    }
+                    #report-table, #report-table * {
+                        visibility: visible;
+                    }
+                    #report-table {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                        border: none;
+                        box-shadow: none;
+                    }
+                }
+            `}</style>
+            
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Department Compliance Report</h1>
-                    <p className="text-gray-500 text-sm mt-1">Review appraisal completion rates across your department.</p>
+                    <h1 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
+                        <FileText className="w-8 h-8 text-emerald-500" /> Department Compliance Report
+                    </h1>
+                    <p className="text-sm print:hidden" style={{ color: "var(--text-muted)" }}>
+                        Review and export appraisal completion rates across your department.
+                    </p>
                 </div>
-                <div className="flex gap-3">
-                    <button onClick={exportExcel} className="px-4 py-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-sm font-medium transition-colors">
-                        Export Excel
+                <div className="flex items-center gap-3 print:hidden">
+                    <button onClick={exportExcel} className="flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20 text-sm font-bold transition-all shadow-sm active:scale-[0.98]">
+                        <Table2 className="w-4 h-4" /> Export Excel
                     </button>
-                    <button onClick={exportPDF} className="px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 rounded-lg text-sm font-medium transition-colors">
-                        Export PDF
+                    <button onClick={exportPDF} className="flex items-center gap-2 px-5 py-3 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:hover:bg-rose-500/20 text-sm font-bold transition-all shadow-sm active:scale-[0.98]">
+                        <Download className="w-4 h-4" /> Export PDF
                     </button>
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden" id="report-table">
-                <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Lecturer Status Overview</h2>
+            <div className="rounded-3xl border overflow-hidden shadow-sm transition-all" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }} id="report-table">
+                <div className="px-6 py-5 border-b" style={{ borderColor: "var(--bg-border)" }}>
+                    <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+                        <Users className="w-5 h-5 text-blue-500" /> Lecturer Status Overview
+                    </h2>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm text-gray-600 dark:text-gray-300">
-                        <thead className="bg-gray-50/50 dark:bg-gray-900/20 text-xs uppercase text-gray-500 dark:text-gray-400">
+                    <table className="w-full text-left text-sm whitespace-nowrap">
+                        <thead className="text-[10px] uppercase tracking-widest font-bold" style={{ backgroundColor: "var(--bg-hover)", color: "var(--text-muted)" }}>
                             <tr>
-                                <th className="px-6 py-4 font-medium">Lecturer Name</th>
-                                <th className="px-6 py-4 font-medium">Email</th>
-                                <th className="px-6 py-4 font-medium">Peer Obs (Form A)</th>
-                                <th className="px-6 py-4 font-medium">Teaching Obs (Form B)</th>
-                                <th className="px-6 py-4 font-medium">Moderation (Form C)</th>
-                                <th className="px-6 py-4 font-medium">Compliance Score</th>
+                                <th className="px-6 py-4">Lecturer</th>
+                                <th className="px-6 py-4">Peer Obs (Form A)</th>
+                                <th className="px-6 py-4">Teaching Obs (Form B)</th>
+                                <th className="px-6 py-4">Moderation (Form C)</th>
+                                <th className="px-6 py-4 text-right">Compliance Score</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                        <tbody className="divide-y divide-[var(--bg-border)]">
                             {data.map(lecturer => (
-                                <tr key={lecturer.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                    <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{lecturer.name}</td>
-                                    <td className="px-6 py-4">{lecturer.email}</td>
-                                    <td className="px-6 py-4">{lecturer.stats.peerObservation}</td>
-                                    <td className="px-6 py-4">{lecturer.stats.teachingObservation}</td>
-                                    <td className="px-6 py-4">{lecturer.stats.moderation}</td>
+                                <tr key={lecturer.id} className="transition-colors group" style={{ color: "var(--text-primary)" }}>
                                     <td className="px-6 py-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-16 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                                        <div className="font-bold">{lecturer.name}</div>
+                                        <div className="text-[10px]" style={{ color: "var(--text-muted)" }}>{lecturer.email}</div>
+                                    </td>
+                                    <td className="px-6 py-4 font-medium">{lecturer.stats.peerObservation}</td>
+                                    <td className="px-6 py-4 font-medium">{lecturer.stats.teachingObservation}</td>
+                                    <td className="px-6 py-4 font-medium">{lecturer.stats.moderation}</td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center justify-end gap-3">
+                                            <div className="w-24 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-border)" }}>
                                                 <div 
-                                                    className={`h-full rounded-full ${lecturer.stats.complianceScore >= 80 ? 'bg-green-500' : lecturer.stats.complianceScore >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
+                                                    className={`h-full rounded-full transition-all duration-1000 ${lecturer.stats.complianceScore >= 80 ? 'bg-emerald-500' : lecturer.stats.complianceScore >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`}
                                                     style={{ width: `${lecturer.stats.complianceScore}%` }}
                                                 />
                                             </div>
-                                            <span className="text-xs font-medium">{lecturer.stats.complianceScore}%</span>
+                                            <span className="text-xs font-black" style={{ color: lecturer.stats.complianceScore >= 80 ? "#10b981" : lecturer.stats.complianceScore >= 50 ? "#f59e0b" : "#f43f5e" }}>
+                                                {lecturer.stats.complianceScore}%
+                                            </span>
                                         </div>
                                     </td>
                                 </tr>
                             ))}
                             {data.length === 0 && (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                                        No active lecturers found in this department.
+                                    <td colSpan={5} className="px-6 py-20 text-center">
+                                        <div className="flex justify-center mb-4">
+                                            <AlertCircle className="w-10 h-10 text-slate-300 dark:text-white/10" />
+                                        </div>
+                                        <p className="font-semibold text-lg mb-1" style={{ color: "var(--text-primary)" }}>No Data Available</p>
+                                        <p className="text-sm" style={{ color: "var(--text-muted)" }}>There are no active lecturers with compliance records in your department yet.</p>
                                     </td>
                                 </tr>
                             )}

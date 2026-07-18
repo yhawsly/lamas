@@ -1,4 +1,5 @@
 "use client";
+import { Plus, ClipboardList, Inbox } from "lucide-react";
 import { useEffect, useState } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import Loader from "@/components/ui/Loader";
@@ -79,7 +80,7 @@ export default function DeoDashboard() {
                 const errData = await res.json().catch(() => ({}));
                 setMsg(`❌ ${errData.error || "Failed to assign."}`); 
             }
-        } catch (err) {
+        } catch {
             setMsg("❌ Network error.");
         } finally {
             setIsSubmitting(false);
@@ -103,16 +104,16 @@ export default function DeoDashboard() {
     const partnerLabel = reviewType === "C" ? "Assigned Moderator" : "Assigned Observer";
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
             <div className="mb-8">
                 <GreetingHeader subtitle="Centralized dispatch for peer reviews, teaching observations, and moderations." />
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 {/* Form Creation Column */}
-                <div className="lg:col-span-1 rounded-3xl p-6 shadow-sm border h-fit sticky top-24" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
+                <div className="xl:col-span-1 rounded-3xl p-6 shadow-sm border xl:sticky xl:top-24 h-fit" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
                     <h3 className="font-semibold mb-6 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-                        <span>➕</span> Dispatch Review
+                        <Plus className="w-5 h-5 text-blue-500" /> Dispatch Review
                     </h3>
                     
                     {msg && (
@@ -183,16 +184,16 @@ export default function DeoDashboard() {
                 </div>
 
                 {/* Registry Column */}
-                <div className="lg:col-span-2 rounded-3xl p-6 shadow-sm border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
+                <div className="xl:col-span-2 rounded-3xl p-6 shadow-sm border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
                     <h3 className="font-semibold mb-6 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-                        <span>📋</span> Assignments Registry
+                        <ClipboardList className="w-5 h-5 text-blue-500" /> Assignments Registry
                     </h3>
                     
                     {loading ? (
                         <div className="py-20"><Loader message="Synchronizing Registry..." /></div>
                     ) : assignments.length === 0 ? (
                         <div className="text-center py-20" style={{ color: "var(--text-muted)" }}>
-                            <div className="text-4xl mb-4">📭</div>
+                            <div className="flex justify-center mb-4"><Inbox className="w-10 h-10 text-gray-400" /></div>
                             <p>No reviews assigned yet.</p>
                         </div>
                     ) : (

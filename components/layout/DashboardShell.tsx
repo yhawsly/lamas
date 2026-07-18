@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
+import Link from "next/link";
+import { User, Settings, LogOut, ChevronDown } from "lucide-react";
 import Sidebar from "@/components/layout/Sidebar";
 import NotificationBell from "@/components/ui/NotificationBell";
 import ThemeToggle from "@/components/ui/ThemeToggle";
@@ -16,6 +19,29 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
     }, []);
+
+    const { data: session } = useSession();
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+
+    const role = (session?.user as any)?.role || "LECTURER";
+    
+    // determine initials
+    const name = session?.user?.name || "User";
+    const initials = name.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase();
+
+    // click outside
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (!target.closest('.profile-dropdown')) {
+                setDropdownOpen(false);
+            }
+        };
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
+    }, []);
+
+    const profileHref = "/settings";
 
     return (
         <div className="flex min-h-screen" style={{ background: "var(--bg-base)" }}>
@@ -69,11 +95,63 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                     <div className="flex items-center gap-3">
                         <ThemeToggle />
                         <NotificationBell />
+                        
+                        <div className="relative profile-dropdown ml-2">
+                            <button 
+                                onClick={() => setDropdownOpen(!dropdownOpen)}
+                                className="flex items-center gap-3 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                            >
+                                <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center text-sm border border-blue-200 dark:border-blue-500/30">
+                                    {initials}
+                                </div>
+                                <div className="hidden sm:block text-left">
+                                    <div className="text-sm font-bold leading-tight" style={{ color: "var(--text-primary)" }}>{name}</div>
+                                    <div className="text-[10px] font-bold tracking-widest uppercase mt-0.5" style={{ color: "var(--text-muted)" }}>{role.replace("_", " ")}</div>
+                                </div>
+                                <ChevronDown className="w-4 h-4 text-slate-400 hidden sm:block ml-1" />
+                            </button>
+
+                            {dropdownOpen && (
+                                <div className="absolute right-0 mt-2 w-56 rounded-2xl shadow-xl border py-2 animate-in fade-in slide-in-from-top-2"
+                                    style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)", zIndex: 100 }}>
+                                    
+                                    <Link
+                                        href={profileHref}
+                                        onClick={() => setDropdownOpen(false)}
+                                        className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                        style={{ color: "var(--text-primary)" }}
+                                    >
+                                        <User className="w-4 h-4 text-blue-500" />
+                                        <span className="font-medium">My Profile</span>
+                                    </Link>
+                                    
+                                    <Link
+                                        href="#"
+                                        onClick={() => setDropdownOpen(false)}
+                                        className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                        style={{ color: "var(--text-primary)" }}
+                                    >
+                                        <Settings className="w-4 h-4 text-blue-500" />
+                                        <span className="font-medium">Settings Panel</span>
+                                    </Link>
+                                    
+                                    <div className="my-1 border-t" style={{ borderColor: "var(--bg-border)" }}></div>
+                                    
+                                    <button
+                                        onClick={() => signOut({ callbackUrl: "/login" })}
+                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-rose-500"
+                                    >
+                                        <LogOut className="w-4 h-4" />
+                                        <span className="font-bold">Sign Out</span>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-auto">
-                    <div className="p-4 md:p-6 lg:p-8">{children}</div>
+                <main className="flex-1 overflow-x-hidden overflow-y-auto">
+                    <div className="px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8 max-w-[1400px] w-full">{children}</div>
                 </main>
             </div>
         </div>

@@ -1,4 +1,5 @@
 "use client";
+import { Home, Megaphone, ClipboardList, Eye, Library, FileText, Bell, FileEdit, Map, Inbox, Users, BookOpen, CheckCircle, User, Clock, BarChart2, Calendar, Building, Search, LogOut } from "lucide-react";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -9,66 +10,46 @@ import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
-const navByRole: Record<string, { label: string; href: string; icon: string }[]> = {
+const navByRole: Record<string, { label: string; href: string; icon: React.ReactNode }[]> = {
     LECTURER: [
-        { label: "Dashboard", href: "/lecturer", icon: "🏠" },
-        { label: "My Department", href: "/lecturer/department", icon: "📢" },
-        { label: "Course Syllabus", href: "/lecturer/courses", icon: "📋" },
-        { label: "Appraisals & Reviews", href: "/lecturer/appraisals", icon: "👁️" },
-        { label: "Resources", href: "/lecturer/resources", icon: "📚" },
-        { label: "My Reports", href: "/lecturer/reports", icon: "📄" },
-        { label: "Notifications", href: "/notifications", icon: "🔔" },
+        { label: "Dashboard", href: "/lecturer", icon: <Home className="w-5 h-5" /> },
+        { label: "My Department", href: "/lecturer/department", icon: <Megaphone className="w-5 h-5" /> },
+        { label: "Course Syllabus", href: "/lecturer/courses", icon: <ClipboardList className="w-5 h-5" /> },
+        { label: "Appraisals & Reviews", href: "/lecturer/appraisals", icon: <Eye className="w-5 h-5" /> },
+        { label: "Resources", href: "/lecturer/resources", icon: <Library className="w-5 h-5" /> },
+        { label: "My Reports", href: "/lecturer/reports", icon: <FileText className="w-5 h-5" /> },
+        { label: "Notifications", href: "/notifications", icon: <Bell className="w-5 h-5" /> },
     ],
     HOD: [
-        { label: "Dashboard", href: "/hod", icon: "🏠" },
-        { label: "Course Assignments", href: "/hod/assignments", icon: "📝" },
-        { label: "Curriculum Map", href: "/hod/curriculum", icon: "🗺️" },
-        { label: "Review Center", href: "/hod/submissions", icon: "📥" },
-        { label: "My Lecturers", href: "/hod/lecturers", icon: "👥" },
-        { label: "Observations", href: "/hod/observations", icon: "👁️" },
-        { label: "Reports", href: "/hod/reports", icon: "📄" },
-        { label: "Courses", href: "/hod/courses", icon: "📖" },
-        { label: "Resources", href: "/lecturer/resources", icon: "📚" },
-        { label: "Resource Approvals", href: "/hod/resources", icon: "✅" },
-        { label: "Notifications", href: "/notifications", icon: "🔔" },
+        { label: "Dashboard", href: "/hod", icon: <Home className="w-5 h-5" /> },
+        { label: "Academics", href: "/hod/curriculum", icon: <Map className="w-5 h-5" /> },
+        { label: "Staff & Reviews", href: "/hod/staff", icon: <Users className="w-5 h-5" /> },
+        { label: "Reports", href: "/hod/reports", icon: <FileText className="w-5 h-5" /> },
+        { label: "Resources", href: "/lecturer/resources", icon: <Library className="w-5 h-5" /> },
+        { label: "Resource Approvals", href: "/hod/resources", icon: <CheckCircle className="w-5 h-5" /> },
+        { label: "Notifications", href: "/notifications", icon: <Bell className="w-5 h-5" /> },
     ],
     DEO: [
-        { label: "Dashboard", href: "/deo", icon: "🏠" },
-        { label: "Notifications", href: "/notifications", icon: "🔔" },
+        { label: "Dashboard", href: "/deo", icon: <Home className="w-5 h-5" /> },
+        { label: "Notifications", href: "/notifications", icon: <Bell className="w-5 h-5" /> },
     ],
     ADMIN: [
-        { label: "Dashboard", href: "/admin", icon: "🏠" },
-        { label: "Users", href: "/admin/users", icon: "👤" },
-        { label: "Course Assignments", href: "/hod/assignments", icon: "📝" },
-        { label: "Submissions", href: "/admin/submissions", icon: "📋" },
-        { label: "Lecturers", href: "/admin/lecturers", icon: "👥" },
-        { label: "Deadlines", href: "/admin/deadlines", icon: "⏰" },
-        { label: "Analytics", href: "/admin/analytics", icon: "📊" },
-        { label: "Reports", href: "/admin/reports", icon: "📄" },
-        { label: "Curriculum Map", href: "/admin/curriculum", icon: "🗺️" },
-        { label: "Courses", href: "/admin/courses", icon: "📖" },
-        { label: "Academic Terms", href: "/admin/terms", icon: "🗓️" },
-        { label: "Departments", href: "/admin/departments", icon: "🏢" },
-        { label: "Audit Log", href: "/admin/audit", icon: "🔍" },
-        { label: "Notify All", href: "/admin/notify", icon: "📢" },
-        { label: "Notifications", href: "/notifications", icon: "🔔" },
+        { label: "Dashboard", href: "/admin", icon: <Home className="w-5 h-5" /> },
+        { label: "User Management", href: "/admin/users", icon: <Users className="w-5 h-5" /> },
+        { label: "Academics", href: "/admin/curriculum", icon: <Map className="w-5 h-5" /> },
+        { label: "Submissions", href: "/admin/submissions", icon: <ClipboardList className="w-5 h-5" /> },
+        { label: "System Insights", href: "/admin/analytics", icon: <BarChart2 className="w-5 h-5" /> },
+        { label: "Communications", href: "/admin/notify", icon: <Megaphone className="w-5 h-5" /> },
+        { label: "Notifications", href: "/notifications", icon: <Bell className="w-5 h-5" /> },
     ],
     SUPER_ADMIN: [
-        { label: "Dashboard", href: "/admin", icon: "🏠" },
-        { label: "Users", href: "/admin/users", icon: "👤" },
-        { label: "Course Assignments", href: "/hod/assignments", icon: "📝" },
-        { label: "Submissions", href: "/admin/submissions", icon: "📋" },
-        { label: "Lecturers", href: "/admin/lecturers", icon: "👥" },
-        { label: "Deadlines", href: "/admin/deadlines", icon: "⏰" },
-        { label: "Analytics", href: "/admin/analytics", icon: "📊" },
-        { label: "Reports", href: "/admin/reports", icon: "📄" },
-        { label: "Curriculum Map", href: "/admin/curriculum", icon: "🗺️" },
-        { label: "Courses", href: "/admin/courses", icon: "📖" },
-        { label: "Academic Terms", href: "/admin/terms", icon: "🗓️" },
-        { label: "Departments", href: "/admin/departments", icon: "🏢" },
-        { label: "Audit Log", href: "/admin/audit", icon: "🔍" },
-        { label: "Notify All", href: "/admin/notify", icon: "📢" },
-        { label: "Notifications", href: "/notifications", icon: "🔔" },
+        { label: "Dashboard", href: "/admin", icon: <Home className="w-5 h-5" /> },
+        { label: "User Management", href: "/admin/users", icon: <Users className="w-5 h-5" /> },
+        { label: "Academics", href: "/admin/curriculum", icon: <Map className="w-5 h-5" /> },
+        { label: "Submissions", href: "/admin/submissions", icon: <ClipboardList className="w-5 h-5" /> },
+        { label: "System Insights", href: "/admin/analytics", icon: <BarChart2 className="w-5 h-5" /> },
+        { label: "Communications", href: "/admin/notify", icon: <Megaphone className="w-5 h-5" /> },
+        { label: "Notifications", href: "/notifications", icon: <Bell className="w-5 h-5" /> },
     ],
 };
 
@@ -78,18 +59,14 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
+
     const { data: session } = useSession();
     const pathname = usePathname();
     const role = (session?.user as any)?.role || "LECTURER";
     const nav = navByRole[role] || navByRole.LECTURER;
-    const profileRoutes: Record<string, string> = {
-        LECTURER: "/profile/lecturer",
-        HOD: "/profile/hod",
-        DEO: "/profile/deo",
-        ADMIN: "/profile/admin",
-        SUPER_ADMIN: "/profile/admin",
-    };
-    const profileHref = profileRoutes[role] ?? "/profile";
+    const profileHref = "/settings";
     const { data: notificationsData } = useSWR("/api/notifications", fetcher, {
         refreshInterval: 30000,
         dedupingInterval: 5000,
@@ -105,22 +82,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         if (pathname !== prevPath) onClose?.();
     }, [pathname]); // eslint-disable-line
 
-    const [searchQ, setSearchQ] = useState("");
-    const [searchResults, setSearchResults] = useState<any[]>([]);
-    const [showResults, setShowResults] = useState(false);
-
-    useEffect(() => {
-        const t = setTimeout(() => {
-            if (searchQ.length < 2) {
-                setSearchResults([]);
-                return;
-            }
-            fetch(`/api/search?q=${searchQ}`)
-                .then(r => r.json())
-                .then(setSearchResults);
-        }, 300);
-        return () => clearTimeout(t);
-    }, [searchQ]);
+    
 
     // SWR handles fetching and caching automatically
 
@@ -138,6 +100,14 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         HOD: "bg-amber-500/20 text-amber-300",
         DEO: "bg-emerald-500/20 text-emerald-300",
         LECTURER: "bg-blue-500/20 text-blue-300",
+    };
+
+    const activeStyles: Record<string, string> = {
+        SUPER_ADMIN: "bg-purple-500/10 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400 font-bold",
+        ADMIN: "bg-rose-500/10 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 font-bold",
+        HOD: "bg-amber-500/10 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 font-bold",
+        DEO: "bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 font-bold",
+        LECTURER: "bg-blue-500/10 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 font-bold",
     };
 
     return (
@@ -184,118 +154,24 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 </div>
             </div>
 
-            {/* Search Bar */}
-            <div className="px-4 py-3 relative">
-                <div className="relative">
-                    <svg
-                        className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        style={{ color: "var(--text-muted)" }}
-                    >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <input
-                        value={searchQ}
-                        onChange={e => { setSearchQ(e.target.value); setShowResults(true); }}
-                        onFocus={(e) => {
-                            setShowResults(true);
-                            e.currentTarget.style.borderColor = "var(--primary)";
-                            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(79, 70, 229, 0.1)";
-                        }}
-                        placeholder="Search LAMAS..."
-                        style={{
-                            backgroundColor: "var(--bg-surface)",
-                            borderColor: "var(--bg-border)",
-                            color: "var(--text-primary)",
-                        }}
-                        className="w-full border rounded-xl pl-9 pr-4 py-2 text-[13px] focus:outline-none focus:ring-2 transition-all"
-                        onBlur={(e) => {
-                            e.currentTarget.style.borderColor = "var(--bg-border)";
-                            e.currentTarget.style.boxShadow = "none";
-                        }}
-                    />
-                </div>
 
-                {/* Search Results Dropdown */}
-                {showResults && searchResults.length > 0 && (
-                    <div
-                        className="absolute left-4 right-4 mt-2 rounded-2xl shadow-2xl z-50 overflow-hidden max-h-[300px] overflow-y-auto border"
-                        style={{ background: "var(--bg-surface)", borderColor: "var(--bg-border)" }}
-                    >
-                        <div className="p-2 space-y-1">
-                            {searchResults.map((res, i) => (
-                                <Link
-                                    key={i}
-                                    href={res.href}
-                                    onClick={() => { setShowResults(false); setSearchQ(""); }}
-                                    className="flex items-center gap-3 p-2 rounded-xl transition-colors"
-                                    style={{
-                                        color: "var(--text-primary)"
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.background = "var(--bg-hover)";
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.background = "transparent";
-                                    }}
-                                >
-                                    <div
-                                        className="w-8 h-8 rounded-lg flex items-center justify-center text-xs"
-                                        style={{ background: "var(--bg-hover)" }}
-                                    >
-                                        {res.category === 'Resource' ? '📚' : res.category === 'Lecturer' ? '👤' : '📋'}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <div className="text-xs font-bold truncate">{res.title}</div>
-                                        <div className="text-[10px] uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-                                            {res.category}
-                                        </div>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                )}
-                {showResults && searchQ.length >= 2 && searchResults.length === 0 && (
-                    <div
-                        className="absolute left-4 right-4 mt-2 rounded-2xl p-4 text-center z-50 shadow-2xl border"
-                        style={{ background: "var(--bg-surface)", borderColor: "var(--bg-border)" }}
-                    >
-                        <div style={{ color: "var(--text-muted)" }} className="text-xs">
-                            No results for &quot;{searchQ}&quot;
-                        </div>
-                    </div>
-                )}
-            </div>
 
-            {/* User info */}
-            <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--bg-border)" }}>
-                <div className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{session?.user?.name}</div>
-                <div className="text-xs truncate" style={{ color: "var(--text-muted)" }}>{session?.user?.email}</div>
-                <span className={`mt-1.5 inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full ${roleBadgeColors[role]}`}>
-                    {role.replace("_", " ")}
-                </span>
-            </div>
+
 
             {/* Navigation */}
             <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
                 {nav.map((item) => {
-                    const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
+                    const isDashboard = ["/lecturer", "/hod", "/admin", "/deo"].includes(item.href);
+                    const isActive = isDashboard 
+                        ? pathname === item.href 
+                        : pathname === item.href || pathname?.startsWith(item.href + "/");
                     return (
                         <Link
                             key={item.label}
                             href={item.href}
                             onClick={onClose}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all"
-                            style={{
-                                background: isActive ? "var(--bg-hover)" : "transparent",
-                                color: isActive ? "var(--text-primary)" : "var(--text-secondary)",
-                                fontWeight: isActive ? "500" : "400",
-                            }}
-                            onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = "var(--bg-hover)"; }}
-                            onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${!mounted ? "text-slate-500 dark:text-slate-400" : isActive ? activeStyles[role] || activeStyles.LECTURER : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
+                            suppressHydrationWarning
                         >
                             <span>{item.icon}</span>
                             <span>{item.label}</span>
@@ -309,35 +185,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 })}
             </nav>
 
-            {/* Bottom: Profile & Sign Out */}
-            <div className="p-3" style={{ borderTop: "1px solid var(--bg-border)" }}>
-                <Link
-                    href={profileHref}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all mb-1"
-                    style={{ color: "var(--text-muted)" }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-hover)"; (e.currentTarget as HTMLElement).style.color = "var(--text-primary)"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"; }}
-                >
-                    <span className="w-6 h-6 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center text-xs shadow-inner">
-                        {session?.user?.image ? (
-                            <img src={session.user.image} alt="Avatar" className="w-full h-full object-cover" />
-                        ) : (
-                            "👤"
-                        )}
-                    </span>
-                    <span>My Profile</span>
-                </Link>
-                <button
-                    onClick={() => signOut({ callbackUrl: "/login" })}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all"
-                    style={{ color: "var(--text-muted)" }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-hover)"; (e.currentTarget as HTMLElement).style.color = "var(--text-primary)"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"; }}
-                >
-                    <span className="w-6 text-center">🚪</span>
-                    <span>Sign Out</span>
-                </button>
-            </div>
+
         </aside>
     );
 }

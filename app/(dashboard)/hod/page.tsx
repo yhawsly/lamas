@@ -1,11 +1,12 @@
 "use client";
+import { Users, BarChart2, AlertTriangle, ClipboardList, BookOpen, CheckCircle, Palmtree, Eye, Megaphone, Rocket } from "lucide-react";
 
-import { useEffect, useState } from "react";
-import OnboardingCard from "@/components/ui/OnboardingCard";
+import { useState } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import ComplianceChart from "@/components/analytics/ComplianceChart";
 import ObservationRadar from "@/components/analytics/ObservationRadar";
 import GreetingHeader from "@/components/ui/GreetingHeader";
+import KPICard from "@/components/ui/KPICard";
 import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
@@ -42,7 +43,8 @@ export default function HoDDashboard() {
             setObsMsg("✅ Observation assigned successfully! Both parties have been notified.");
             setObsForm({ lecturerId: "", observerId: "", sessionDate: "", courseCode: "" });
         } else {
-            setObsMsg("❌ Failed to assign observation. Please check the inputs.");
+            const data = await res.json().catch(() => ({}));
+            setObsMsg(`❌ ${data.error || "Failed to assign observation. Please check the inputs."}`);
         }
         setTimeout(() => setObsMsg(""), 4000);
     }
@@ -74,56 +76,38 @@ export default function HoDDashboard() {
     const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b.score, 0) / scores.length) : 0;
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
+        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
             <div className="mb-4">
                 <GreetingHeader subtitle="Department compliance and observation management" />
             </div>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                    { label: "Dept. Lecturers", value: scores.length, icon: "👥", color: "#3b82f6" },
-                    { label: "Avg Compliance", value: `${avgScore}%`, icon: "📊", color: avgScore >= 70 ? "#10b981" : "#ef4444" },
-                    { label: "At Risk", value: atRisk.length, icon: "⚠️", color: "#ef4444" },
-                    { label: "Total Submissions", value: scores.reduce((a, b) => a + b.submitted, 0), icon: "📋", color: "#a855f7" },
-                ].map(k => (
-                    <div key={k.label} className="rounded-3xl p-6 transition-all" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
-                        <div className="text-2xl mb-3">{k.icon}</div>
-                        <div className="text-4xl font-bold" style={{ color: k.color }}>{k.value}</div>
-                        <div className="text-[10px] font-bold uppercase tracking-widest mt-1" style={{ color: "var(--text-muted)" }}>{k.label}</div>
-                    </div>
+                    { label: "Dept. Lecturers", value: scores.length, icon: <Users className="w-6 h-6" />, color: "#3b82f6" },
+                    { label: "Avg Compliance", value: `${avgScore}%`, icon: <BarChart2 className="w-6 h-6" />, color: avgScore >= 70 ? "#10b981" : "#ef4444" },
+                    { label: "At Risk", value: atRisk.length, icon: <AlertTriangle className="w-6 h-6" />, color: "#ef4444" },
+                    { label: "Total Submissions", value: scores.reduce((a, b) => a + b.submitted, 0), icon: <ClipboardList className="w-6 h-6" />, color: "#a855f7" },
+                ].map((k, i) => (
+                    <KPICard key={k.label} delay={i * 100} {...k} />
                 ))}
             </div>
 
             {/* Course Assignment Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
                 {[
-                    { label: "Total Courses", value: courses.length, icon: "📚", color: "#2563eb" },
-                    { label: "Assigned Workload", value: courses.filter(c => c.lecturerId).length, icon: "✅", color: "#16a34a" },
-                    { label: "Pending Assignment", value: courses.length - courses.filter(c => c.lecturerId).length, icon: "⚠️", color: "#d97706" },
-                    { label: "Staff Coverage", value: courses.length > 0 ? `${Math.round((courses.filter(c => c.lecturerId).length / courses.length) * 100)}%` : "0%", icon: "📊", color: "#9333ea" },
-                ].map(stat => (
-                    <div key={stat.label} className="rounded-3xl p-6 transition-all" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
-                        <div className="text-2xl mb-3">{stat.icon}</div>
-                        <div className="text-4xl font-bold" style={{ color: stat.color }}>{stat.value}</div>
-                        <div className="text-[10px] font-bold uppercase tracking-widest mt-1" style={{ color: "var(--text-muted)" }}>{stat.label}</div>
-                    </div>
+                    { label: "Total Courses", value: courses.length, icon: <BookOpen className="w-6 h-6" />, color: "#2563eb" },
+                    { label: "Assigned Workload", value: courses.filter(c => c.lecturerId).length, icon: <CheckCircle className="w-6 h-6" />, color: "#16a34a" },
+                    { label: "Pending Assignment", value: courses.length - courses.filter(c => c.lecturerId).length, icon: <AlertTriangle className="w-6 h-6" />, color: "#d97706" },
+                    { label: "Staff Coverage", value: courses.length > 0 ? `${Math.round((courses.filter(c => c.lecturerId).length / courses.length) * 100)}%` : "0%", icon: <BarChart2 className="w-6 h-6" />, color: "#9333ea" },
+                ].map((stat, i) => (
+                    <KPICard key={stat.label} delay={(i + 4) * 100} {...stat} />
                 ))}
             </div>
 
-            {/* HOD Onboarding */}
-            <OnboardingCard
-                role="HOD"
-                steps={[
-                    { title: "Academic Audit", description: "Review and approve pending Course Outlines and Weekly Topics.", actionLabel: "Open Review Center", href: "/hod/submissions", completed: false },
-                    { title: "Resource Approvals", description: "Review teaching materials uploaded by your department faculty.", actionLabel: "Review Resources", href: "/hod/resources", completed: scores.length > 0 },
-                    { title: "Assign Observations", description: "Schedule peer observations for effective academic monitoring.", actionLabel: "Schedule Now", href: "#", completed: false },
-                    { title: "Compliance Intelligence", description: "Audit the overall submission rates and pedagogical health.", actionLabel: "Check Analytics", href: "/hod/reports", completed: true }
-                ]}
-            />
 
             {/* Tabs */}
-            <div className="flex gap-1 p-1 rounded-2xl w-fit flex-wrap" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
+            <div className="flex gap-1 p-1 rounded-2xl w-full sm:w-fit overflow-x-auto" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
                 {(["overview", "observations", "notify"] as const).map(t => (
                     <button key={t} onClick={() => setTab(t)}
                         className="px-6 py-2.5 rounded-xl text-sm font-semibold capitalize transition-all duration-300"
@@ -140,8 +124,8 @@ export default function HoDDashboard() {
             <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
                 {/* Lecturer Scores */}
                 {tab === "overview" && (
-                    <div className="p-8 space-y-12">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="p-4 sm:p-6 lg:p-8 space-y-8 lg:space-y-12">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <div className="p-6 rounded-3xl" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)" }}>
                                 <h3 className="font-bold text-sm mb-6 text-center" style={{ color: "var(--text-primary)" }}>Department Submission Deadlines</h3>
                                 <ComplianceChart />
@@ -154,7 +138,7 @@ export default function HoDDashboard() {
 
                         <div>
                             <h3 className="font-bold text-lg mb-6 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-                                <span>📊</span> Lecturer Compliance Rankings
+                                <BarChart2 className="w-6 h-6 text-blue-500" /> Lecturer Compliance Rankings
                             </h3>
                             <div className="space-y-4">
                                 {scores.sort((a, b) => b.score - a.score).map((s, i) => (
@@ -181,7 +165,7 @@ export default function HoDDashboard() {
                                 ))}
                                 {scores.length === 0 && (
                                     <div className="text-center py-16">
-                                        <div className="text-4xl mb-4">🏜️</div>
+                                        <div className="flex justify-center mb-4"><Palmtree className="w-10 h-10 text-gray-400" /></div>
                                         <p className="text-sm font-medium italic" style={{ color: "var(--text-muted)" }}>No lecturers in your department yet.</p>
                                     </div>
                                 )}
@@ -192,9 +176,9 @@ export default function HoDDashboard() {
 
                 {/* Assign Observation */}
                 {tab === "observations" && (
-                    <div className="p-8 max-w-2xl mx-auto">
+                    <div className="max-w-7xl mx-auto">
                         <div className="text-center mb-8">
-                            <h3 className="font-bold text-xl mb-2" style={{ color: "var(--text-primary)" }}>👁️ Assign Peer Observation</h3>
+                            <h3 className="font-bold text-xl mb-2 flex justify-center items-center gap-2" style={{ color: "var(--text-primary)" }}><Eye className="w-6 h-6 text-blue-500" /> Assign Peer Observation</h3>
                             <p className="text-sm" style={{ color: "var(--text-muted)" }}>Schedule a mandatory session observation between two lecturers.</p>
                         </div>
 
@@ -253,15 +237,15 @@ export default function HoDDashboard() {
 
                 {/* Department Broadcast */}
                 {tab === "notify" && (
-                    <div className="p-8 max-w-2xl mx-auto">
+                    <div className="max-w-7xl mx-auto">
                         <div className="text-center mb-8">
-                            <h3 className="font-bold text-xl mb-2" style={{ color: "var(--text-primary)" }}>📢 Departmental Broadcast</h3>
+                            <h3 className="font-bold text-xl mb-2 flex justify-center items-center gap-2" style={{ color: "var(--text-primary)" }}><Megaphone className="w-6 h-6 text-blue-500" /> Departmental Broadcast</h3>
                             <p className="text-sm" style={{ color: "var(--text-muted)" }}>Send a priority alert to all lecturers in your department.</p>
                         </div>
 
                         {notify.sent ? (
                             <div className="p-8 rounded-3xl border text-center animate-in zoom-in duration-300" style={{ backgroundColor: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.3)" }}>
-                                <div className="text-4xl mb-4">🚀</div>
+                                <div className="flex justify-center mb-4"><Rocket className="w-10 h-10 text-green-500" /></div>
                                 <h4 className="font-bold mb-1" style={{ color: "#10b981" }}>Broadcast Sent!</h4>
                                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>All colleagues have been notified via their dashboards.</p>
                             </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Pagination from "@/components/ui/Pagination";
 import Modal from "@/components/ui/Modal";
 import SearchableSelect from "@/components/ui/SearchableSelect";
+import { FileText, BarChart2, Code, Video, Link as LinkIcon, Paperclip, UploadCloud, Building2, CloudUpload, Library } from "lucide-react";
 
 interface Resource {
     id: number;
@@ -17,8 +18,13 @@ interface Resource {
     department?: { name: string } | null;
 }
 
-const typeIcon: Record<string, string> = {
-    PDF: "📄", SLIDES: "📊", CODE: "💻", VIDEO: "🎥", LINK: "🔗", OTHER: "📎",
+const typeConfig: Record<string, { icon: React.ReactNode, bgClass: string, borderClass: string, textClass: string }> = {
+    PDF: { icon: <FileText className="w-6 h-6" />, bgClass: "bg-rose-500/10", borderClass: "border-rose-500/20", textClass: "text-rose-500" },
+    SLIDES: { icon: <BarChart2 className="w-6 h-6" />, bgClass: "bg-amber-500/10", borderClass: "border-amber-500/20", textClass: "text-amber-500" },
+    CODE: { icon: <Code className="w-6 h-6" />, bgClass: "bg-blue-500/10", borderClass: "border-blue-500/20", textClass: "text-blue-500" },
+    VIDEO: { icon: <Video className="w-6 h-6" />, bgClass: "bg-purple-500/10", borderClass: "border-purple-500/20", textClass: "text-purple-500" },
+    LINK: { icon: <LinkIcon className="w-6 h-6" />, bgClass: "bg-sky-500/10", borderClass: "border-sky-500/20", textClass: "text-sky-500" },
+    OTHER: { icon: <Paperclip className="w-6 h-6" />, bgClass: "bg-slate-500/10", borderClass: "border-slate-500/20", textClass: "text-slate-500" },
 };
 
 const statusColors: Record<string, string> = {
@@ -214,7 +220,7 @@ export default function LecturerResourcesPage() {
     });
 
     return (
-        <div className="max-w-6xl mx-auto animate-in fade-in duration-400">
+        <div className="max-w-7xl mx-auto animate-in fade-in duration-400">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Resources</h1>
                 <p className="text-slate-500 dark:text-white/50 mt-1">Upload course materials or download resources shared by your institution</p>
@@ -223,12 +229,12 @@ export default function LecturerResourcesPage() {
             {/* Tab switch */}
             <div className="flex gap-1 p-1 bg-slate-100 dark:bg-white/5 rounded-2xl mb-8 w-fit border border-slate-200 dark:border-white/10">
                 <button onClick={() => setActiveTab("MY_UPLOADS")}
-                    className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${activeTab === "MY_UPLOADS" ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25" : "text-slate-500 dark:text-white/50 hover:text-slate-900 dark:hover:text-white"}`}>
-                    📤 My Uploads
+                    className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${activeTab === "MY_UPLOADS" ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25" : "text-slate-500 dark:text-white/50 hover:text-slate-900 dark:hover:text-white"}`}>
+                    <UploadCloud className="w-4 h-4" /> My Uploads
                 </button>
                 <button onClick={() => setActiveTab("SHARED")}
                     className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${activeTab === "SHARED" ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/25" : "text-slate-500 dark:text-white/50 hover:text-slate-900 dark:hover:text-white"}`}>
-                    🏫 Shared by Admin
+                    <Building2 className="w-4 h-4" /> Shared by Admin
                     {sharedResources.length > 0 && (
                         <span className="text-xs bg-black/10 dark:bg-white/20 rounded-full px-1.5 py-0.5 leading-none">{sharedResources.length}</span>
                     )}
@@ -242,7 +248,7 @@ export default function LecturerResourcesPage() {
                     <div className="lg:col-span-1">
                         <div className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-3xl p-6 sticky top-8">
                             <h3 className="text-slate-900 dark:text-white font-bold mb-5 flex items-center gap-2">
-                                <span className="text-blue-500">📤</span> Upload Resource
+                                <CloudUpload className="w-5 h-5 text-blue-500" /> Upload Resource
                             </h3>
                             <form onSubmit={handleUpload} className="space-y-4">
                                 <div>
@@ -271,7 +277,9 @@ export default function LecturerResourcesPage() {
                     <div className="lg:col-span-2">
                         <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-sm">
                             <div className="px-6 py-5 border-b border-slate-100 dark:border-white/10">
-                                <h3 className="text-slate-900 dark:text-white font-bold flex items-center gap-2"><span className="text-blue-500">📚</span> My Uploaded Resources</h3>
+                                <h3 className="text-slate-900 dark:text-white font-bold flex items-center gap-2">
+                                    <Library className="w-5 h-5 text-blue-500" /> My Uploaded Resources
+                                </h3>
                             </div>
                             {myLoading ? (
                                 <div className="flex justify-center py-16"><div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" /></div>
@@ -281,9 +289,14 @@ export default function LecturerResourcesPage() {
                                 <div className="divide-y divide-slate-100 dark:divide-white/5">
                                     {myResources.map(r => (
                                         <div key={r.id} className="p-5 hover:bg-slate-50 dark:hover:bg-white/3 transition group flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-2xl flex-shrink-0 group-hover:scale-110 transition">
-                                                {typeIcon[r.type] || "📎"}
-                                            </div>
+                                            {(() => {
+                                                const config = typeConfig[r.type] || typeConfig.OTHER;
+                                                return (
+                                                    <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition shadow-sm ${config.bgClass} ${config.borderClass} ${config.textClass}`}>
+                                                        {config.icon}
+                                                    </div>
+                                                );
+                                            })()}
                                             <div className="flex-1 min-w-0">
                                                 <div className="text-slate-900 dark:text-white font-semibold text-sm truncate group-hover:text-blue-600 dark:group-hover:text-blue-300 transition">{r.title}</div>
                                                 {r.description && <div className="text-slate-500 dark:text-white/30 text-xs mt-0.5 truncate">{r.description}</div>}
@@ -359,7 +372,7 @@ export default function LecturerResourcesPage() {
                         <div className="flex justify-center py-20"><div className="animate-spin w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full" /></div>
                     ) : filteredShared.length === 0 ? (
                         <div className="text-center py-20 bg-slate-50 dark:bg-white/3 rounded-3xl border border-slate-100 dark:border-white/5">
-                            <div className="text-5xl mb-4">🏫</div>
+                            <div className="flex justify-center mb-4"><Building2 className="w-12 h-12 text-slate-300 dark:text-white/10" /></div>
                             <div className="text-slate-900 dark:text-white/50 font-semibold text-lg mb-1">
                                 {sharedResources.length === 0 ? "No Shared Resources Yet" : "No results matching your search"}
                             </div>
@@ -375,9 +388,14 @@ export default function LecturerResourcesPage() {
                                 {filteredShared.map(r => (
                                     <div key={r.id} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-3xl p-5 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all group flex flex-col gap-4 shadow-sm">
                                         <div className="flex items-start gap-3">
-                                            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-2xl flex-shrink-0">
-                                                {typeIcon[r.type] || "📎"}
-                                            </div>
+                                            {(() => {
+                                                const config = typeConfig[r.type] || typeConfig.OTHER;
+                                                return (
+                                                    <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center flex-shrink-0 shadow-sm ${config.bgClass} ${config.borderClass} ${config.textClass}`}>
+                                                        {config.icon}
+                                                    </div>
+                                                );
+                                            })()}
                                             <div className="flex-1 min-w-0">
                                                 <div className="text-slate-900 dark:text-white font-bold text-sm leading-tight line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-300 transition">{r.title}</div>
                                                 <div className="flex items-center gap-2 mt-1">

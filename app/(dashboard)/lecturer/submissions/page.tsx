@@ -1,4 +1,5 @@
 "use client";
+import { Info, BookOpen, ScrollText, FileText } from "lucide-react";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -72,7 +73,7 @@ function CourseOutlineContent() {
     }
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
+        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
             {/* Header */}
             <div>
                 <h1 className="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
@@ -85,7 +86,7 @@ function CourseOutlineContent() {
 
             {/* Info Banner */}
             <div className="p-5 bg-blue-600/10 border border-blue-500/20 rounded-3xl flex items-start gap-4">
-                <span className="text-2xl mt-0.5">ℹ️</span>
+                <Info className="w-6 h-6 text-blue-500 mt-0.5 shrink-0" />
                 <div>
                     <h3 className="font-bold text-blue-300 text-sm">Unified Course Workspaces</h3>
                     <p className="text-xs text-blue-200 mt-1 leading-relaxed">
@@ -94,12 +95,12 @@ function CourseOutlineContent() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 {/* Left Column: Assigned Courses Grid Selector */}
-                <div className="lg:col-span-2 space-y-6">
+                <div className="xl:col-span-2 space-y-6">
                     <div className="border rounded-3xl p-6 space-y-5" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
                         <h2 className="font-bold text-lg flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-                            <span className="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-300">📚</span>
+                            <div className="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-300"><BookOpen className="w-5 h-5" /></div>
                             Select Course Workspace
                         </h2>
 
@@ -138,11 +139,11 @@ function CourseOutlineContent() {
                 <div className="lg:col-span-1">
                     <div className="border rounded-3xl p-6 sticky top-8" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
                         <h3 className="font-semibold mb-5 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-                            <span className="text-indigo-400">📜</span> Submission History
+                            <ScrollText className="w-5 h-5 text-indigo-400" /> Submission History
                         </h3>
                         {history.length === 0 ? (
                             <div className="text-center py-10" style={{ color: "var(--text-muted)" }}>
-                                <div className="text-4xl mb-3">📄</div>
+                                <div className="flex justify-center mb-3"><FileText className="w-10 h-10 text-gray-400" /></div>
                                 <p className="text-sm">No submissions found.</p>
                             </div>
                         ) : (

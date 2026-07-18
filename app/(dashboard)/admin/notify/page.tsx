@@ -40,7 +40,7 @@ export default function AdminNotifyPage() {
     }
 
     return (
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-7xl mx-auto">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>Broadcast Notification</h1>
                 <p className="mt-1" style={{ color: "var(--text-muted)" }}>Send a message to all lecturers or a specific group</p>

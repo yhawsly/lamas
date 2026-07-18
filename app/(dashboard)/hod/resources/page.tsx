@@ -1,4 +1,5 @@
 "use client";
+import { Folder, FileText, BarChart2, Code, Video, Link as LinkIcon, Paperclip, Download, Eye } from "lucide-react";
 
 import { useState, useEffect } from "react";
 
@@ -105,12 +106,17 @@ export default function HODResourcesPage() {
         }
     };
 
-    const typeIcons: Record<string, string> = {
-        PDF: "📄", SLIDES: "📊", CODE: "💻", VIDEO: "🎥", LINK: "🔗", OTHER: "📎",
+    const typeConfig: Record<string, { icon: React.ReactNode, bgClass: string, borderClass: string, textClass: string }> = {
+        PDF: { icon: <FileText className="w-6 h-6" />, bgClass: "bg-rose-500/10", borderClass: "border-rose-500/20", textClass: "text-rose-500" },
+        SLIDES: { icon: <BarChart2 className="w-6 h-6" />, bgClass: "bg-amber-500/10", borderClass: "border-amber-500/20", textClass: "text-amber-500" },
+        CODE: { icon: <Code className="w-6 h-6" />, bgClass: "bg-blue-500/10", borderClass: "border-blue-500/20", textClass: "text-blue-500" },
+        VIDEO: { icon: <Video className="w-6 h-6" />, bgClass: "bg-purple-500/10", borderClass: "border-purple-500/20", textClass: "text-purple-500" },
+        LINK: { icon: <LinkIcon className="w-6 h-6" />, bgClass: "bg-sky-500/10", borderClass: "border-sky-500/20", textClass: "text-sky-500" },
+        OTHER: { icon: <Paperclip className="w-6 h-6" />, bgClass: "bg-slate-500/10", borderClass: "border-slate-500/20", textClass: "text-slate-500" },
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 animate-fade-in p-8">
+        <div className="max-w-7xl mx-auto space-y-8 animate-fade-in">
             <header className="mb-8">
                 <h1 className="text-3xl font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>Resource Approvals</h1>
                 <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
@@ -135,7 +141,7 @@ export default function HODResourcesPage() {
                     </div>
                 ) : resources.length === 0 ? (
                     <div className="text-center py-20" style={{ color: "var(--text-muted)" }}>
-                        <div className="text-4xl mb-4">📁</div>
+                        <div className="flex justify-center mb-4"><Folder className="w-10 h-10 text-gray-400" /></div>
                         <p>No resources found in your department.</p>
                     </div>
                 ) : (
@@ -143,9 +149,14 @@ export default function HODResourcesPage() {
                         {resources.map(r => (
                             <div key={r.id} className="p-6 transition-colors hover:bg-[var(--bg-hover)] flex flex-col md:flex-row md:items-center justify-between gap-6">
                                 <div className="flex items-start gap-4 flex-1">
-                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)" }}>
-                                        {typeIcons[r.type] || "📎"}
-                                    </div>
+                                {(() => {
+                                    const config = typeConfig[r.type] || typeConfig.OTHER;
+                                    return (
+                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 border shadow-sm ${config.bgClass} ${config.borderClass} ${config.textClass}`}>
+                                            {config.icon}
+                                        </div>
+                                    );
+                                })()}
                                     <div>
                                         <div className="font-bold text-lg leading-tight mb-1" style={{ color: "var(--text-primary)" }}>{r.title}</div>
                                         <div className="text-xs mb-2 font-medium uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>{r.type} FORMAT • BY {r.lecturer?.name}</div>
@@ -160,10 +171,10 @@ export default function HODResourcesPage() {
                                 </div>
                                 <div className="flex items-center gap-3 shrink-0 uppercase tracking-widest text-[10px] font-bold">
                                     <a href={r.url} onClick={(e) => handleDownloadClick(e, r.url, r.title)} className="px-4 py-3 rounded-xl border hover:bg-[var(--bg-hover)] transition-colors flex items-center gap-2" style={{ borderColor: "var(--bg-border)", color: "var(--text-primary)" }}>
-                                        📥 Download
+                                        <Download className="w-4 h-4" /> Download
                                     </a>
                                     <a href={r.url} onClick={(e) => handleViewClick(e, r.url, r.type)} className="px-4 py-3 rounded-xl border hover:bg-[var(--bg-hover)] transition-colors flex items-center gap-2" style={{ borderColor: "var(--bg-border)", color: "var(--text-primary)" }}>
-                                        👀 View Source
+                                        <Eye className="w-4 h-4" /> View Source
                                     </a>
                                     {r.status === "PENDING" && (
                                         <>

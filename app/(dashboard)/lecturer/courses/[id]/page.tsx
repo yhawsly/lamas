@@ -1,4 +1,5 @@
 "use client";
+import { GraduationCap, CheckCircle, AlertTriangle, Circle } from "lucide-react";
 
 import React, { useState, useRef, useEffect } from "react";
 import useSWR, { useSWRConfig } from "swr";
@@ -13,7 +14,6 @@ const fetcher = (url: string) => fetch(url).then(res => res.ok ? res.json() : nu
 export default function CourseOutlinePrototype() {
   const params = useParams();
   const router = useRouter();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const [selectedCourseId] = useState<string | null>((params?.id as string) || "c1");
@@ -408,11 +408,11 @@ export default function CourseOutlinePrototype() {
   const activeClass = classes.find(c => c.id === selectedClassId);
 
   return (
-    <div className="max-w-6xl mx-auto animate-in fade-in duration-500 font-sans pb-20">
+    <div className="max-w-7xl mx-auto animate-in fade-in duration-500 font-sans pb-20">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 bg-slate-900 border border-slate-800 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 animate-in slide-in-from-bottom-5 duration-300 z-50">
-          <span className="text-green-400">✔</span>
+          <CheckCircle className="w-5 h-5 text-green-400" />
           <span className="text-sm font-semibold">{toastMessage}</span>
         </div>
       )}
@@ -422,65 +422,81 @@ export default function CourseOutlinePrototype() {
           /* Course Workspace View (Sidebar + Main Canvas) */
           <>
             {/* Main Canvas Area */}
-            <main className="w-full">
+            <main className="w-full">              {/* Horizontal Top Navigation */}
+              <header className="mb-8">
+                  {/* Top Row: Back link & Auto-save Status */}
+                  <div className="flex flex-wrap items-center justify-between gap-4 mb-6 relative z-10">
+                      <button 
+                          onClick={() => router.push("/lecturer/courses")} 
+                          className="text-sm font-semibold text-slate-500 hover:text-blue-600 transition-colors flex items-center gap-1.5 py-1"
+                      >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                          Back to Courses
+                      </button>
 
-              {/* Horizontal Top Navigation */}
-              <header className="bg-white border-b border-slate-200 pb-24 pt-8 px-6 rounded-b-3xl relative overflow-hidden shadow-sm">
-                  <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle at 10% 20%, var(--primary) 1px, transparent 1px)", backgroundSize: "20px 20px" }}></div>
-                  
-                  <div className="flex justify-between items-start mb-6 relative z-10">
+                      <div className="flex flex-wrap items-center gap-3">
+                          <div className="flex items-center gap-2 text-xs font-bold text-slate-500 px-2 py-1">
+                            {saveIndicator === "saving" && (
+                              <span className="text-indigo-600 flex items-center gap-1.5 animate-pulse">
+                                <span className="w-2 h-2 rounded-full bg-indigo-600 animate-ping"></span>
+                                Saving...
+                              </span>
+                            )}
+                            {saveIndicator === "saved" && (
+                              <span className="text-emerald-600 flex items-center gap-1.5">
+                                <CheckCircle className="w-3.5 h-3.5" /> Saved
+                              </span>
+                            )}
+                            {saveIndicator === "error" && (
+                              <span className="text-rose-600 flex items-center gap-1.5">
+                                <AlertTriangle className="w-3.5 h-3.5" /> Error
+                              </span>
+                            )}
+                            {saveIndicator === "idle" && isDirty && (
+                              <span className="text-amber-600 flex items-center gap-1.5">
+                                <Circle className="w-3.5 h-3.5 fill-current" /> Unsaved
+                              </span>
+                            )}
+                            {saveIndicator === "idle" && !isDirty && (
+                              <span className="flex items-center gap-1.5">
+                                <CheckCircle className="w-3.5 h-3.5" /> Synced
+                              </span>
+                            )}
+                          </div>
+                      </div>
+                  </div>
+
+                  {/* Middle Row: Title and Main Actions */}
+                  <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 relative z-10">
                     <div>
                       <div className="flex items-center gap-3 mb-2">
-                        <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold tracking-widest border border-blue-100">WORKSPACE</span>
+                        <span className="text-blue-600 text-xs font-black tracking-widest uppercase">
+                          Course Workspace
+                        </span>
                       </div>
-                      <h1 className="text-3xl font-bold text-slate-800">{basicInfo.courseCode}</h1>
+                      <h1 className="text-4xl font-black text-slate-800 tracking-tight">{basicInfo.courseCode}</h1>
                       <p className="text-slate-500 text-lg mt-1">{basicInfo.title}</p>
                     </div>
-                    <div className="flex flex-col items-end mt-4 md:mt-0 gap-2">
-                      <div className="flex items-center gap-2 text-xs mb-1 font-medium">
-                        {saveIndicator === "saving" && (
-                          <span className="text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 animate-pulse">
-                            <span className="w-2 h-2 rounded-full bg-indigo-600 dark:bg-indigo-400 animate-ping"></span>
-                            Auto-saving...
-                          </span>
-                        )}
-                        {saveIndicator === "saved" && (
-                          <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                            ✔ Saved to draft
-                          </span>
-                        )}
-                        {saveIndicator === "error" && (
-                          <span className="text-rose-600 dark:text-rose-400 flex items-center gap-1">
-                            ⚠ Error saving
-                          </span>
-                        )}
-                        {saveIndicator === "idle" && isDirty && (
-                          <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                            ● Unsaved changes
-                          </span>
-                        )}
-                        {saveIndicator === "idle" && !isDirty && (
-                          <span className="text-slate-400 dark:text-slate-500 flex items-center gap-1">
-                            ✔ Draft synced
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => handleSaveToDB(false)} disabled={isSaving} className="px-5 py-2 rounded-xl bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors font-bold flex items-center gap-2 shadow-sm text-sm border border-blue-200">
+
+                    <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                        <button 
+                            onClick={() => handleSaveToDB(false)} 
+                            disabled={isSaving} 
+                            className="flex-1 md:flex-none px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 transition-all font-bold flex items-center justify-center gap-2 shadow-sm text-sm border border-slate-200 hover:border-slate-300"
+                        >
                             {isSaving ? "Saving..." : "Save Draft"}
                         </button>
-                        <button onClick={() => handleSaveToDB(true)} disabled={isSaving || submissionStatus === "SUBMITTED"} className={`px-5 py-2 rounded-xl ${submissionStatus === "SUBMITTED" ? "bg-green-100 text-green-700 border-green-200 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"} transition-colors font-bold flex items-center gap-2 shadow-sm text-sm border`}>
-                            {submissionStatus === "SUBMITTED" ? "Submitted" : "Submit for Review"}
+                        <button 
+                            onClick={() => handleSaveToDB(true)} 
+                            disabled={isSaving || submissionStatus === "SUBMITTED"} 
+                            className={`flex-1 md:flex-none px-5 py-2.5 rounded-xl ${submissionStatus === "SUBMITTED" ? "bg-green-100 text-green-700 border-green-200 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30"} transition-all font-bold flex items-center justify-center gap-2 text-sm border border-transparent`}
+                        >
+                            {submissionStatus === "SUBMITTED" ? "Submitted" : "Submit"}
                         </button>
-                      </div>
-                      <button onClick={() => router.push("/lecturer/courses")} className="px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors font-bold flex items-center gap-2 shadow-sm text-sm border border-slate-200 dark:border-slate-700">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                          Go Back
-                      </button>
                     </div>
                   </div>
                 
-                <nav className="flex items-center gap-2 overflow-x-auto">
+                <nav className="flex items-center gap-6 border-b border-slate-200 overflow-x-auto relative z-10">
                   {[
                     { id: "topics", label: "Course Topics" },
                     { id: "classes", label: "My Classes" },
@@ -492,10 +508,10 @@ export default function CourseOutlinePrototype() {
                         setActiveTab(tab.id);
                         if (tab.id !== "classes") setSelectedClassId(null);
                       }}
-                      className={`whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-medium transition shadow-sm ${
+                      className={`whitespace-nowrap py-3 px-1 text-sm font-semibold transition-colors border-b-2 -mb-px ${
                         activeTab === tab.id 
-                          ? "bg-blue-600 text-white shadow-blue-500/30" 
-                          : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
+                          ? "border-blue-600 text-blue-600" 
+                          : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
                       }`}
                     >
                       {tab.label}
@@ -692,7 +708,7 @@ export default function CourseOutlinePrototype() {
                       </header>
                       {classes.length === 0 && (
                         <div className="p-12 border-2 border-dashed border-slate-200 rounded-2xl text-center bg-slate-50/50">
-                          <div className="text-4xl mb-3">🎓</div>
+                          <div className="flex justify-center mb-3"><GraduationCap className="w-10 h-10 text-gray-400" /></div>
                           <h3 className="font-bold text-slate-700 mb-1">No Sections Assigned</h3>
                           <p className="text-sm text-slate-500 max-w-sm mx-auto">
                             Your HOD hasn&apos;t assigned any class sections to you for this course. Please contact your Head of Department to get assigned.

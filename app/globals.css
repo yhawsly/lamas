@@ -1,55 +1,91 @@
 @import "tailwindcss";
 
-/* ─── Dark Mode Strategy ─── */
 @variant dark (&:where(.dark, .dark *));
+
+/* ─── Global Tailwind Theme Overrides ─── */
+@theme {
+  /* Alias custom primary to tailwind's semantic classes */
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+
+  /* Override standard blue with our professional Sapphire */
+  --color-blue-50: #eff6ff;
+  --color-blue-100: #dbeafe;
+  --color-blue-200: #bfdbfe;
+  --color-blue-300: #93c5fd;
+  --color-blue-400: #60a5fa;
+  --color-blue-500: #3b82f6;
+  --color-blue-600: #2563eb; /* Primary brand */
+  --color-blue-700: #1d4ed8;
+  --color-blue-800: #1e40af;
+  --color-blue-900: #1e3a8a;
+
+  /* Premium Green (Emerald/Teal hue for softer success states) */
+  --color-green-50: #ecfdf5;
+  --color-green-100: #d1fae5;
+  --color-green-500: #10b981;
+  --color-green-600: #059669;
+
+  /* Premium Amber (Softer warning states) */
+  --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+
+  /* Premium Red (Rose/Crimson hue for softer error states) */
+  --color-red-50: #fff1f2;
+  --color-red-100: #ffe4e6;
+  --color-red-500: #f43f5e;
+  --color-red-600: #e11d48;
+}
 
 /* ─── Design Tokens ─── */
 :root {
   /* Premium Dark Mode (Deep Navy/Slate) */
-  --bg-base: #020617;
-  --bg-surface: rgba(15, 23, 42, 0.6);
-  --bg-border: rgba(255, 255, 255, 0.06);
-  --bg-hover: rgba(255, 255, 255, 0.05);
-  --bg-sidebar: #0f172a;
+  --bg-base: #0B0F19; /* Very dark blue-gray */
+  --bg-surface: #111827; /* Gray 900 */
+  --bg-border: rgba(255, 255, 255, 0.08);
+  --bg-hover: rgba(255, 255, 255, 0.04);
+  --bg-sidebar: #0B0F19;
 
   /* Text */
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #F9FAFB; /* Gray 50 */
+  --text-secondary: #9CA3AF; /* Gray 400 */
+  --text-muted: #6B7280; /* Gray 500 */
 
-  /* Premium Accents */
-  --primary: #6366f1;
-  /* Indigo 500 */
-  --primary-hover: #4f46e5;
+  /* Primary Brand (Sapphire) */
+  --primary: #3B82F6; /* Blue 500 */
+  --primary-hover: #60A5FA; /* Blue 400 */
+
+  /* Accents */
   --accent-blue: #38bdf8;
   --accent-green: #10b981;
   --accent-red: #f43f5e;
   --accent-amber: #f59e0b;
 
-  --glass-bg: rgba(15, 23, 42, 0.8);
+  --glass-bg: rgba(17, 24, 39, 0.85);
   --glass-border: rgba(255, 255, 255, 0.1);
 }
 
-/* ─── Premium Light Mode (Clean White & Indigo Blends) ─── */
+/* ─── Premium Light Mode (Clean Slate & Sapphire) ─── */
 :root:not(.dark) {
-  --bg-base: #ffffff;
-  --bg-surface: #f8fafc;
-  --bg-border: #e2e8f0;
-  --bg-hover: #f1f5f9;
-  --bg-sidebar: #ffffff;
-  /* Modern clean sidebar */
+  --bg-base: #F8FAFC; /* Slate 50 */
+  --bg-surface: #FFFFFF; /* Pure white cards */
+  --bg-border: #E2E8F0; /* Slate 200 */
+  --bg-hover: #F1F5F9; /* Slate 100 */
+  --bg-sidebar: #FFFFFF;
 
   /* Text */
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
+  --text-primary: #0F172A; /* Slate 900 */
+  --text-secondary: #475569; /* Slate 600 */
+  --text-muted: #94A3B8; /* Slate 400 */
 
-  --primary: #4f46e5;
-  /* Indigo 600 */
-  --primary-hover: #4338ca;
+  /* Primary Brand (Sapphire) */
+  --primary: #2563EB; /* Blue 600 */
+  --primary-hover: #1D4ED8; /* Blue 700 */
 
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(15, 23, 42, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(15, 23, 42, 0.05);
 }
 
 /* ─── Base ─── */
@@ -74,8 +110,8 @@ body {
 
 /* ─── Scrollbar (Premium Minimal) ─── */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -95,19 +131,19 @@ body {
 .card {
   background: var(--bg-surface);
   border: 1px solid var(--bg-border);
-  border-radius: 1.25rem;
+  border-radius: 1rem;
   transition: all 0.3s ease;
 }
 
 :root:not(.dark) .card {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
 }
 
 .glass-card {
   background: var(--glass-bg);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border);
-  border-radius: 1.25rem;
+  border-radius: 1rem;
 }
 
 /* Animations */
@@ -117,7 +153,7 @@ body {
 
 .hover-lift:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
 }
 
 /* Input Styles */
@@ -127,6 +163,17 @@ textarea {
   background-color: var(--bg-surface);
   border: 1px solid var(--bg-border);
   color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+/* Ensure text color is always visible even when Tailwind bg classes override the background */
+input[class*="bg-white"],
+input[class*="bg-slate"],
+textarea[class*="bg-white"],
+textarea[class*="bg-slate"],
+select[class*="bg-white"],
+select[class*="bg-slate"] {
+  color: var(--text-primary);
 }
 
 input:focus,
@@ -134,16 +181,16 @@ select:focus,
 textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* Custom Gradients */
 .bg-indigo-premium {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, #6366f1 0%, #38bdf8 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent-blue) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

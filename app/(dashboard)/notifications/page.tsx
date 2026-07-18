@@ -1,6 +1,7 @@
 "use client";
+import { Inbox } from "lucide-react";
 
-import { useSession } from "next-auth/react";
+
 import { formatDistanceToNow } from "date-fns";
 import useSWR from "swr";
 
@@ -14,7 +15,7 @@ interface Notification {
 }
 
 export default function NotificationsPage() {
-    const { data: session } = useSession();
+    
     
     // Shared SWR hook with the same key used by the Sidebar and NotificationBell
     const { data: notificationsData, mutate } = useSWR("/api/notifications", fetcher, {
@@ -46,7 +47,7 @@ export default function NotificationsPage() {
     };
 
     return (
-        <div className="p-6 max-w-4xl mx-auto space-y-6">
+        <div className="max-w-7xl mx-auto space-y-6">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Notification Center</h1>
@@ -64,13 +65,25 @@ export default function NotificationsPage() {
 
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
                 {loading ? (
-                    <div className="p-8 text-center text-gray-500">Loading notifications...</div>
+                    <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                        {[1, 2, 3, 4, 5].map(i => (
+                            <div key={i} className="p-5 flex gap-4">
+                                <div className="mt-1">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
+                                </div>
+                                <div className="flex-1 space-y-2.5">
+                                    <div className="w-3/4 h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                                    <div className="w-1/4 h-3 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 ) : notifications.length === 0 ? (
                     <div className="p-12 text-center">
                         <div className="w-16 h-16 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <span className="text-2xl">📭</span>
+                            <Inbox className="w-8 h-8 text-gray-400" />
                         </div>
-                        <h3 className="text-gray-900 dark:text-white font-semibold">You're all caught up!</h3>
+                        <h3 className="text-gray-900 dark:text-white font-semibold">You&apos;re all caught up!</h3>
                         <p className="text-gray-500 text-sm mt-1">No new notifications.</p>
                     </div>
                 ) : (

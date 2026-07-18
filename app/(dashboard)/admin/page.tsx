@@ -1,6 +1,7 @@
 "use client";
+import { Users, ClipboardList, Clock, BarChart2, AlertTriangle, TrendingUp, Megaphone, CheckCircle } from "lucide-react";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     LineChart, Line, PieChart, Pie, Cell, Legend,
@@ -8,6 +9,7 @@ import {
 import ComplianceChart from "@/components/analytics/ComplianceChart";
 import ObservationRadar from "@/components/analytics/ObservationRadar";
 import GreetingHeader from "@/components/ui/GreetingHeader";
+import KPICard from "@/components/ui/KPICard";
 import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
@@ -67,22 +69,18 @@ export default function AdminDashboard() {
             {/* KPI Strip */}
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
                 {[
-                    { label: "Total Lecturers", value: summary.totalLecturers, icon: "👥", color: "#3b82f6" },
-                    { label: "Total Submissions", value: summary.totalSubmissions, icon: "📋", color: "#10b981" },
-                    { label: "Deadlines Set", value: summary.totalDeadlines, icon: "⏰", color: "#f59e0b" },
-                    { label: "Avg Compliance", value: `${summary.avgScore}%`, icon: "📊", color: summary.avgScore >= 70 ? "#10b981" : "#ef4444" },
-                    { label: "At Risk", value: summary.atRiskCount, icon: "⚠️", color: "#ef4444" },
-                ].map(k => (
-                    <div key={k.label} className="rounded-2xl p-4" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
-                        <div className="text-2xl mb-1">{k.icon}</div>
-                        <div className="text-3xl font-bold" style={{ color: k.color }}>{k.value}</div>
-                        <div className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>{k.label}</div>
-                    </div>
+                    { label: "Total Lecturers", value: summary.totalLecturers, icon: <Users className="w-6 h-6" />, color: "#3b82f6" },
+                    { label: "Total Submissions", value: summary.totalSubmissions, icon: <ClipboardList className="w-6 h-6" />, color: "#10b981" },
+                    { label: "Deadlines Set", value: summary.totalDeadlines, icon: <Clock className="w-6 h-6" />, color: "#f59e0b" },
+                    { label: "Avg Compliance", value: `${summary.avgScore}%`, icon: <BarChart2 className="w-6 h-6" />, color: summary.avgScore >= 70 ? "#10b981" : "#ef4444" },
+                    { label: "At Risk", value: summary.atRiskCount, icon: <AlertTriangle className="w-6 h-6" />, color: "#ef4444" },
+                ].map((k, i) => (
+                    <KPICard key={k.label} delay={i * 100} {...k} />
                 ))}
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-1 p-1 rounded-xl mb-6 w-fit flex-wrap" style={{ backgroundColor: "var(--bg-surface)" }}>
+            <div className="flex gap-1 p-1 rounded-xl mb-6 w-full sm:w-fit overflow-x-auto" style={{ backgroundColor: "var(--bg-surface)" }}>
                 {(["overview", "lecturers", "atRisk", "trend"] as const).map(t => (
                     <button key={t} onClick={() => setTab(t)}
                         className="px-4 py-2 rounded-lg text-sm font-medium capitalize transition"
@@ -90,7 +88,7 @@ export default function AdminDashboard() {
                             backgroundColor: tab === t ? "var(--primary)" : "transparent",
                             color: tab === t ? "white" : "var(--text-muted)"
                         }}>
-                        {t === "atRisk" ? "⚠️ At Risk" : t === "trend" ? "📈 Trend" : t === "lecturers" ? "👥 Scores" : "📊 Overview"}
+                        {t === "atRisk" ? <><AlertTriangle className="w-4 h-4 inline mr-1" /> At Risk</> : t === "trend" ? <><TrendingUp className="w-4 h-4 inline mr-1" /> Trend</> : t === "lecturers" ? <><Users className="w-4 h-4 inline mr-1" /> Scores</> : <><BarChart2 className="w-4 h-4 inline mr-1" /> Overview</>}
                     </button>
                 ))}
             </div>
@@ -145,17 +143,17 @@ export default function AdminDashboard() {
 
                     {/* Broadcast Notification */}
                     <div className="rounded-2xl p-6 lg:col-span-2" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
-                        <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>📢 Broadcast Notification</h3>
+                        <h3 className="font-semibold mb-4 flex items-center gap-2" style={{ color: "var(--text-primary)" }}><Megaphone className="w-5 h-5 text-blue-500" /> Broadcast Notification</h3>
                         {notify.sent ? (
-                            <div className="p-3 rounded-xl text-green-300" style={{ backgroundColor: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.3)" }}>✅ Notification sent to all lecturers.</div>
+                            <div className="p-3 rounded-xl text-green-500 flex items-center gap-2" style={{ backgroundColor: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.3)" }}><CheckCircle className="w-5 h-5" /> Notification sent to all lecturers.</div>
                         ) : (
-                            <div className="flex gap-3">
+                            <div className="flex flex-col sm:flex-row gap-3">
                                 <input value={notify.message} onChange={e => setNotify(n => ({ ...n, message: e.target.value }))}
                                     placeholder="Type a message to broadcast to all lecturers..."
                                     className="flex-1 px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 text-sm"
                                     style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
                                 <button onClick={sendBroadcast} disabled={!notify.message || sending}
-                                    className="px-5 py-2.5 rounded-xl text-white font-medium text-sm transition disabled:opacity-40"
+                                    className="px-5 py-2.5 rounded-xl text-white font-medium text-sm transition disabled:opacity-40 shrink-0"
                                     style={{ backgroundColor: "var(--primary)", color: "white" }}>
                                     {sending ? "Sending..." : "Send"}
                                 </button>
@@ -204,9 +202,9 @@ export default function AdminDashboard() {
             {/* At Risk Tab */}
             {tab === "atRisk" && (
                 <div className="rounded-2xl p-6" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
-                    <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>⚠️ At-Risk Lecturers ({data.atRisk.length})</h3>
+                    <h3 className="font-semibold mb-4 flex items-center gap-2" style={{ color: "var(--text-primary)" }}><AlertTriangle className="w-5 h-5 text-red-500" /> At-Risk Lecturers ({data.atRisk.length})</h3>
                     {data.atRisk.length === 0 ? (
-                        <div className="text-center py-8" style={{ color: "var(--text-muted)" }}>✅ No at-risk lecturers detected!</div>
+                        <div className="text-center py-8 flex flex-col items-center gap-2" style={{ color: "var(--text-muted)" }}><CheckCircle className="w-8 h-8 text-green-500" /> No at-risk lecturers detected!</div>
                     ) : (
                         <div className="space-y-3">
                             {data.atRisk.map(s => (
@@ -229,7 +227,7 @@ export default function AdminDashboard() {
             {/* Trend Tab */}
             {tab === "trend" && (
                 <div className="rounded-2xl p-6" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
-                    <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>📈 Monthly Submission Trend</h3>
+                    <h3 className="font-semibold mb-4 flex items-center gap-2" style={{ color: "var(--text-primary)" }}><TrendingUp className="w-5 h-5 text-green-500" /> Monthly Submission Trend</h3>
                     {data.trend.length === 0 ? (
                         <div className="text-center py-8" style={{ color: "var(--text-muted)" }}>No trend data yet. Submissions will appear here.</div>
                     ) : (
