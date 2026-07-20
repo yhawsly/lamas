@@ -58,7 +58,7 @@
     "socket.io-client": "^4.8.3",
     "swr": "^2.4.2",
     "zod": "^4.3.6",
-    "@sentry/nextjs": "^8.50.0"
+    "@sentry/nextjs": "^9.0.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.0",
