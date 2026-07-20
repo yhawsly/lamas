@@ -1,9 +1,9 @@
 "use client";
-import { Home, Megaphone, ClipboardList, Eye, Library, FileText, Bell, FileEdit, Map, Inbox, Users, BookOpen, CheckCircle, User, Clock, BarChart2, Calendar, Building, Search, LogOut } from "lucide-react";
+import { Home, Megaphone, ClipboardList, Eye, Library, FileText, Bell, Map, Users, CheckCircle, BarChart2 } from "lucide-react";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useTheme } from "@/components/ThemeProvider";
 import useSWR from "swr";
@@ -60,13 +60,25 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     const [mounted, setMounted] = useState(false);
-    useEffect(() => setMounted(true), []);
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setMounted(true);
+    }, []);
 
     const { data: session } = useSession();
     const pathname = usePathname();
-    const role = (session?.user as any)?.role || "LECTURER";
+
+    const getRoleFromPath = (path: string | null): string => {
+        if (!path) return "LECTURER";
+        if (path.startsWith("/admin")) return "ADMIN";
+        if (path.startsWith("/hod")) return "HOD";
+        if (path.startsWith("/deo")) return "DEO";
+        if (path.startsWith("/lecturer")) return "LECTURER";
+        return "LECTURER";
+    };
+
+    const role = (session?.user as any)?.role || getRoleFromPath(pathname);
     const nav = navByRole[role] || navByRole.LECTURER;
-    const profileHref = "/settings";
     const { data: notificationsData } = useSWR("/api/notifications", fetcher, {
         refreshInterval: 30000,
         dedupingInterval: 5000,
@@ -94,13 +106,6 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         LECTURER: "from-blue-600 to-indigo-700",
     };
 
-    const roleBadgeColors: Record<string, string> = {
-        SUPER_ADMIN: "bg-purple-500/20 text-purple-300",
-        ADMIN: "bg-rose-500/20 text-rose-300",
-        HOD: "bg-amber-500/20 text-amber-300",
-        DEO: "bg-emerald-500/20 text-emerald-300",
-        LECTURER: "bg-blue-500/20 text-blue-300",
-    };
 
     const activeStyles: Record<string, string> = {
         SUPER_ADMIN: "bg-purple-500/10 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400 font-bold",

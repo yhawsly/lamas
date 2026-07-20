@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
         ]);
 
         const results = [
-            ...submissions.map(s => ({ ...s, category: "Submission", href: `/lecturer/submissions` })),
+            ...submissions.map(s => ({ ...s, category: "Submission", href: `/lecturer/courses` })),
             ...lecturers.map(l => ({ ...l, title: l.name, category: "Lecturer", href: `/lecturer/department` })),
             ...resources.map(r => ({ ...r, category: "Resource", href: r.url }))
         ];

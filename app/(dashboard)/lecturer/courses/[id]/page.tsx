@@ -1,5 +1,5 @@
 "use client";
-import { GraduationCap, CheckCircle, AlertTriangle, Circle } from "lucide-react";
+import { GraduationCap, CheckCircle, AlertTriangle, Circle, Clock, Check } from "lucide-react";
 
 import React, { useState, useRef, useEffect } from "react";
 import useSWR, { useSWRConfig } from "swr";
@@ -11,6 +11,53 @@ import { useParams, useRouter } from "next/navigation";
 
 const fetcher = (url: string) => fetch(url).then(res => res.ok ? res.json() : null);
 
+const CourseOutlineSkeleton = () => (
+    <div className="max-w-7xl mx-auto space-y-8 animate-pulse pb-20 pt-6 px-4">
+        {/* Header navigation skeleton */}
+        <div className="flex justify-between items-center">
+            <div className="h-5 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="h-5 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+        </div>
+
+        {/* Title area skeleton */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+            <div className="space-y-3">
+                <div className="h-4 w-28 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-9 w-48 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+                <div className="h-5 w-72 bg-slate-200 dark:bg-slate-800 rounded" />
+            </div>
+            <div className="flex gap-3 w-full md:w-auto">
+                <div className="h-10 w-28 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                <div className="h-10 w-24 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+            </div>
+        </div>
+
+        {/* Tabs navigation skeleton */}
+        <div className="flex gap-6 border-b border-slate-200 dark:border-slate-800 pb-3">
+            {[1, 2, 3, 4].map(i => (
+                <div key={i} className="h-5 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+            ))}
+        </div>
+
+        {/* Main section content skeleton */}
+        <div className="space-y-6">
+            <div className="flex justify-between">
+                <div className="space-y-2">
+                    <div className="h-6 w-40 bg-slate-200 dark:bg-slate-800 rounded" />
+                    <div className="h-4 w-64 bg-slate-200 dark:bg-slate-800 rounded" />
+                </div>
+                <div className="h-9 w-32 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+            </div>
+
+            <div className="border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-12 flex flex-col items-center justify-center space-y-4">
+                <div className="h-12 w-12 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                <div className="h-4 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-3 w-64 bg-slate-200 dark:bg-slate-800 rounded" />
+            </div>
+        </div>
+    </div>
+);
+
 export default function CourseOutlinePrototype() {
   const params = useParams();
   const router = useRouter();
@@ -19,6 +66,14 @@ export default function CourseOutlinePrototype() {
   const [selectedCourseId] = useState<string | null>((params?.id as string) || "c1");
   const [topics, setTopics] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("topics");
+  
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      const tabVal = sp.get("tab");
+      if (tabVal) setActiveTab(tabVal);
+    }
+  }, []);
   
   const [basicInfo, setBasicInfo] = useState({
     courseCode: "",
@@ -38,6 +93,39 @@ export default function CourseOutlinePrototype() {
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState("DRAFT");
+
+  // Schedule per-section state (keyed by section id)
+  const [sectionSchedules, setSectionSchedules] = useState<Record<string, { dayOfWeek: string; startTime: string; endTime: string; venue: string }>>({});
+  const [savingScheduleId, setSavingScheduleId] = useState<string | null>(null);
+  const [scheduleToast, setScheduleToast] = useState<string | null>(null);
+
+  const showScheduleToast = (msg: string) => {
+    setScheduleToast(msg);
+    setTimeout(() => setScheduleToast(null), 2500);
+  };
+
+  const handleSaveSchedule = async (sectionId: string) => {
+    const form = sectionSchedules[sectionId];
+    if (!form?.dayOfWeek) return;
+    setSavingScheduleId(sectionId);
+    try {
+      const res = await fetch(`/api/courses/sections/${sectionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (res.ok) {
+        showScheduleToast("Schedule saved! Your dashboard will now show this class.");
+      } else {
+        const d = await res.json().catch(() => ({}));
+        showScheduleToast(d.error || "Failed to save schedule.");
+      }
+    } catch {
+      showScheduleToast("An error occurred.");
+    } finally {
+      setSavingScheduleId(null);
+    }
+  };
 
   // Auto-save states
   const [saveIndicator, setSaveIndicator] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -123,6 +211,21 @@ export default function CourseOutlinePrototype() {
           modules: savedClass ? savedClass.modules : [],
         };
       }));
+      // Pre-populate schedule forms from existing DB data
+      setSectionSchedules(prev => {
+        const next = { ...prev };
+        mySections.forEach((sec: any) => {
+          if (!next[sec.id.toString()]) {
+            next[sec.id.toString()] = {
+              dayOfWeek: sec.dayOfWeek || "",
+              startTime: sec.startTime || "",
+              endTime: sec.endTime || "",
+              venue: sec.venue || "",
+            };
+          }
+        });
+        return next;
+      });
     } else {
       setClasses(savedClasses || []);
     }
@@ -407,6 +510,10 @@ export default function CourseOutlinePrototype() {
 
   const activeClass = classes.find(c => c.id === selectedClassId);
 
+  if (!courseData || !sectionsData || !syllabusData) {
+    return <CourseOutlineSkeleton />;
+  }
+
   return (
     <div className="max-w-7xl mx-auto animate-in fade-in duration-500 font-sans pb-20">
       {/* Toast Notification */}
@@ -501,6 +608,7 @@ export default function CourseOutlinePrototype() {
                     { id: "topics", label: "Course Topics" },
                     { id: "classes", label: "My Classes" },
                     { id: "assessments", label: "Assessments" },
+                    { id: "schedule", label: "My Schedule" },
                   ].map(tab => (
                     <button 
                       key={tab.id}
@@ -519,6 +627,15 @@ export default function CourseOutlinePrototype() {
                   ))}
                 </nav>
               </header>
+
+              {/* Toast for schedule save feedback */}
+              {scheduleToast && (
+                <div className="fixed bottom-6 right-6 bg-slate-900 border border-slate-800 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 animate-in slide-in-from-bottom-5 duration-300 z-50">
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                  <span className="text-sm font-semibold">{scheduleToast}</span>
+                </div>
+              )}
+
 
               {activeTab === "topics" && (
                 <section id="topics" className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
@@ -934,6 +1051,93 @@ export default function CourseOutlinePrototype() {
                       </span>
                     </div>
                   </div>
+                </section>
+              )}
+
+              {activeTab === "schedule" && (
+                <section className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                  <header>
+                    <h2 className="text-2xl font-bold text-slate-800">My Schedule</h2>
+                    <p className="text-slate-500 mt-1">Set the day and time for each of your class sections. This powers the &quot;Today Class&quot; card on your dashboard.</p>
+                  </header>
+
+                  {classes.length === 0 ? (
+                    <div className="p-12 text-center rounded-2xl border border-dashed border-slate-200 bg-slate-50">
+                      <Clock className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                      <p className="font-semibold text-slate-500">No sections assigned to you for this course yet.</p>
+                      <p className="text-sm text-slate-400 mt-1">Contact your HOD or Admin to have a section assigned to you.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {classes.map(cls => {
+                        const form = sectionSchedules[cls.id] || { dayOfWeek: "", startTime: "", endTime: "", venue: "" };
+                        const isSavingThis = savingScheduleId === cls.id;
+                        return (
+                          <div key={cls.id} className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                            <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100">
+                              <div className="w-2 h-8 rounded-full bg-blue-500" />
+                              <div>
+                                <div className="font-bold text-slate-800">{cls.name}</div>
+                                {form.dayOfWeek ? (
+                                  <div className="text-xs text-blue-600 font-semibold mt-0.5 flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    {form.dayOfWeek} {form.startTime && `· ${form.startTime}`}{form.endTime && ` – ${form.endTime}`}{form.venue && ` · ${form.venue}`}
+                                  </div>
+                                ) : (
+                                  <div className="text-xs text-amber-500 font-semibold mt-0.5">⚠ Schedule not set — set it below</div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Day of Week</label>
+                                <select
+                                  value={form.dayOfWeek}
+                                  onChange={e => setSectionSchedules(prev => ({ ...prev, [cls.id]: { ...form, dayOfWeek: e.target.value } }))}
+                                  className="border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500/40 text-slate-800"
+                                >
+                                  <option value="">— Select day —</option>
+                                  {["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].map(d => (
+                                    <option key={d} value={d}>{d}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Start Time</label>
+                                <input type="time" value={form.startTime}
+                                  onChange={e => setSectionSchedules(prev => ({ ...prev, [cls.id]: { ...form, startTime: e.target.value } }))}
+                                  className="border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500/40 text-slate-800"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-bold uppercase tracking-widest text-slate-500">End Time</label>
+                                <input type="time" value={form.endTime}
+                                  onChange={e => setSectionSchedules(prev => ({ ...prev, [cls.id]: { ...form, endTime: e.target.value } }))}
+                                  className="border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500/40 text-slate-800"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Venue / Room</label>
+                                <input type="text" placeholder="e.g. LT1, Room 204" value={form.venue}
+                                  onChange={e => setSectionSchedules(prev => ({ ...prev, [cls.id]: { ...form, venue: e.target.value } }))}
+                                  className="border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500/40 text-slate-800"
+                                />
+                              </div>
+                            </div>
+                            <div className="px-6 pb-5">
+                              <button onClick={() => handleSaveSchedule(cls.id)}
+                                disabled={isSavingThis || !form.dayOfWeek}
+                                className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-bold transition disabled:opacity-50 shadow-sm shadow-blue-500/20"
+                              >
+                                <Check className="w-4 h-4" />
+                                {isSavingThis ? "Saving..." : "Save Schedule"}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </section>
               )}
             </main>

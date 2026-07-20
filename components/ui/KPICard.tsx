@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Link from "next/link";
 
 interface KPICardProps {
     label: string;
@@ -12,20 +13,23 @@ interface KPICardProps {
     };
     delay?: number;
     size?: "default" | "sm";
+    href?: string;
+    onClick?: () => void;
 }
 
-export default function KPICard({ label, value, icon, color, trend, delay = 0, size = "default" }: KPICardProps) {
+export default function KPICard({ label, value, icon, color, trend, delay = 0, size = "default", href, onClick }: KPICardProps) {
     const isSm = size === "sm";
 
-    return (
+    const cardContent = (
         <div 
-            className={`group relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-black/50 cursor-default animate-in slide-in-from-bottom-4 fade-in fill-mode-both ${isSm ? "rounded-2xl p-5" : "rounded-3xl p-6"}`}
+            className={`group relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-black/50 ${href || onClick ? "cursor-pointer" : "cursor-default"} animate-in slide-in-from-bottom-4 fade-in fill-mode-both ${isSm ? "rounded-2xl p-5" : "rounded-3xl p-6"}`}
             style={{ 
                 backgroundColor: "var(--bg-surface)", 
                 border: "1px solid var(--bg-border)",
                 animationDelay: `${delay}ms`,
                 animationDuration: "500ms"
             }}
+            onClick={onClick}
         >
             {/* Background Glow */}
             <div 
@@ -65,4 +69,9 @@ export default function KPICard({ label, value, icon, color, trend, delay = 0, s
             </div>
         </div>
     );
+
+    if (href) {
+        return <Link href={href} className="block">{cardContent}</Link>;
+    }
+    return cardContent;
 }

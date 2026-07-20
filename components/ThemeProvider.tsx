@@ -2,7 +2,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 const ThemeContext = createContext<{ theme: "light" | "dark"; toggle: () => void }>({
-    theme: "dark",
+    theme: "light",
     toggle: () => { },
 });
 
@@ -11,13 +11,13 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const [theme, setTheme] = useState<"light" | "dark">("dark");
+    const [theme, setTheme] = useState<"light" | "dark">("light");
     const [mounted, setMounted] = useState(false);
 
     // Initialize theme from localStorage on mount
     useEffect(() => {
         const savedTheme = localStorage.getItem("lamas-theme") as "light" | "dark" | null;
-        const initialTheme = savedTheme || "dark";
+        const initialTheme = savedTheme || "light";
         
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setTheme(initialTheme);

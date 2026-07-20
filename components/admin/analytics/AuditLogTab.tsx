@@ -30,6 +30,35 @@ const ACTION_COLORS: Record<string, string> = {
     ADMIN_ACTION: "bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20",
 };
 
+const AuditLogsSkeleton = () => (
+    <div className="divide-y divide-slate-100 dark:divide-slate-800/60 animate-pulse">
+        {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="p-4 sm:p-5">
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                    {/* Timestamp */}
+                    <div className="col-span-1 sm:col-span-2 space-y-1.5">
+                        <div className="h-3.5 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-3 w-14 bg-slate-200 dark:bg-slate-800 rounded" />
+                    </div>
+                    {/* User */}
+                    <div className="col-span-1 sm:col-span-3 space-y-1.5">
+                        <div className="h-3.5 w-28 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-3 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
+                    </div>
+                    {/* Action */}
+                    <div className="col-span-1 sm:col-span-3">
+                        <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                    </div>
+                    {/* Details */}
+                    <div className="col-span-1 sm:col-span-4">
+                        <div className="h-4 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
+                    </div>
+                </div>
+            </div>
+        ))}
+    </div>
+);
+
 export default function AuditLogTab() {
     const [logs, setLogs] = useState<AuditLog[]>([]);
     const [loading, setLoading] = useState(true);
@@ -58,29 +87,21 @@ export default function AuditLogTab() {
                 setLoading(false);
             })
             .catch(err => {
-                console.error("Failed to load audit logs:", err);
+                console.error(err);
                 setLoading(false);
             });
     }, [actionFilter, userFilter]);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            loadLogs(1);
-        }, 0);
-        return () => clearTimeout(timer);
+        loadLogs(1);
     }, [loadLogs]);
 
     const actions = Array.from(new Set(logs.map(l => l.action)));
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
-            <div>
-                <h2 className="text-2xl font-bold tracking-tight mb-2" style={{ color: "var(--text-primary)" }}>System Audit Logs</h2>
-                <p className="text-sm" style={{ color: "var(--text-muted)" }}>Track all system activities and user actions for compliance monitoring.</p>
-            </div>
-
+        <div className="space-y-6 animate-in fade-in duration-500">
             {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row gap-4 p-5 rounded-2xl border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
                 <div className="w-full sm:w-64">
                     <label className="block text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: "var(--text-muted)" }}>Filter by Action</label>
                     <SearchableSelect
@@ -88,9 +109,8 @@ export default function AuditLogTab() {
                         onChange={val => setActionFilter(String(val))}
                         options={[
                             { label: "All Actions", value: "ALL" },
-                            ...actions.map(a => ({ label: a, value: a }))
+                            ...Object.keys(ACTION_COLORS).map(act => ({ label: act.replace(/_/g, " "), value: act }))
                         ]}
-                        placeholder="All Actions"
                     />
                 </div>
                 <div className="w-full sm:w-64">
@@ -120,9 +140,7 @@ export default function AuditLogTab() {
 
                 <div className="divide-y divide-slate-100 dark:divide-slate-800/60 flex-1">
                     {loading ? (
-                        <div className="flex justify-center items-center h-48">
-                            <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" />
-                        </div>
+                        <AuditLogsSkeleton />
                     ) : logs.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-48 text-center p-8">
                             <Shield className="w-10 h-10 text-slate-400 mb-4" />

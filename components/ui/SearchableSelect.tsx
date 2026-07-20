@@ -15,6 +15,7 @@ interface SearchableSelectProps {
     className?: string;
     disabledValues?: (string | number)[];
     searchable?: boolean;
+    disabled?: boolean;
 }
 
 export default function SearchableSelect({
@@ -24,7 +25,8 @@ export default function SearchableSelect({
     placeholder = "Select...",
     className = "",
     disabledValues = [],
-    searchable = true
+    searchable = true,
+    disabled = false
 }: SearchableSelectProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [search, setSearch] = useState("");
@@ -50,8 +52,10 @@ export default function SearchableSelect({
         <div ref={wrapperRef} className={`relative ${className}`}>
             {/* Toggle Button */}
             <div
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-full px-4 py-3 rounded-xl text-sm flex items-start justify-between cursor-pointer transition-all border gap-2"
+                onClick={() => !disabled && setIsOpen(!isOpen)}
+                className={`w-full px-4 py-3 rounded-xl text-sm flex items-start justify-between transition-all border gap-2 ${
+                    disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                }`}
                 style={{
                     backgroundColor: "var(--bg-hover)",
                     borderColor: isOpen ? "var(--primary)" : "var(--bg-border)",

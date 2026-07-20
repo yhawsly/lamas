@@ -2,7 +2,9 @@
 import { useEffect, useState } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import KPICard from "@/components/ui/KPICard";
-import { AlertCircle, Trash2, Key, Users, CheckCircle, Search } from "lucide-react";
+import { AlertCircle, Trash2, Key, Users, CheckCircle, Search, UserPlus } from "lucide-react";
+
+import { TableSkeleton } from "@/components/ui/Skeleton";
 
 export default function AllUsersTab() {
     const [users, setUsers] = useState<any[]>([]);
@@ -136,7 +138,7 @@ export default function AllUsersTab() {
                     className="px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all hover:opacity-90 active:scale-95 text-white shadow-md shadow-blue-500/20"
                     style={{ backgroundColor: "var(--primary)" }}
                 >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                    <UserPlus className="w-5 h-5" />
                     Add User
                 </button>
             </div>

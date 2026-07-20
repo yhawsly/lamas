@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
         prisma.resource.count({ where })
     ]);
 
-    return NextResponse.json({
+    const body = {
         data: resources,
         meta: {
             totalCount,
@@ -65,7 +65,20 @@ export async function GET(req: NextRequest) {
             limit,
             totalPages: Math.ceil(totalCount / limit)
         }
-    });
+    };
+
+    // Shared listings are safe to cache briefly (short s-maxage + stale-while-revalidate)
+    if (shared) {
+        return NextResponse.json(body, {
+            status: 200,
+            headers: {
+                "Cache-Control": "public, max-age=60, s-maxage=60, stale-while-revalidate=30"
+            }
+        });
+    }
+
+    // Private/personal listings should not be cached by shared caches
+    return NextResponse.json(body);
 }
 
 // POST /api/resources

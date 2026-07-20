@@ -2,7 +2,53 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import Loader from "@/components/ui/Loader";
+
+const DetailWorkspaceSkeleton = () => (
+    <div className="max-w-4xl mx-auto space-y-8 animate-pulse pb-20 pt-6 px-4">
+        {/* Header Skeleton */}
+        <div className="space-y-3">
+            <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+            <div className="h-4 w-96 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+        </div>
+
+        {/* Info Card Skeleton */}
+        <div className="rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[1, 2, 3].map(i => (
+                    <div key={i} className="space-y-2">
+                        <div className="h-3 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-5 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+                    </div>
+                ))}
+            </div>
+        </div>
+
+        {/* Form Body Skeleton */}
+        <div className="rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-6">
+            <div className="h-6 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="space-y-4">
+                {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
+                        <div className="h-4 w-72 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="flex gap-2">
+                            <div className="h-5 w-12 bg-slate-200 dark:bg-slate-800 rounded" />
+                            <div className="h-5 w-12 bg-slate-200 dark:bg-slate-800 rounded" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+            <div className="space-y-2">
+                <div className="h-3.5 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-20 w-full bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+            </div>
+            <div className="flex justify-end gap-3">
+                <div className="h-10 w-24 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                <div className="h-10 w-32 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+            </div>
+        </div>
+    </div>
+);
 
 // Define Form C types
 type FormCReviewData = {
@@ -122,7 +168,7 @@ export default function ConductModerationPage() {
         }
     };
 
-    if (loading || !data) return <Loader message="Synchronizing Moderation Artifact..." />;
+    if (loading || !data) return <DetailWorkspaceSkeleton />;
 
     const lecturer = data.lecturer?.name || "Unknown Lecturer";
     const isCompleted = data.status !== "PENDING";

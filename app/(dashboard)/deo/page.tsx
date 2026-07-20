@@ -1,10 +1,37 @@
 "use client";
-import { Plus, ClipboardList, Inbox } from "lucide-react";
+import { Plus, ClipboardList, Inbox, BookOpen, Video, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
-import Loader from "@/components/ui/Loader";
-import GreetingHeader from "@/components/ui/GreetingHeader";
 import { useRouter } from "next/navigation";
+
+const RegistrySkeleton = () => (
+    <div className="space-y-3 animate-pulse">
+        {[1, 2, 3].map((i) => (
+            <div key={i} className="p-4 rounded-2xl border bg-slate-50/50 dark:bg-slate-900/30 border-slate-200 dark:border-slate-800/60">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                    <div className="flex items-start gap-4 flex-1">
+                        <div className="w-12 h-12 rounded-xl bg-slate-200 dark:bg-slate-800 shrink-0" />
+                        <div className="space-y-2 flex-1">
+                            <div className="flex items-center gap-2">
+                                <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+                                <div className="h-4.5 w-16 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                            </div>
+                            <div className="h-3 w-40 bg-slate-200 dark:bg-slate-800 rounded" />
+                            <div className="h-3 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                        <div className="text-right space-y-1">
+                            <div className="h-3 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
+                            <div className="h-3 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
+                        </div>
+                        <div className="h-8 w-24 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                    </div>
+                </div>
+            </div>
+        ))}
+    </div>
+);
 
 export default function DeoDashboard() {
     const router = useRouter();
@@ -22,6 +49,23 @@ export default function DeoDashboard() {
     useEffect(() => {
         loadData();
     }, []);
+
+    // Auto-populate lecturer if exactly 1 lecturer is assigned to sections of the selected course
+    useEffect(() => {
+        if (!form.courseCode) {
+            setForm(p => ({ ...p, lecturerId: "" }));
+            return;
+        }
+        const selectedCourseObj = courses.find(c => c.code === form.courseCode);
+        if (selectedCourseObj) {
+            const assignedIds = Array.from(new Set(selectedCourseObj.sections.map((s: any) => s.lecturerId).filter(Boolean)));
+            if (assignedIds.length === 1) {
+                setForm(p => ({ ...p, lecturerId: String(assignedIds[0]) }));
+            } else {
+                setForm(p => ({ ...p, lecturerId: "" }));
+            }
+        }
+    }, [form.courseCode, courses]);
 
     const loadData = async () => {
         setLoading(true);
@@ -102,16 +146,92 @@ export default function DeoDashboard() {
     };
 
     const partnerLabel = reviewType === "C" ? "Assigned Moderator" : "Assigned Observer";
+    const selectedCourseObj = courses.find(c => c.code === form.courseCode);
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
             <div className="mb-8">
-                <GreetingHeader subtitle="Centralized dispatch for peer reviews, teaching observations, and moderations." />
+                <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">DEO Dispatch Dashboard</h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Centralized dispatch for peer reviews, teaching observations, and moderations.</p>
             </div>
-            
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+            {/* 3 Clickable Horizontal Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+                {/* Card 1: Form A */}
+                <button
+                    type="button"
+                    onClick={() => setReviewType("A")}
+                    className={`text-left p-5 rounded-[24px] border-2 transition-all duration-200 cursor-pointer flex gap-4 items-center group relative overflow-hidden ${
+                        reviewType === "A"
+                            ? "bg-amber-500/5 dark:bg-amber-500/10 border-amber-500 shadow-md"
+                            : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-850 hover:border-amber-500/40"
+                    }`}
+                >
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                        reviewType === "A"
+                            ? "bg-amber-500 text-white"
+                            : "bg-slate-100 dark:bg-slate-900 text-slate-400 group-hover:bg-amber-500/10 group-hover:text-amber-500"
+                    }`}>
+                        <BookOpen className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <div className="text-[10px] font-black uppercase tracking-wider text-amber-550 dark:text-amber-400">Form A Audit</div>
+                        <h4 className="text-sm font-extrabold mt-1 text-slate-900 dark:text-white">Instructional Materials</h4>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug font-medium">Syllabus outlines, textbook relevance, notes audit.</p>
+                    </div>
+                </button>
+
+                {/* Card 2: Form B */}
+                <button
+                    type="button"
+                    onClick={() => setReviewType("B")}
+                    className={`text-left p-5 rounded-[24px] border-2 transition-all duration-200 cursor-pointer flex gap-4 items-center group relative overflow-hidden ${
+                        reviewType === "B"
+                            ? "bg-blue-500/5 dark:bg-blue-500/10 border-blue-500 shadow-md"
+                            : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-850 hover:border-blue-500/40"
+                    }`}
+                >
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                        reviewType === "B"
+                            ? "bg-blue-500 text-white"
+                            : "bg-slate-100 dark:bg-slate-900 text-slate-400 group-hover:bg-blue-500/10 group-hover:text-blue-500"
+                    }`}>
+                        <Video className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <div className="text-[10px] font-black uppercase tracking-wider text-blue-550 dark:text-blue-400">Form B Review</div>
+                        <h4 className="text-sm font-extrabold mt-1 text-slate-900 dark:text-white">Teaching Observation</h4>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug font-medium">Classroom pacing, slides structure, student dialogue.</p>
+                    </div>
+                </button>
+
+                {/* Card 3: Form C */}
+                <button
+                    type="button"
+                    onClick={() => setReviewType("C")}
+                    className={`text-left p-5 rounded-[24px] border-2 transition-all duration-200 cursor-pointer flex gap-4 items-center group relative overflow-hidden ${
+                        reviewType === "C"
+                            ? "bg-purple-500/5 dark:bg-purple-500/10 border-purple-500 shadow-md"
+                            : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-850 hover:border-purple-500/40"
+                    }`}
+                >
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                        reviewType === "C"
+                            ? "bg-purple-500 text-white"
+                            : "bg-slate-100 dark:bg-slate-900 text-slate-450 dark:text-slate-400 group-hover:bg-purple-500/10 group-hover:text-purple-500"
+                    }`}>
+                        <ShieldCheck className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <div className="text-[10px] font-black uppercase tracking-wider text-purple-550 dark:text-purple-400">Form C Moderation</div>
+                        <h4 className="text-sm font-extrabold mt-1 text-slate-900 dark:text-white">Exam Moderation</h4>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug font-medium">Marking rubrics, Bloom taxonomy, question feasibility.</p>
+                    </div>
+                </button>
+            </div>
+                   <div className="space-y-6">
                 {/* Form Creation Column */}
-                <div className="xl:col-span-1 rounded-3xl p-6 shadow-sm border xl:sticky xl:top-24 h-fit" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
+                <div className="rounded-3xl p-6 shadow-sm border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
                     <h3 className="font-semibold mb-6 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
                         <Plus className="w-5 h-5 text-blue-500" /> Dispatch Review
                     </h3>
@@ -126,23 +246,9 @@ export default function DeoDashboard() {
                         </div>
                     )}
                     
-                    <form onSubmit={assign} className="space-y-5">
+                    <form onSubmit={assign} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                         <div>
-                            <label className="block text-sm mb-1.5 font-bold" style={{ color: "var(--text-secondary)" }}>Review Type</label>
-                            <select
-                                value={reviewType}
-                                onChange={(e) => setReviewType(e.target.value as "A" | "B" | "C")}
-                                className="w-full bg-white dark:bg-slate-850 border rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm"
-                                style={{ borderColor: "var(--bg-border)", color: "var(--text-primary)" }}
-                            >
-                                <option value="A">Form A - Instructional Materials</option>
-                                <option value="B">Form B - Teaching Observation</option>
-                                <option value="C">Form C - Examination Moderation</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm mb-1.5" style={{ color: "var(--text-muted)" }}>Course Code</label>
+                            <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>Course Code</label>
                             <SearchableSelect
                                 value={form.courseCode}
                                 onChange={(val) => setForm(p => ({ ...p, courseCode: String(val) }))}
@@ -151,18 +257,32 @@ export default function DeoDashboard() {
                             />
                         </div>
 
-                        <div>
-                            <label className="block text-sm mb-1.5" style={{ color: "var(--text-muted)" }}>{reviewType === "C" ? "Internal Examiner" : "Lecturer to Observe"}</label>
+                        <div className="relative">
+                            <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>{reviewType === "C" ? "Internal Examiner" : "Lecturer to Observe"}</label>
                             <SearchableSelect
                                 value={form.lecturerId}
                                 onChange={(val) => setForm(p => ({ ...p, lecturerId: String(val) }))}
-                                options={lecturers.map(l => ({ label: `${l.name} (${l.email})`, value: String(l.id) }))}
-                                placeholder="Select target..."
+                                options={
+                                    form.courseCode
+                                        ? selectedCourseObj && selectedCourseObj.sections.some((s: any) => s.lecturerId)
+                                            ? lecturers
+                                                .filter(l => selectedCourseObj.sections.some((s: any) => s.lecturerId === l.id))
+                                                .map(l => ({ label: `${l.name} (${l.email})`, value: String(l.id) }))
+                                            : lecturers.map(l => ({ label: `${l.name} (${l.email})`, value: String(l.id) }))
+                                        : []
+                                }
+                                placeholder={form.courseCode ? "Select target..." : "Select Course first..."}
+                                disabled={!form.courseCode}
                             />
+                            {form.courseCode && selectedCourseObj && !selectedCourseObj.sections.some((s: any) => s.lecturerId) && (
+                                <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-1.5 absolute top-full left-0 w-max">
+                                    ⚠️ No lecturers officially assigned to this course yet.
+                                </p>
+                            )}
                         </div>
 
                         <div>
-                            <label className="block text-sm mb-1.5" style={{ color: "var(--text-muted)" }}>{partnerLabel}</label>
+                            <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>{partnerLabel}</label>
                             <SearchableSelect
                                 value={form.observerId}
                                 onChange={(val) => setForm(p => ({ ...p, observerId: String(val) }))}
@@ -175,7 +295,7 @@ export default function DeoDashboard() {
                         <button 
                             type="submit" 
                             disabled={isSubmitting || !form.courseCode || !form.lecturerId || !form.observerId} 
-                            className="w-full py-3.5 rounded-xl text-white font-bold text-sm transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex justify-center items-center gap-2" 
+                            className="w-full py-3 rounded-xl text-white font-bold text-sm transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex justify-center items-center gap-2 h-[42px]" 
                             style={{ backgroundColor: "var(--primary)", boxShadow: "0 8px 16px -4px var(--primary-muted)" }}
                         >
                             {isSubmitting ? <span className="animate-pulse">Dispatching...</span> : <span>Assign {reviewType === "A" ? "Form A" : reviewType === "B" ? "Form B" : "Form C"}</span>}
@@ -184,13 +304,13 @@ export default function DeoDashboard() {
                 </div>
 
                 {/* Registry Column */}
-                <div className="xl:col-span-2 rounded-3xl p-6 shadow-sm border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
+                <div className="rounded-3xl p-6 shadow-sm border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
                     <h3 className="font-semibold mb-6 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
                         <ClipboardList className="w-5 h-5 text-blue-500" /> Assignments Registry
                     </h3>
                     
                     {loading ? (
-                        <div className="py-20"><Loader message="Synchronizing Registry..." /></div>
+                        <RegistrySkeleton />
                     ) : assignments.length === 0 ? (
                         <div className="text-center py-20" style={{ color: "var(--text-muted)" }}>
                             <div className="flex justify-center mb-4"><Inbox className="w-10 h-10 text-gray-400" /></div>

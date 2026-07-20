@@ -2,15 +2,13 @@
 import { Users, ClipboardList, Clock, BarChart2, AlertTriangle, TrendingUp, Megaphone, CheckCircle } from "lucide-react";
 
 import { useState } from "react";
-import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    LineChart, Line, PieChart, Pie, Cell, Legend,
-} from "recharts";
-import ComplianceChart from "@/components/analytics/ComplianceChart";
-import ObservationRadar from "@/components/analytics/ObservationRadar";
-import GreetingHeader from "@/components/ui/GreetingHeader";
+import dynamic from "next/dynamic";
 import KPICard from "@/components/ui/KPICard";
 import useSWR from "swr";
+
+const ComplianceChart = dynamic(() => import("@/components/analytics/ComplianceChart"), { ssr: false });
+const ObservationRadar = dynamic(() => import("@/components/analytics/ObservationRadar"), { ssr: false });
+const AdminDashboardCharts = dynamic(() => import("@/components/admin/analytics/AdminDashboardCharts"), { ssr: false });
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
@@ -21,6 +19,32 @@ interface Analytics {
     heatmap: any[];
     trend: any[];
 }
+const AdminSkeleton = () => (
+    <div className="max-w-7xl mx-auto space-y-8 animate-pulse pb-20">
+        {/* Header */}
+        <div className="space-y-2">
+            <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+            <div className="h-4 w-96 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+        </div>
+
+        {/* KPI Strip */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-28 bg-slate-250 dark:bg-slate-900 rounded-2xl" />
+            ))}
+        </div>
+
+        {/* Tabs */}
+        <div className="h-10 w-80 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+            <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+        </div>
+    </div>
+);
+
 export default function AdminDashboard() {
     // Use SWR for client-side caching of institution analytics
     const { data: analyticsData } = useSWR<Analytics>("/api/admin/analytics", fetcher);
@@ -50,12 +74,7 @@ export default function AdminDashboard() {
     }
 
     if (loading || !data) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm font-medium animate-pulse" style={{ color: "var(--text-muted)" }}>Loading institution analytics...</p>
-            </div>
-        );
+        return <AdminSkeleton />;
     }
 
     const { summary } = data;
@@ -63,17 +82,18 @@ export default function AdminDashboard() {
     return (
         <div className="max-w-7xl mx-auto">
             <div className="mb-8">
-                <GreetingHeader subtitle="Institution-wide academic compliance overview" />
+                <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Admin Dashboard</h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Institution-wide academic compliance overview.</p>
             </div>
 
             {/* KPI Strip */}
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
                 {[
-                    { label: "Total Lecturers", value: summary.totalLecturers, icon: <Users className="w-6 h-6" />, color: "#3b82f6" },
-                    { label: "Total Submissions", value: summary.totalSubmissions, icon: <ClipboardList className="w-6 h-6" />, color: "#10b981" },
-                    { label: "Deadlines Set", value: summary.totalDeadlines, icon: <Clock className="w-6 h-6" />, color: "#f59e0b" },
-                    { label: "Avg Compliance", value: `${summary.avgScore}%`, icon: <BarChart2 className="w-6 h-6" />, color: summary.avgScore >= 70 ? "#10b981" : "#ef4444" },
-                    { label: "At Risk", value: summary.atRiskCount, icon: <AlertTriangle className="w-6 h-6" />, color: "#ef4444" },
+                    { label: "Total Lecturers", value: summary.totalLecturers, icon: <Users className="w-6 h-6" />, color: "#3b82f6", href: "/admin/users" },
+                    { label: "Total Submissions", value: summary.totalSubmissions, icon: <ClipboardList className="w-6 h-6" />, color: "#10b981", href: "/admin/submissions" },
+                    { label: "Deadlines Set", value: summary.totalDeadlines, icon: <Clock className="w-6 h-6" />, color: "#f59e0b", href: "/admin/submissions" },
+                    { label: "Avg Compliance", value: `${summary.avgScore}%`, icon: <BarChart2 className="w-6 h-6" />, color: summary.avgScore >= 70 ? "#10b981" : "#ef4444", onClick: () => setTab("lecturers") },
+                    { label: "At Risk", value: summary.atRiskCount, icon: <AlertTriangle className="w-6 h-6" />, color: "#ef4444", onClick: () => setTab("atRisk") },
                 ].map((k, i) => (
                     <KPICard key={k.label} delay={i * 100} {...k} />
                 ))}
@@ -109,36 +129,13 @@ export default function AdminDashboard() {
                     {/* Compliance Distribution */}
                     <div className="rounded-2xl p-6" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
                         <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Lecturer Final Compliance Scores</h3>
-                        <ResponsiveContainer width="100%" height={260}>
-                            <PieChart>
-                                <Pie data={[
-                                    { name: "Excellent (90-100%)", value: data.scores.filter(s => s.score >= 90).length },
-                                    { name: "Good (70-89%)", value: data.scores.filter(s => s.score >= 70 && s.score < 90).length },
-                                    { name: "At Risk (<70%)", value: data.scores.filter(s => s.score < 70).length },
-                                ]} cx="50%" cy="50%" outerRadius={90} dataKey="value" label={({ value }) => `${value}`}>
-                                    {[0, 1, 2].map(i => <Cell key={i} fill={["#10b981", "#3b82f6", "#ef4444"][i]} />)}
-                                </Pie>
-                                <Tooltip contentStyle={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)", borderRadius: "8px", color: "var(--text-primary)" }} />
-                                <Legend formatter={(v) => <span style={{ color: "var(--text-secondary)", fontSize: 12 }}>{v}</span>} />
-                            </PieChart>
-                        </ResponsiveContainer>
+                        <AdminDashboardCharts data={data} type="pie" />
                     </div>
 
                     {/* Dept Heatmap bars */}
                     <div className="rounded-2xl p-6" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
                         <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Department Submission Rate (%)</h3>
-                        <ResponsiveContainer width="100%" height={260}>
-                            <BarChart data={data.heatmap} margin={{ left: -10 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="var(--bg-border)" />
-                                <XAxis dataKey="department" tick={{ fill: "var(--text-secondary)", fontSize: 12 }} />
-                                <YAxis tick={{ fill: "var(--text-secondary)", fontSize: 12 }} domain={[0, 100]} />
-                                <Tooltip contentStyle={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)", borderRadius: "8px", color: "var(--text-primary)" }} />
-                                <Bar dataKey="SEMESTER_CALENDAR" name="Calendar" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="COURSE_TOPICS" name="Topics" fill="#10b981" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="OBSERVATION_REPORT" name="Observation" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                                <Legend formatter={(v) => <span style={{ color: "var(--text-secondary)", fontSize: 12 }}>{v}</span>} />
-                            </BarChart>
-                        </ResponsiveContainer>
+                        <AdminDashboardCharts data={data} type="bar" />
                     </div>
 
                     {/* Broadcast Notification */}
@@ -201,24 +198,85 @@ export default function AdminDashboard() {
 
             {/* At Risk Tab */}
             {tab === "atRisk" && (
-                <div className="rounded-2xl p-6" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
-                    <h3 className="font-semibold mb-4 flex items-center gap-2" style={{ color: "var(--text-primary)" }}><AlertTriangle className="w-5 h-5 text-red-500" /> At-Risk Lecturers ({data.atRisk.length})</h3>
+                <div className="space-y-6">
+                    <div className="rounded-2xl p-6" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
+                        <h3 className="font-bold text-lg flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+                            <AlertTriangle className="w-5 h-5 text-rose-500" />
+                            At-Risk Lecturers ({data.atRisk.length})
+                        </h3>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Lecturers with compliance scores below the 70% institutional threshold.</p>
+                    </div>
+
                     {data.atRisk.length === 0 ? (
-                        <div className="text-center py-8 flex flex-col items-center gap-2" style={{ color: "var(--text-muted)" }}><CheckCircle className="w-8 h-8 text-green-500" /> No at-risk lecturers detected!</div>
+                        <div className="rounded-3xl border p-12 text-center flex flex-col items-center justify-center gap-3 bg-white dark:bg-slate-900" style={{ borderColor: "var(--bg-border)" }}>
+                            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500"><CheckCircle className="w-6 h-6" /></div>
+                            <div>
+                                <h4 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>All Lecturers Compliant</h4>
+                                <p className="text-xs text-slate-400 mt-1">No at-risk academic staff members detected.</p>
+                            </div>
+                        </div>
                     ) : (
-                        <div className="space-y-3">
-                            {data.atRisk.map(s => (
-                                <div key={s.lecturerId} className="flex items-center justify-between p-4 rounded-xl" style={{ backgroundColor: "rgba(239, 68, 68, 0.05)", border: "1px solid rgba(239, 68, 68, 0.2)" }}>
-                                    <div>
-                                        <div className="font-medium" style={{ color: "var(--text-primary)" }}>{s.lecturerName}</div>
-                                        <div className="text-sm" style={{ color: "var(--text-muted)" }}>{s.email} · {s.department}</div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {data.atRisk.map(s => {
+                                const initials = s.lecturerName.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase();
+                                return (
+                                    <div key={s.lecturerId} className="rounded-3xl border p-6 flex flex-col justify-between transition-all duration-300 hover:shadow-lg hover:border-red-200/50 dark:hover:border-red-900/50" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
+                                        <div>
+                                            {/* Top Row: Avatar & Risk Badge */}
+                                            <div className="flex items-start justify-between mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-11 h-11 rounded-full bg-red-500/10 border border-red-500/20 text-red-600 font-bold flex items-center justify-center text-sm">
+                                                        {initials}
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-extrabold text-sm" style={{ color: "var(--text-primary)" }}>{s.lecturerName}</h4>
+                                                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>{s.email} · {s.department}</p>
+                                                    </div>
+                                                </div>
+                                                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-600 border border-rose-500/20 animate-pulse">
+                                                    High Risk
+                                                </span>
+                                            </div>
+
+                                            {/* Progress Bar & Score */}
+                                            <div className="mb-5 space-y-2">
+                                                <div className="flex justify-between text-xs font-semibold">
+                                                    <span style={{ color: "var(--text-secondary)" }}>Compliance Rating</span>
+                                                    <span className="font-extrabold text-rose-600">{s.score}%</span>
+                                                </div>
+                                                <div className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-hover)" }}>
+                                                    <div className="h-2 rounded-full bg-gradient-to-r from-red-500 to-rose-600" style={{ width: `${s.score}%` }} />
+                                                </div>
+                                            </div>
+
+                                            {/* Stats Badges */}
+                                            <div className="grid grid-cols-3 gap-2.5 mb-6 text-center">
+                                                <div className="p-2 rounded-xl border bg-slate-50/50 dark:bg-slate-900/30" style={{ borderColor: "var(--bg-border)" }}>
+                                                    <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Done</div>
+                                                    <div className="text-sm font-black text-emerald-500 mt-0.5">{s.submitted || 0}</div>
+                                                </div>
+                                                <div className="p-2 rounded-xl border bg-slate-50/50 dark:bg-slate-900/30" style={{ borderColor: "var(--bg-border)" }}>
+                                                    <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Late</div>
+                                                    <div className="text-sm font-black text-red-500 mt-0.5">{s.late || 0}</div>
+                                                </div>
+                                                <div className="p-2 rounded-xl border bg-slate-50/50 dark:bg-slate-900/30" style={{ borderColor: "var(--bg-border)" }}>
+                                                    <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Missing</div>
+                                                    <div className="text-sm font-black text-amber-500 mt-0.5">{s.missing || 0}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Send Alert Action */}
+                                        <a 
+                                            href={`mailto:${s.email}?subject=Urgent: Course Compliance Reminder - LAMAS&body=Dear ${s.lecturerName},%0D%0A%0D%0AThis is an automated reminder from the Academic Admin regarding your current submission compliance rate of ${s.score}%. You have ${s.missing} missing submission(s). Please log in to the LAMAS portal and submit your materials as soon as possible.%0D%0A%0D%0ABest regards,%0D%0AAcademic Administration`}
+                                            className="w-full py-2.5 rounded-xl border text-center text-xs font-bold transition flex items-center justify-center gap-2 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20 dark:hover:text-rose-400 border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400"
+                                        >
+                                            <Megaphone className="w-4 h-4" />
+                                            Send Alert Email
+                                        </a>
                                     </div>
-                                    <div className="text-right">
-                                        <div className="font-bold text-xl" style={{ color: "#ef4444" }}>{s.score}%</div>
-                                        <div className="text-xs" style={{ color: "var(--text-muted)" }}>{s.missing} missing</div>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </div>
@@ -231,17 +289,7 @@ export default function AdminDashboard() {
                     {data.trend.length === 0 ? (
                         <div className="text-center py-8" style={{ color: "var(--text-muted)" }}>No trend data yet. Submissions will appear here.</div>
                     ) : (
-                        <ResponsiveContainer width="100%" height={320}>
-                            <LineChart data={data.trend} margin={{ left: -10 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="var(--bg-border)" />
-                                <XAxis dataKey="month" tick={{ fill: "var(--text-secondary)", fontSize: 12 }} />
-                                <YAxis tick={{ fill: "var(--text-secondary)", fontSize: 12 }} />
-                                <Tooltip contentStyle={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)", borderRadius: "8px", color: "var(--text-primary)" }} />
-                                <Legend formatter={(v) => <span style={{ color: "var(--text-secondary)", fontSize: 12 }}>{v}</span>} />
-                                <Line type="monotone" dataKey="submitted" name="On Time" stroke="#10b981" strokeWidth={2} dot={{ fill: "#10b981" }} />
-                                <Line type="monotone" dataKey="late" name="Late" stroke="#ef4444" strokeWidth={2} dot={{ fill: "#ef4444" }} />
-                            </LineChart>
-                        </ResponsiveContainer>
+                        <AdminDashboardCharts data={data} type="line" />
                     )}
                 </div>
             )}

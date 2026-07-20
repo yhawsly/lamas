@@ -106,6 +106,9 @@ model Deadline {
   type        SubmissionType
   term        AcademicTerm?  @relation(fields: [termId], references: [id])
   submissions Submission[]
+
+  @@index([termId])
+  @@index([type])
 }
 
 /// Accredited academic courses
@@ -197,6 +200,12 @@ model CourseSection {
   name          String
   session       SessionType  @default(REGULAR)
   
+  // Scheduling fields
+  dayOfWeek     String?      // e.g. "Monday", "Tuesday"
+  startTime     String?      // e.g. "08:30 AM"
+  endTime       String?      // e.g. "10:30 AM"
+  venue         String?      // e.g. "Lecture Theatre 1"
+  
   course        Course       @relation(fields: [courseId], references: [id])
   term          AcademicTerm @relation(fields: [termId], references: [id])
   lecturer      User?        @relation("SectionLecturer", fields: [lecturerId], references: [id])
@@ -204,6 +213,7 @@ model CourseSection {
   @@index([courseId])
   @@index([termId])
   @@index([lecturerId])
+  @@index([courseId, termId])
 }
 
 /// Specific academic periods (semesters/terms)
@@ -250,6 +260,9 @@ model Submission {
   @@index([deadlineId])
   @@index([termId])
   @@index([lecturerId, status])
+  @@index([lecturerId, termId])
+  @@index([type, status])
+  @@index([termId, status])
 }
 
 model SubmissionVersion {
@@ -285,6 +298,8 @@ model Observation {
   @@index([observerId])
   @@index([status])
   @@index([termId])
+  @@index([lecturerId, status])
+  @@index([termId, status])
 }
 
 /// Examination Moderation Form C Records
@@ -310,6 +325,8 @@ model ExamModeration {
   @@index([deoId])
   @@index([status])
   @@index([termId])
+  @@index([lecturerId, status])
+  @@index([termId, status])
 }
 
 /// Teaching Observation Form B Records
@@ -337,6 +354,8 @@ model TeachingObservation {
   @@index([deoId])
   @@index([status])
   @@index([termId])
+  @@index([lecturerId, status])
+  @@index([termId, status])
 }
 
 
@@ -352,6 +371,7 @@ model Notification {
   @@index([userId])
   @@index([read])
   @@index([userId, read])
+  @@index([userId, createdAt])
 }
 
 /// Audit trail for system activities
@@ -367,6 +387,7 @@ model ActivityLog {
   @@index([userId])
   @@index([action])
   @@index([createdAt])
+  @@index([userId, createdAt])
 }
 
 /// Generated system reports

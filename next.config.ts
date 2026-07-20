@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 
+// Bundle analyzer integration (enabled with `ANALYZE=true` env)
+const withBundleAnalyzer = require('@next/bundle-analyzer')({ enabled: process.env.ANALYZE === 'true' });
+
 const nextConfig: NextConfig = {
     // Don't leak Next.js version in response headers
     poweredByHeader: false,
@@ -50,7 +53,7 @@ const nextConfig: NextConfig = {
 
 
     // Externalize problematic CommonJS packages so Turbopack doesn't break them
-    serverExternalPackages: ["pdf-parse"],
+    serverExternalPackages: ["pdf-parse", "exceljs", "bcrypt", "nodemailer"],
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

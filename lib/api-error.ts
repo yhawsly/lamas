@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { captureException } from "@/lib/sentry";
+import { logger } from "@/lib/logger";
 
 // Utility for standardized API error handling
 
@@ -13,7 +15,10 @@ export interface ApiError {
  * Usage: return handleApiError(error, "Failed to fetch data");
  */
 export function handleApiError(error: unknown, customMessage?: string) {
-    console.error(`[API Error] ${customMessage || "Request failed"}:`, error);
+    logger.error(`[API Error] ${customMessage || "Request failed"}`, { error });
+
+    // Report to Sentry (no-op if not configured)
+    captureException(error, { customMessage });
 
     const message = customMessage || (error instanceof Error ? error.message : "An unexpected error occurred");
 

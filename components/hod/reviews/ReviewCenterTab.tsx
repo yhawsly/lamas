@@ -21,6 +21,54 @@ interface Submission {
     };
 }
 
+const ReviewCenterSkeleton = () => (
+    <div className="space-y-8 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="space-y-2">
+            <div className="h-7 w-48 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+            <div className="h-4 w-96 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+        </div>
+        
+        {/* Tabs Skeleton */}
+        <div className="h-12 w-64 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+
+        {/* Table Skeleton */}
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800/60 overflow-hidden shadow-sm" style={{ backgroundColor: "var(--bg-surface)" }}>
+            <div className="hidden sm:grid grid-cols-12 gap-4 p-4 border-b border-slate-200 dark:border-slate-800/60" style={{ backgroundColor: "var(--bg-hover)" }}>
+                <div className="col-span-3"><div className="h-3 w-16 bg-slate-200 dark:bg-slate-800 rounded" /></div>
+                <div className="col-span-3"><div className="h-3 w-28 bg-slate-200 dark:bg-slate-800 rounded" /></div>
+                <div className="col-span-2"><div className="h-3 w-10 bg-slate-200 dark:bg-slate-800 rounded" /></div>
+                <div className="col-span-2"><div className="h-3 w-16 bg-slate-200 dark:bg-slate-800 rounded" /></div>
+                <div className="col-span-2 text-right flex justify-end"><div className="h-3 w-20 bg-slate-200 dark:bg-slate-800 rounded" /></div>
+            </div>
+            
+            <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 items-center">
+                        <div className="col-span-3 space-y-2">
+                            <div className="h-4 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+                            <div className="h-3 w-40 bg-slate-200 dark:bg-slate-800 rounded" />
+                        </div>
+                        <div className="col-span-3 space-y-2">
+                            <div className="h-4 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
+                            <div className="h-3.5 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+                        </div>
+                        <div className="col-span-2">
+                            <div className="h-3.5 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
+                        </div>
+                        <div className="col-span-2">
+                            <div className="h-6 w-20 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                        </div>
+                        <div className="col-span-2 flex flex-col items-end">
+                            <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    </div>
+);
+
 export default function ReviewCenterTab() {
     const [submissions, setSubmissions] = useState<Submission[]>([]);
     const [loading, setLoading] = useState(true);
@@ -75,7 +123,7 @@ export default function ReviewCenterTab() {
         }
     };
 
-    if (loading && submissions.length === 0) return <Loader message="Accessing departmental inbox..." />;
+    if (loading && submissions.length === 0) return <ReviewCenterSkeleton />;
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -110,9 +158,10 @@ export default function ReviewCenterTab() {
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800/60 overflow-hidden shadow-sm flex flex-col" style={{ backgroundColor: "var(--bg-surface)" }}>
                 <div className="hidden sm:grid grid-cols-12 gap-4 p-4 border-b border-slate-200 dark:border-slate-800/60 text-[10px] font-black uppercase tracking-widest" style={{ backgroundColor: "var(--bg-hover)", color: "var(--text-muted)" }}>
                     <div className="col-span-3">Lecturer</div>
-                    <div className="col-span-4">Submission Details</div>
+                    <div className="col-span-3">Submission Details</div>
                     <div className="col-span-2">Date</div>
-                    <div className="col-span-3 text-right">Status & Action</div>
+                    <div className="col-span-2">Status</div>
+                    <div className="col-span-2 text-right">Action</div>
                 </div>
 
                 <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
@@ -133,7 +182,7 @@ export default function ReviewCenterTab() {
                                     </div>
 
                                     {/* Submission Details */}
-                                    <div className="col-span-1 sm:col-span-4">
+                                    <div className="col-span-1 sm:col-span-3">
                                         <div className="text-sm font-bold truncate" style={{ color: "var(--text-primary)" }}>{s.title}</div>
                                         <div className="inline-flex mt-1.5 px-2 py-0.5 rounded bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 text-[9px] font-black uppercase tracking-widest border border-slate-200 dark:border-slate-700">
                                             {s.type.replace(/_/g, ' ')}
@@ -147,16 +196,20 @@ export default function ReviewCenterTab() {
                                         </div>
                                     </div>
 
-                                    {/* Status & Action */}
-                                    <div className="col-span-1 sm:col-span-3 flex flex-col items-end gap-2">
+                                    {/* Status */}
+                                    <div className="col-span-1 sm:col-span-2">
                                         <span className={`inline-flex px-2.5 py-1 rounded-full text-[9px] font-black tracking-widest uppercase border ${
-                                            s.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' :
+                                            s.status === 'APPROVED' || s.status === 'REVIEWED' || s.status === 'SUBMITTED' ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' :
                                             s.status === 'REJECTED' ? 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' :
-                                            s.status === 'LATE' ? 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' :
+                                            s.status === 'LATE' || s.status === 'PENDING' ? 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' :
                                             'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20'
                                         }`}>
                                             {s.status}
                                         </span>
+                                    </div>
+
+                                    {/* Action */}
+                                    <div className="col-span-1 sm:col-span-2 text-right">
                                         <button onClick={() => { setSelectedSub(s); setReviewMode(false); }}
                                             className="text-[10px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-400 transition-colors">
                                             Open Details →
@@ -176,7 +229,7 @@ export default function ReviewCenterTab() {
             )}
 
             {/* Submission Detail Modal */}
-            <Modal isOpen={!!selectedSub} onClose={() => setSelectedSub(null)} title={selectedSub?.title || "Submission Details"}>
+            <Modal isOpen={!!selectedSub} onClose={() => setSelectedSub(null)} title={selectedSub?.title || "Submission Details"} size="2xl">
                 {selectedSub && (
                     <div className="space-y-6">
                         <div className="flex justify-between items-start p-4 rounded-2xl" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)" }}>
@@ -186,7 +239,12 @@ export default function ReviewCenterTab() {
                             </div>
                             <div className="text-right">
                                 <div className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">Status</div>
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-black ${selectedSub.status === 'APPROVED' ? 'text-emerald-500' : selectedSub.status === 'REJECTED' ? 'text-rose-500' : 'text-blue-500'}`}>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-black ${
+                                    selectedSub.status === 'APPROVED' || selectedSub.status === 'REVIEWED' || selectedSub.status === 'SUBMITTED' ? 'text-emerald-500' : 
+                                    selectedSub.status === 'REJECTED' ? 'text-rose-500' : 
+                                    selectedSub.status === 'LATE' || selectedSub.status === 'PENDING' ? 'text-amber-500' : 
+                                    'text-blue-500'
+                                }`}>
                                     {selectedSub.status}
                                 </span>
                             </div>

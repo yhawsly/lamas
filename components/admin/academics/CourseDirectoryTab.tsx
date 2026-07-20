@@ -1,9 +1,8 @@
 "use client";
-import { BookOpen } from "lucide-react";
+import { BookOpen, HelpCircle, BookPlus } from "lucide-react";
 
 import { useState, useEffect } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
-import TabsNav from "@/components/admin/TabsNav";
 
 export default function CourseDirectoryTab() {
     const [courses, setCourses] = useState<any[]>([]);
@@ -11,6 +10,8 @@ export default function CourseDirectoryTab() {
     const [loading, setLoading] = useState(true);
     const [form, setForm] = useState({ code: "", title: "", credits: "3", departmentId: "" });
     const [msg, setMsg] = useState("");
+    const [customModal, setCustomModal] = useState<{ isOpen: boolean; type: "alert" | "confirm"; title: string; message: string; onConfirm?: () => void } | null>(null);
+    const showConfirm = (title: string, message: string, onConfirm: () => void) => setCustomModal({ isOpen: true, type: "confirm", title, message, onConfirm });
 
     const fetchCourses = async () => {
         setLoading(true);
@@ -66,20 +67,22 @@ export default function CourseDirectoryTab() {
     };
 
     const deleteCourse = async (id: number) => {
-        if (!confirm("Are you sure you want to delete this course?")) return;
-        setMsg("");
-        try {
-            const res = await fetch(`/api/courses/${id}`, { method: "DELETE" });
-            if (res.ok) {
-                setMsg("✅ Course deleted successfully");
-                fetchCourses();
-            } else {
-                const data = await res.json();
-                setMsg("❌ Error: " + (data.error || "Failed to delete course"));
+        showConfirm("Delete Course", "Are you sure you want to delete this course?", async () => {
+            setCustomModal(null);
+            setMsg("");
+            try {
+                const res = await fetch(`/api/courses/${id}`, { method: "DELETE" });
+                if (res.ok) {
+                    setMsg("✅ Course deleted successfully");
+                    fetchCourses();
+                } else {
+                    const data = await res.json();
+                    setMsg("❌ Error: " + (data.error || "Failed to delete course"));
+                }
+            } catch (e: any) {
+                setMsg("❌ Error: " + e.message);
             }
-        } catch (e: any) {
-            setMsg("❌ Error: " + e.message);
-        }
+        });
     };
 
     return (
@@ -101,29 +104,29 @@ export default function CourseDirectoryTab() {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Create Form */}
-                <div className="lg:col-span-1 border rounded-2xl p-6 shadow-sm h-fit sticky top-8" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
+            <div className="space-y-6">
+                {/* Create Form - Row Aligned */}
+                <div className="border rounded-2xl p-6 shadow-sm" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
                     <h2 className="text-lg font-bold mb-4" style={{ color: "var(--text-primary)" }}>New Course</h2>
-                    <form onSubmit={createCourse} className="space-y-4">
-                        <div>
-                            <label className="block text-[10px] mb-1.5 font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Course Code (e.g. COMP101)</label>
-                            <input type="text" value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} required
+                    <form onSubmit={createCourse} className="flex flex-col lg:flex-row gap-4 items-end">
+                        <div className="flex-1 w-full min-w-[140px]">
+                            <label htmlFor="course-code" className="block text-[10px] mb-1.5 font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Course Code (e.g. COMP101)</label>
+                            <input id="course-code" name="code" type="text" value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} required
                                 placeholder="CS101"
-                                className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 uppercase" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
+                                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 uppercase" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
                         </div>
-                        <div>
-                            <label className="block text-[10px] mb-1.5 font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Course Title</label>
-                            <input type="text" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required
+                        <div className="flex-[2] w-full min-w-[200px]">
+                            <label htmlFor="course-title" className="block text-[10px] mb-1.5 font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Course Title</label>
+                            <input id="course-title" name="title" type="text" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required
                                 placeholder="Intro to Programming"
-                                className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
+                                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
                         </div>
-                        <div>
-                            <label className="block text-[10px] mb-1.5 font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Credits</label>
-                            <input type="number" min="1" max="10" value={form.credits} onChange={e => setForm({ ...form, credits: e.target.value })} required
-                                className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
+                        <div className="w-full lg:w-24">
+                            <label htmlFor="course-credits" className="block text-[10px] mb-1.5 font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Credits</label>
+                            <input id="course-credits" name="credits" type="number" min="1" max="10" value={form.credits} onChange={e => setForm({ ...form, credits: e.target.value })} required
+                                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
                         </div>
-                        <div>
+                        <div className="flex-[1.5] w-full min-w-[200px]">
                             <label className="block text-[10px] mb-1.5 font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Department</label>
                             <SearchableSelect
                                 value={form.departmentId}
@@ -133,15 +136,16 @@ export default function CourseDirectoryTab() {
                             />
                         </div>
 
-                        <button type="submit" className="w-full py-4 mt-2 rounded-xl text-sm font-bold transition-transform active:scale-[0.98] text-white flex items-center justify-center gap-2"
-                            style={{ background: "var(--primary)", boxShadow: "0 4px 14px 0 rgba(0, 0, 0, 0.1)" }}>
-                            <span>➕ Add Course</span>
+                        <button type="submit" className="w-full lg:w-auto px-6 py-2.5 rounded-xl text-sm font-bold transition-all hover:brightness-105 active:scale-[0.98] text-white flex items-center justify-center gap-2 shrink-0 h-[42px] shadow-md shadow-blue-500/10"
+                            style={{ background: "var(--primary)" }}>
+                            <BookPlus className="w-4 h-4" />
+                            <span>Add Course</span>
                         </button>
                     </form>
                 </div>
 
                 {/* List */}
-                <div className="lg:col-span-2 border rounded-2xl overflow-hidden shadow-sm flex flex-col" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
+                <div className="border rounded-2xl overflow-hidden shadow-sm flex flex-col" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
                     <div className="overflow-x-auto flex-1">
                         <table className="w-full text-left text-sm whitespace-nowrap">
                             <thead style={{ backgroundColor: "var(--bg-hover)", borderBottom: "1px solid var(--bg-border)" }}>
@@ -186,6 +190,37 @@ export default function CourseDirectoryTab() {
                     </div>
                 </div>
             </div>
+
+            {/* Custom Modal */}
+            {customModal && (
+                <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="w-full max-w-sm rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200 text-center" style={{ backgroundColor: "var(--bg-base)", border: "1px solid var(--bg-border)" }}>
+                        <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: "var(--bg-hover)" }}>
+                            <HelpCircle className="w-6 h-6" style={{ color: "var(--primary)" }} />
+                        </div>
+                        <h2 className="text-xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>{customModal.title}</h2>
+                        <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>{customModal.message}</p>
+                        
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setCustomModal(null)}
+                                className="flex-1 py-2.5 rounded-xl font-bold transition border"
+                                style={{ borderColor: "var(--bg-border)", color: "var(--text-primary)" }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (customModal.onConfirm) customModal.onConfirm();
+                                }}
+                                className="flex-1 py-2.5 rounded-xl font-bold transition bg-red-600 hover:bg-red-500 text-white"
+                            >
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

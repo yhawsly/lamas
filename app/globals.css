@@ -41,21 +41,21 @@
 
 /* ─── Design Tokens ─── */
 :root {
-  /* Premium Dark Mode (Deep Navy/Slate) */
-  --bg-base: #0B0F19; /* Very dark blue-gray */
-  --bg-surface: #111827; /* Gray 900 */
-  --bg-border: rgba(255, 255, 255, 0.08);
-  --bg-hover: rgba(255, 255, 255, 0.04);
-  --bg-sidebar: #0B0F19;
+  /* Premium Professional Dark Mode (Ultra Sleek Charcoal & Slate) */
+  --bg-base: #090d16; /* Deepest dark slate */
+  --bg-surface: #0f172a; /* Slate 900 */
+  --bg-border: rgba(148, 163, 184, 0.09); /* Soft slate border */
+  --bg-hover: rgba(148, 163, 184, 0.05); /* Subtle hover overlay */
+  --bg-sidebar: #090d16; /* Matches deepest dark base */
 
   /* Text */
-  --text-primary: #F9FAFB; /* Gray 50 */
-  --text-secondary: #9CA3AF; /* Gray 400 */
-  --text-muted: #6B7280; /* Gray 500 */
+  --text-primary: #f8fafc; /* Slate 50 */
+  --text-secondary: #94a3b8; /* Slate 400 */
+  --text-muted: #64748b; /* Slate 500 */
 
   /* Primary Brand (Sapphire) */
-  --primary: #3B82F6; /* Blue 500 */
-  --primary-hover: #60A5FA; /* Blue 400 */
+  --primary: #3b82f6; /* Blue 500 */
+  --primary-hover: #60a5fa; /* Blue 400 */
 
   /* Accents */
   --accent-blue: #38bdf8;
@@ -63,8 +63,8 @@
   --accent-red: #f43f5e;
   --accent-amber: #f59e0b;
 
-  --glass-bg: rgba(17, 24, 39, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(15, 23, 42, 0.85);
+  --glass-border: rgba(148, 163, 184, 0.08);
 }
 
 /* ─── Premium Light Mode (Clean Slate & Sapphire) ─── */
@@ -192,6 +192,7 @@ textarea:focus {
 .text-gradient {
   background: linear-gradient(135deg, var(--primary) 0%, var(--accent-blue) 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 

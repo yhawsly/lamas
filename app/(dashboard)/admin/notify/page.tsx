@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
+import { Megaphone } from "lucide-react";
 
 export default function AdminNotifyPage() {
     const [form, setForm] = useState({ message: "", targetRole: "" });
@@ -85,7 +86,14 @@ export default function AdminNotifyPage() {
                             <button type="submit" disabled={sending || !form.message.trim()}
                                 className="px-6 py-2.5 rounded-xl text-white font-semibold text-sm transition disabled:opacity-50"
                                 style={{ backgroundColor: "var(--primary)" }}>
-                                {sending ? "Sending..." : "📢 Broadcast"}
+                                {sending ? (
+                                    <span>Sending...</span>
+                                ) : (
+                                    <span className="flex items-center gap-2">
+                                        <Megaphone className="w-4 h-4" />
+                                        Broadcast
+                                    </span>
+                                )}
                             </button>
                         </div>
                     </form>

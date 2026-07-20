@@ -39,7 +39,8 @@ export async function GET(
             ...observation,
             isObserveeAssigned: !!isAssigned
         });
-    } catch {
+    } catch (err) {
+        console.error("Failed to patch observation:", err);
         return new NextResponse("Error", { status: 500 });
     }
 }
@@ -88,6 +89,10 @@ export async function PATCH(
             status = "COMPLETED";
         }
 
+        if (body.reviewData?.metadata?.venue) {
+            body.reviewData.metadata.venue = body.reviewData.metadata.venue.toUpperCase();
+        }
+
         const updated = await prisma.observation.update({
             where: { id: parseInt(id) },
             data: {
@@ -95,7 +100,7 @@ export async function PATCH(
                 status,
                 ...(body.reviewData !== undefined && { reviewData: body.reviewData }),
                 ...(body.sessionDate && { sessionDate: new Date(body.sessionDate) }),
-                ...(body.venue !== undefined && { venue: body.venue }),
+                ...(body.venue !== undefined && { venue: (body.venue && body.venue.trim() !== "") ? body.venue.toUpperCase() : null }),
             },
             include: { lecturer: { select: { email: true, name: true } } }
         });

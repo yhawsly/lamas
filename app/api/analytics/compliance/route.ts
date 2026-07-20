@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { headers, cookies } from "next/headers";
+import { cachedQuery } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -29,32 +30,27 @@ export async function GET() {
             where.lecturer = { departmentId: user.departmentId };
         }
 
-        const submissions = await prisma.submission.findMany({ where, select: { status: true } });
+        // Use groupBy aggregation instead of fetching all rows and counting in-memory
+        const cacheKey = `compliance:${role}:${user?.departmentId ?? "all"}:${termId ?? "none"}`;
+        const data = await cachedQuery(cacheKey, async () => {
+            const grouped = await prisma.submission.groupBy({
+                by: ["status"],
+                where,
+                _count: { status: true },
+            });
 
-        const counts: Record<string, number> = {
-            "SUBMITTED": 0,
-            "PENDING": 0,
-            "LATE": 0,
-            "APPROVED": 0,
-            "REVIEWED": 0,
-            "REJECTED": 0,
-            "DRAFT": 0
-        };
+            return grouped
+                .map(g => ({ name: g.status, value: g._count.status }))
+                .filter(item => item.value > 0);
+        }, 120); // 120s TTL for analytics data
 
-        submissions.forEach(sub => {
-            const status = sub.status;
-            if (counts[status] !== undefined) counts[status]++;
-            else counts[status] = 1;
+        return NextResponse.json(data, {
+            headers: {
+                "Cache-Control": "private, max-age=60, stale-while-revalidate=60",
+            },
         });
-
-
-        const data = Object.keys(counts).map(key => ({
-            name: key,
-            value: counts[key]
-        })).filter(item => item.value > 0);
-
-        return NextResponse.json(data);
     } catch {
         return NextResponse.json({ error: "Failed to fetch analytics" }, { status: 500 });
     }
 }
+

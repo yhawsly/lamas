@@ -87,69 +87,76 @@ export default function AppraisalsPage() {
                         ))}
                     </div>
                 ) : assignments.length === 0 ? <p className="text-center py-12" style={{ color: "var(--text-muted)" }}>No assignments found.</p> :
-                        <div className="overflow-x-auto relative z-10">
-                            <table className="w-full text-sm text-left">
-                                <thead>
-                                    <tr style={{ color: "var(--text-muted)", borderBottom: "1px solid var(--bg-border)" }}>
-                                        <th className="pb-3 px-4">Form</th>
-                                        <th className="pb-3 px-4">Course</th>
-                                        <th className="pb-3 px-4">Your Role</th>
-                                        <th className="pb-3 px-4">Partner</th>
-                                        <th className="pb-3 px-4">Schedule</th>
-                                        <th className="pb-3 px-4 text-center">Status</th>
-                                        <th className="pb-3 px-4 text-right">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody style={{ borderColor: "var(--bg-border)" }} className="divide-y">
-                                    {assignments.map(o => {
-                                        const isObserver = o.observerId === userId;
-                                        return (
-                                            <tr key={`${o.formType}-${o.id}`} className="transition group" style={{ color: "var(--text-secondary)" }} onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-hover)"} onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
-                                                <td className="py-4 px-4 whitespace-nowrap">
-                                                    <span className="font-black text-xs tracking-widest bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 px-2 py-1 rounded-md">FORM {o.formType}</span>
-                                                    <div className="text-[10px] uppercase mt-1 opacity-60 font-bold">{o.typeName}</div>
-                                                </td>
-                                                <td className="py-4 px-4 font-bold" style={{ color: "var(--text-primary)" }}>{o.courseCode}</td>
-                                                <td className="py-4 px-4">
-                                                    <span className={`text-[10px] px-2 py-1 rounded-md font-black tracking-widest uppercase ${isObserver ? 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300'}`}>
+                        <div className="space-y-4 relative z-10">
+                            {assignments.map(o => {
+                                const isObserver = o.observerId === userId;
+                                return (
+                                    <div 
+                                        key={`${o.formType}-${o.id}`} 
+                                        className="flex flex-col md:flex-row md:items-center justify-between p-5 border rounded-2xl transition-all duration-300 hover:shadow-md hover:scale-[1.002]" 
+                                        style={{ backgroundColor: "var(--bg-base)", borderColor: "var(--bg-border)" }}
+                                    >
+                                        {/* Left: Info */}
+                                        <div className="flex items-start gap-4">
+                                            <div className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-center shrink-0 min-w-[70px]">
+                                                <span className="block font-black text-xs tracking-widest text-slate-700 dark:text-slate-200">FORM {o.formType}</span>
+                                                <span className="block text-[8px] font-black uppercase tracking-widest text-slate-400 mt-0.5">{o.formType === "A" ? "Peer" : o.formType === "B" ? "Teach" : "Exam"}</span>
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <span className="text-sm font-black tracking-tight" style={{ color: "var(--primary)" }}>{o.courseCode}</span>
+                                                    <span className={`text-[9px] px-2 py-0.5 rounded-md font-black tracking-widest uppercase ${isObserver ? 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300'}`}>
                                                         {isObserver ? (o.formType === "C" ? 'MODERATOR' : 'OBSERVER') : 'LECTURER'}
                                                     </span>
-                                                </td>
-                                                <td className="py-4 px-4 font-medium" style={{ color: "var(--text-primary)" }}>
-                                                    {isObserver ? (o.lecturer?.name || "Peer") : (o.formType === "C" ? o.moderator?.name : o.observer?.name) || "Peer"}
-                                                </td>
-                                                <td className="py-4 px-4 whitespace-nowrap">
-                                                    {o.formType === "C" ? <span className="opacity-40 italic text-xs">N/A</span> : (
-                                                        o.sessionDate ? (
-                                                            <div>
-                                                                <div className="font-medium" style={{ color: "var(--text-primary)" }}>{new Date(o.sessionDate).toLocaleDateString()}</div>
-                                                                <div className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{o.venue || "Venue TBA"}</div>
-                                                            </div>
-                                                        ) : <span className="text-amber-500 text-xs font-bold bg-amber-500/10 px-2 py-1 rounded-full">Unscheduled</span>
-                                                    )}
-                                                </td>
-                                                <td className="py-4 px-4 text-center">
-                                                    <span className={`text-[10px] px-2 py-1 rounded-full font-black tracking-widest uppercase ${statusColors[o.status] || ""}`}>
-                                                        {o.status}
-                                                    </span>
-                                                </td>
-                                                <td className="py-4 px-4 text-right">
-                                                    <button
-                                                        onClick={() => router.push(getRoute(o.formType, o.id))}
-                                                        className={`px-4 py-2 rounded-xl text-xs font-bold transition shadow-lg ${
-                                                            isObserver && o.status === "PENDING"
-                                                                ? "bg-primary text-white hover:opacity-90 shadow-primary/20"
-                                                                : "bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 shadow-none"
-                                                        }`}
-                                                    >
-                                                        {isObserver && o.status === "PENDING" ? "Conduct →" : "View Artifact →"}
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
+                                                </div>
+                                                <div className="text-xs font-semibold mt-1" style={{ color: "var(--text-primary)" }}>
+                                                    {o.typeName} • <span className="font-normal" style={{ color: "var(--text-muted)" }}>Partner: {isObserver ? (o.lecturer?.name || "Peer") : (o.formType === "C" ? o.moderator?.name : o.observer?.name) || "Peer"}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Right Details */}
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mt-4 md:mt-0">
+                                            {/* Schedule Info */}
+                                            <div className="text-left md:text-right min-w-[120px]">
+                                                {o.formType === "C" ? (
+                                                    <span className="text-xs italic" style={{ color: "var(--text-muted)" }}>Moderation Review</span>
+                                                ) : (
+                                                    o.sessionDate ? (
+                                                        <div>
+                                                            <div className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{new Date(o.sessionDate).toLocaleDateString(undefined, { dateStyle: 'medium' })}</div>
+                                                            <div className="text-[10px] font-semibold mt-0.5" style={{ color: "var(--text-muted)" }}>{o.venue || "VENUE TBA"}</div>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="inline-block text-[9px] font-black uppercase tracking-widest text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-md">Unscheduled</span>
+                                                    )
+                                                )}
+                                            </div>
+
+                                            {/* Status Badge */}
+                                            <div className="w-fit">
+                                                <span className={`inline-block text-[9px] px-2.5 py-1 rounded-full font-black tracking-widest uppercase ${statusColors[o.status] || ""}`}>
+                                                    {o.status}
+                                                </span>
+                                            </div>
+
+                                            {/* Action Button */}
+                                            <div className="shrink-0">
+                                                <button
+                                                    onClick={() => router.push(getRoute(o.formType, o.id))}
+                                                    className={`w-full md:w-auto px-5 py-2 rounded-xl text-xs font-bold transition shadow-lg ${
+                                                        isObserver && o.status === "PENDING"
+                                                            ? "bg-primary text-white hover:opacity-90 shadow-primary/20"
+                                                            : "bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 shadow-none"
+                                                    }`}
+                                                >
+                                                    {isObserver && o.status === "PENDING" ? "Conduct →" : "View Artifact →"}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                 }
             </div>

@@ -72,17 +72,22 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
             return NextResponse.json({ error: "Review blocked: Lecturer is not assigned to this course." }, { status: 400 });
         }
 
+        if (formBData?.metadata?.venue) {
+            formBData.metadata.venue = formBData.metadata.venue.toUpperCase();
+        }
+
         const observation = await prisma.teachingObservation.update({
             where: { id: parseInt(id) },
             data: {
                 ...(formBData !== undefined && { formBData }),
                 ...(body.sessionDate && { sessionDate: new Date(body.sessionDate) }),
-                ...(body.venue !== undefined && { venue: body.venue }),
+                ...(body.venue !== undefined && { venue: (body.venue && body.venue.trim() !== "") ? body.venue.toUpperCase() : null }),
                 ...(body.status && { status: body.status }),
             },
         });
         return NextResponse.json(observation);
     } catch (e) {
+        console.error("Teaching Observation PATCH Error:", e);
         return NextResponse.json({ error: "Failed to update observation" }, { status: 500 });
     }
 }

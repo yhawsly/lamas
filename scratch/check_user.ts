@@ -1,36 +1,23 @@
-import * as dotenv from "dotenv";
-dotenv.config();
-
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
-import * as bcrypt from "bcrypt";
-
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-});
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+require('dotenv').config();
+const { prisma } = require("../lib/prisma");
+const bcrypt = require("bcrypt");
 
 async function main() {
-    console.log("🔍 QUERYING USERS AND VERIFYING HASHES...");
-    const users = await prisma.user.findMany({
-        select: { id: true, name: true, email: true, role: true, passwordHash: true }
+    console.log("Checking superadmin user password...");
+    const user = await prisma.user.findUnique({
+        where: { email: "superadmin@lamas.edu" }
     });
-
-    for (const u of users) {
-        const testMatch = await bcrypt.compare("password123", u.passwordHash);
-        console.log(`User: ${u.name} | Email: ${u.email} | Role: ${u.role} | PasswordMatch: ${testMatch}`);
+    if (!user) {
+        console.log("User not found!");
+        return;
     }
+    console.log("User email:", user.email);
+    console.log("User passwordHash:", user.passwordHash);
+    
+    const match = await bcrypt.compare("password123", user.passwordHash);
+    console.log("Password match result:", match);
 }
 
 main()
-    .catch((e) => {
-        console.error("❌ Failed:", e);
-        process.exit(1);
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-        await pool.end();
-    });
+    .catch(console.error)
+    .finally(() => prisma.$disconnect());

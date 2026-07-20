@@ -1,0 +1,70 @@
+# Task Tracker — Google Login & DEO Forms Page
+
+- [x] Implement Mock Google Sign-In Flow
+  - [x] Add `isGoogleMock` to Credentials provider in `auth.ts`
+  - [x] Overhaul `app/login/page.tsx` with a Google account selection popup
+- [x] Add Forms page to Sidebar
+  - [x] Update `components/layout/Sidebar.tsx` with the Forms entry for DEO role
+- [x] Implement DEO Forms Page
+  - [x] Create `app/(dashboard)/deo/forms-page-ui/page.tsx`
+  - [x] Implement Left Stepper (Vertical Flow Tracker)
+  - [x] Remove unused Objectives and Personal Traits cards
+- [x] Update DEO Dispatch Dashboard
+  - [x] Integrate 3 clickable cards at the top of DEO Dashboard to select form type
+  - [x] Remove legacy Review Type `<select>` dropdown
+  - [x] Redesign Dispatch Review card to be horizontal spanning full-width
+  - [x] Place Assignments Registry full-width directly below the Dispatch card
+  - [x] Replace Assignments Registry spinner with custom pulsing skeleton loader
+  - [x] Implement dynamic filtering of Lecturers based on Course Code assignment
+  - [x] Auto-populate Lecturer when a course has exactly one assigned lecturer
+  - [x] Display warning notices if a selected course has no assigned lecturers yet
+  - [x] Ensure all 3 DEO evaluation review pages (Form A, Form B, Form C) are strictly read-only
+- [x] Refactor HOD Responsibilities
+  - [x] Remove "Assign Observation" tab, state, and handlers from HOD dashboard
+- [x] Review Center Skeleton Loaders
+  - [x] Replace spinner with custom table rows skeleton loaders in Review Center tab
+  - [x] Replace spinner with list skeleton loader in Observations tab
+  - [x] Replace spinner with list skeleton loader in My Lecturers tab
+- [x] Global Dashboard Skeleton Loaders
+  - [x] Implement skeleton screen loader for Admin Dashboard page
+  - [x] Implement skeleton screen loader for Lecturer Course outline page
+  - [x] Purge all spinning Loader instances in review/moderation conduction detail pages and replace with DetailWorkspaceSkeleton
+  - [x] Add Time selection input to Schedule Observation card, combining Date + Time + Location/Venue for database syncing
+  - [x] Fix date/time parsing to construct valid ISO-8601 dates before sending PATCH request to avoid database format conversion issues
+  - [x] Auto-populate scheduled venue to lesson venue metadata on Form B pages and render scheduled details in DEO observation view pages
+  - [x] Ensure venue is saved as null in the database if it is not inputted (blank string) during scheduling
+  - [x] Transform all venue entries automatically to uppercase on the client-side input and server-side DB writes
+  - [x] Link Today Class "See All" trigger to /lecturer/courses/2?tab=schedule and implement query tab selection hook in course details
+  - [x] Replace native confirm dialogs with a custom confirmation modal in Course Management tab and align creation card horizontally (row aligned)
+  - [x] Replace Add Course button emoji with Lucide Plus SVG icon
+  - [x] Apply the row-aligned creation form layout, custom modal triggers, and Lucide SVG icon button styles to the Academic Terms settings tab
+  - [x] Replace HOD Reports page spinner loading screen with custom table skeleton loader
+  - [x] Modify Appraisals Registry list view on lecturer dashboard to employ modern, responsive card-list rows rather than HTML tables
+  - [x] Integrate custom skeleton loaders for main HOD dashboard pages replacing default spinner loaders
+  - [x] Split Status and Action columns in HOD Review Center list and matching skeleton headers/rows
+  - [x] Map correct color styles to statuses in Review Center table row tags and details modal overlays, using light green (emerald) for APPROVED, REVIEWED, and SUBMITTED
+  - [x] Extend custom reusable Modal interface to support width parameters and adjust Review Center details modal to size 2xl
+- [x] Authenticated Session Security & Seeding Updates
+  - [x] Restrict dashboard pathprefixes strictly to authorized user roles (`/admin`, `/hod`, `/deo`, `/lecturer`) in NextAuth callbacks
+  - [x] Force redirect first-time login users (`requirePasswordReset: true`) to `/reset-password` at middleware and layout checkpoints
+  - [x] Replace loading spinner with a custom AssignmentsSkeleton loader in Admin Academics assignments view
+  - [x] Seed database with rich, realistic mock datasets for lecturer, HOD, and DEO appraisals workflows
+  - [x] Resolve sidebar navigation item flicker and default selection logic by inferring user roles from URL path prefixes
+  - [x] Fix markdown style linting errors in walkthrough.md
+  - [x] Upgrade dark mode color palette variables inside globals.css to a highly professional, modern slate-based space theme
+  - [x] Lock login page to render only in light mode (always white background)
+  - [x] Restructure Submission Deadlines tab back to side-by-side row-aligned cards layout
+  - [x] Replace all generic "+" icons on "ADD" action buttons with domain-specific Lucide icons
+  - [x] Bind all form inputs (including login, deadlines, course creation, and lecturer resources upload fields) with unique id and name attributes and link them to their corresponding label elements
+  - [x] Link SuperAdmin KPI cards to designated pages/tabs
+  - [x] Overhaul the At-Risk lecturers UI to use a premium, modern dashboard grid with custom metrics cards and an alert email trigger action
+  - [x] Remove the blue calculated week slots preview card under the form in the Academic Terms settings tab
+  - [x] Overhaul the active deadlines list into a responsive horizontal grid of cards
+  - [x] Overhaul the active deadlines layout style to follow Course Management layout style (horizontal creation form on top, card grid list below)
+  - [x] Overhaul Appraisal Submissions list load state to use skeleton loaders
+- [x] Reusable Components Upgrades
+  - [x] Add full `disabled` prop styling and click-inhibition support to `SearchableSelect`
+  - [x] Set light mode as default theme instead of dark mode in ThemeProvider
+- [x] Verification
+  - [x] Run tsc compile validation
+  - [x] Run Next.js production build validation

@@ -18,6 +18,10 @@ export default async function RootPage() {
   }
 
   if (!role) redirect("/login");
+
+  if ((session.user as any).requirePasswordReset) {
+    redirect("/reset-password");
+  }
   
   if (role === "LECTURER") redirect("/lecturer");
   if (role === "HOD") redirect("/hod");

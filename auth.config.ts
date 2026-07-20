@@ -13,18 +13,41 @@ export const authConfig = {
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
             const isLoggedIn = !!auth?.user;
+            const role = (auth?.user as any)?.role;
+            const isResetRequired = (auth?.user as any)?.requirePasswordReset;
+
+            // 1. Force password reset redirect for first-time login
+            if (isLoggedIn && isResetRequired && nextUrl.pathname !== "/reset-password" && !nextUrl.pathname.startsWith("/api")) {
+                return Response.redirect(new URL("/reset-password", nextUrl));
+            }
+
             const isOnDashboard = nextUrl.pathname.startsWith("/admin") ||
                 nextUrl.pathname.startsWith("/hod") ||
                 nextUrl.pathname.startsWith("/lecturer") ||
+                nextUrl.pathname.startsWith("/deo") ||
                 nextUrl.pathname.startsWith("/api/admin") ||
                 nextUrl.pathname.startsWith("/api/hod") ||
                 nextUrl.pathname.startsWith("/api/lecturer");
 
-            console.log(`[AUTH] Path: ${nextUrl.pathname}, User: ${auth?.user?.email}, ResetRequired: ${(auth?.user as any)?.requirePasswordReset}`);
+            console.log(`[AUTH] Path: ${nextUrl.pathname}, User: ${auth?.user?.email}, Role: ${role}, ResetRequired: ${isResetRequired}`);
 
             if (isOnDashboard) {
-                if (isLoggedIn) return true;
-                return false; // Redirect unauthenticated users to login page
+                if (!isLoggedIn) return false;
+
+                // 2. Enforce strict role-based route permissions
+                if (nextUrl.pathname.startsWith("/admin") && role !== "ADMIN" && role !== "SUPER_ADMIN") {
+                    return Response.redirect(new URL("/", nextUrl));
+                }
+                if (nextUrl.pathname.startsWith("/hod") && role !== "HOD") {
+                    return Response.redirect(new URL("/", nextUrl));
+                }
+                if (nextUrl.pathname.startsWith("/deo") && role !== "DEO") {
+                    return Response.redirect(new URL("/", nextUrl));
+                }
+                if (nextUrl.pathname.startsWith("/lecturer") && role !== "LECTURER") {
+                    return Response.redirect(new URL("/", nextUrl));
+                }
+                return true;
             }
             return true;
         },

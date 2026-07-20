@@ -178,6 +178,19 @@ async function main() {
         },
     });
 
+    const userSlyyhaw = await prisma.user.upsert({
+        where: { email: "slyyhaw@gmail.com" },
+        update: { role: "LECTURER", departmentId: cs.id },
+        create: {
+            name: "Dr. Sarah Lim (Slyyhaw)",
+            email: "slyyhaw@gmail.com",
+            passwordHash: hash,
+            role: "LECTURER",
+            departmentId: cs.id,
+            requirePasswordReset: false,
+        },
+    });
+
     await prisma.user.upsert({
         where: { email: "lecturer2@lamas.edu" },
         update: {},
@@ -219,51 +232,71 @@ async function main() {
     });
 
     // 4b. Course Sections
-    console.log("   ➤ Seeding default course sections...");
+    console.log("   ➤ Seeding default course sections with schedules...");
+    await prisma.courseSection.deleteMany(); // Reset sections to populate new columns
+
+    const dbLecturer = await prisma.user.findFirst({ where: { email: "lecturer1@lamas.edu" } });
+    const dbSlyyhaw = await prisma.user.findFirst({ where: { email: "slyyhaw@gmail.com" } });
+    
+    const lecturerId = dbLecturer ? dbLecturer.id : null;
+    const slyyhawId = dbSlyyhaw ? dbSlyyhaw.id : null;
+
     const allCourses = await prisma.course.findMany({
         include: { curriculumMaps: true }
     });
     for (const course of allCourses) {
-        const sectionCount = await prisma.courseSection.count({
-            where: { courseId: course.id }
-        });
+        const mapLevel = course.curriculumMaps[0]?.level || 100;
+        let regularName = "";
+        let weekendName = "";
 
-        if (sectionCount === 0) {
-            const mapLevel = course.curriculumMaps[0]?.level || 100;
-            let regularName = "";
-            let weekendName = "";
-
-            if (course.code.startsWith("CS")) {
-                regularName = `BTECH COMPUTER SCIENCE LVL ${mapLevel}`;
-                weekendName = `BTECH ICT LVL ${mapLevel}`;
-            } else if (course.code.startsWith("ENG")) {
-                regularName = `BENG ELECTRICAL LVL ${mapLevel}`;
-                weekendName = `BENG MECHANICAL LVL ${mapLevel}`;
-            } else if (course.code.startsWith("BIZ")) {
-                regularName = `BBA ACCOUNTING LVL ${mapLevel}`;
-                weekendName = `BBA MARKETING LVL ${mapLevel}`;
-            } else {
-                regularName = `GENERAL LEVEL ${mapLevel}`;
-                weekendName = `GENERAL WEEKEND LEVEL ${mapLevel}`;
-            }
-
-            await prisma.courseSection.createMany({
-                data: [
-                    {
-                        courseId: course.id,
-                        termId: term.id,
-                        name: regularName,
-                        session: "REGULAR"
-                    },
-                    {
-                        courseId: course.id,
-                        termId: term.id,
-                        name: weekendName,
-                        session: "WEEKEND"
-                    }
-                ]
-            });
+        if (course.code.startsWith("CS")) {
+            regularName = `BTECH COMPUTER SCIENCE LVL ${mapLevel}`;
+            weekendName = `BTECH ICT LVL ${mapLevel}`;
+        } else if (course.code.startsWith("ENG")) {
+            regularName = `BENG ELECTRICAL LVL ${mapLevel}`;
+            weekendName = `BENG MECHANICAL LVL ${mapLevel}`;
+        } else if (course.code.startsWith("BIZ")) {
+            regularName = `BBA ACCOUNTING LVL ${mapLevel}`;
+            weekendName = `BBA MARKETING LVL ${mapLevel}`;
+        } else {
+            regularName = `GENERAL LEVEL ${mapLevel}`;
+            weekendName = `GENERAL WEEKEND LEVEL ${mapLevel}`;
         }
+
+        // Assign some sections to slyyhaw and some to lecturer1
+        let assignedLecturerId = null;
+        if (["CS101", "CS102", "CS201", "CS301"].includes(course.code)) {
+            assignedLecturerId = slyyhawId || lecturerId;
+        } else if (["CS202", "CS302", "CS401"].includes(course.code)) {
+            assignedLecturerId = lecturerId;
+        }
+
+        await prisma.courseSection.createMany({
+            data: [
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: regularName,
+                    session: "REGULAR",
+                    lecturerId: assignedLecturerId,
+                    dayOfWeek: ["Monday", "Wednesday", "Friday"][course.id % 3],
+                    startTime: ["08:30 AM", "11:00 AM", "02:30 PM"][course.id % 3],
+                    endTime: ["10:30 AM", "01:00 PM", "04:30 PM"][course.id % 3],
+                    venue: ["Lecture Theatre 1", "Computer Lab 2", "Science Block Room 102"][course.id % 3],
+                },
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: weekendName,
+                    session: "WEEKEND",
+                    lecturerId: null,
+                    dayOfWeek: "Saturday",
+                    startTime: "09:00 AM",
+                    endTime: "12:00 PM",
+                    venue: "Main Hall A",
+                }
+            ]
+        });
     }
 
     // 5. Deadlines

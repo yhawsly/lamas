@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import KPICard from "@/components/ui/KPICard";
-import { Building, Search, Plus } from "lucide-react";
+import { Building, Search, FolderPlus } from "lucide-react";
 
 export default function DepartmentsTab() {
     const [departments, setDepartments] = useState<any[]>([]);
@@ -111,7 +111,7 @@ export default function DepartmentsTab() {
                     className="px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all hover:opacity-90 active:scale-95 text-white shadow-md shadow-blue-500/20"
                     style={{ backgroundColor: "var(--primary)" }}
                 >
-                    <Plus className="w-5 h-5" />
+                    <FolderPlus className="w-5 h-5" />
                     Add Department
                 </button>
             </div>

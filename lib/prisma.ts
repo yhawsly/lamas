@@ -13,15 +13,21 @@ const createPrismaClient = () => {
 
     if (process.env.DATABASE_URL) {
         if (!globalForPrisma.pgPool) {
-            console.log("   ➤ Creating NEW PostgreSQL Pool...");
+            // Pool settings are configurable via env vars for serverless/production tuning
+            const poolMax = parseInt(process.env.DATABASE_POOL_MAX || (process.env.NODE_ENV === "production" ? "5" : "10"));
+            const idleTimeout = parseInt(process.env.DATABASE_IDLE_TIMEOUT || "10000");
+            const connectionTimeout = parseInt(process.env.DATABASE_CONNECTION_TIMEOUT || "30000");
+
+            console.log(`   ➤ Creating PostgreSQL Pool (max=${poolMax}, idleTimeout=${idleTimeout}ms, connTimeout=${connectionTimeout}ms)`);
             globalForPrisma.pgPool = new Pool({
                 connectionString: process.env.DATABASE_URL,
                 ssl: process.env.NODE_ENV === "production" ? true : { rejectUnauthorized: false },
-                max: 10, // Reduced from 20 to be more conservative with serverless limits
-                idleTimeoutMillis: 10000, // Reduced to 10s to cycle connections faster
-                connectionTimeoutMillis: 30000, // Increased to 30s to allow Neon cold starts to complete
+                max: poolMax,
+                idleTimeoutMillis: idleTimeout,
+                connectionTimeoutMillis: connectionTimeout,
                 maxUses: 7500, // Recycle connections after 7500 uses
                 keepAlive: true,
+                allowExitOnIdle: true, // Allow graceful shutdown in serverless environments
             });
 
             // Add background error handler to prevent process crashes
@@ -39,9 +45,12 @@ const createPrismaClient = () => {
     return new PrismaClient(config);
 };
 
+// Cache Prisma instance in both dev and production to prevent connection exhaustion
 const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+// Also cache in production — serverless environments benefit from singleton reuse
+if (process.env.NODE_ENV === "production") globalForPrisma.prisma = prisma;
 
 export { prisma };
 export default prisma;

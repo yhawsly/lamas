@@ -1,13 +1,13 @@
 "use client";
-import { Users, BarChart2, AlertTriangle, ClipboardList, BookOpen, CheckCircle, Palmtree, Eye, Megaphone, Rocket } from "lucide-react";
+import { Users, BarChart2, AlertTriangle, ClipboardList, BookOpen, CheckCircle, Palmtree, Megaphone, Rocket } from "lucide-react";
 
 import { useState } from "react";
-import SearchableSelect from "@/components/ui/SearchableSelect";
-import ComplianceChart from "@/components/analytics/ComplianceChart";
-import ObservationRadar from "@/components/analytics/ObservationRadar";
-import GreetingHeader from "@/components/ui/GreetingHeader";
 import KPICard from "@/components/ui/KPICard";
 import useSWR from "swr";
+import dynamic from "next/dynamic";
+
+const ComplianceChart = dynamic(() => import("@/components/analytics/ComplianceChart"), { ssr: false });
+const ObservationRadar = dynamic(() => import("@/components/analytics/ObservationRadar"), { ssr: false });
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
@@ -16,38 +16,43 @@ interface LecturerScore {
     score: number; submitted: number; late: number; missing: number; isAtRisk: boolean;
 }
 
+const HODDashboardSkeleton = () => (
+    <div className="max-w-7xl mx-auto space-y-8 animate-pulse">
+        <div className="space-y-2">
+            <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+            <div className="h-4 w-96 bg-slate-200 dark:bg-slate-800 rounded" />
+        </div>
+
+        {/* KPI Cards Skeletons */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => (
+                <div key={i} className="h-28 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+            ))}
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => (
+                <div key={i} className="h-28 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+            ))}
+        </div>
+
+        {/* Tab & Content Skeleton */}
+        <div className="h-11 w-64 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+        <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-3xl" />
+    </div>
+);
+
 export default function HoDDashboard() {
     // Use SWR for client-side caching of all dashboard datasets
     const { data: analyticsData } = useSWR("/api/admin/analytics", fetcher);
     const { data: coursesData } = useSWR("/api/courses", fetcher);
-    const { data: lecturersData } = useSWR("/api/lecturers", fetcher);
 
     const data = analyticsData;
     const courses = Array.isArray(coursesData) ? coursesData : [];
-    const lecturers = Array.isArray(lecturersData) ? lecturersData : [];
-    const loading = !analyticsData || !coursesData || !lecturersData;
+    const loading = !analyticsData || !coursesData;
 
-    const [obsForm, setObsForm] = useState({ lecturerId: "", observerId: "", sessionDate: "", courseCode: "" });
-    const [obsMsg, setObsMsg] = useState("");
-    const [tab, setTab] = useState<"overview" | "observations" | "notify">("overview");
+    const [tab, setTab] = useState<"overview" | "notify">("overview");
     const [notify, setNotify] = useState({ message: "", sent: false });
-
-    async function assignObservation(e: React.FormEvent) {
-        e.preventDefault();
-        const res = await fetch("/api/observations", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...obsForm, lecturerId: parseInt(obsForm.lecturerId), observerId: parseInt(obsForm.observerId) }),
-        });
-        if (res.ok) {
-            setObsMsg("✅ Observation assigned successfully! Both parties have been notified.");
-            setObsForm({ lecturerId: "", observerId: "", sessionDate: "", courseCode: "" });
-        } else {
-            const data = await res.json().catch(() => ({}));
-            setObsMsg(`❌ ${data.error || "Failed to assign observation. Please check the inputs."}`);
-        }
-        setTimeout(() => setObsMsg(""), 4000);
-    }
 
     async function sendBroadcast() {
         if (!notify.message.trim()) return;
@@ -65,11 +70,7 @@ export default function HoDDashboard() {
         }
     }
 
-    if (loading) return (
-        <div className="flex items-center justify-center h-64">
-            <div className="animate-spin w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full" />
-        </div>
-    );
+    if (loading) return <HODDashboardSkeleton />;
 
     const scores: LecturerScore[] = data?.scores || [];
     const atRisk = scores.filter((s) => s.isAtRisk);
@@ -78,7 +79,8 @@ export default function HoDDashboard() {
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
             <div className="mb-4">
-                <GreetingHeader subtitle="Department compliance and observation management" />
+                <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">HOD Dashboard</h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Department compliance and observation management.</p>
             </div>
 
             {/* KPI Cards */}
@@ -108,14 +110,14 @@ export default function HoDDashboard() {
 
             {/* Tabs */}
             <div className="flex gap-1 p-1 rounded-2xl w-full sm:w-fit overflow-x-auto" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
-                {(["overview", "observations", "notify"] as const).map(t => (
+                {(["overview", "notify"] as const).map(t => (
                     <button key={t} onClick={() => setTab(t)}
                         className="px-6 py-2.5 rounded-xl text-sm font-semibold capitalize transition-all duration-300"
                         style={{
                             backgroundColor: tab === t ? "var(--primary)" : "transparent",
                             color: tab === t ? "white" : "var(--text-muted)"
                         }}>
-                        {t === "overview" ? "Lecturer Scores" : t === "notify" ? "Broadcast" : "Assign Observation"}
+                        {t === "overview" ? "Lecturer Scores" : "Broadcast"}
                     </button>
                 ))}
             </div>
@@ -174,66 +176,7 @@ export default function HoDDashboard() {
                     </div>
                 )}
 
-                {/* Assign Observation */}
-                {tab === "observations" && (
-                    <div className="max-w-7xl mx-auto">
-                        <div className="text-center mb-8">
-                            <h3 className="font-bold text-xl mb-2 flex justify-center items-center gap-2" style={{ color: "var(--text-primary)" }}><Eye className="w-6 h-6 text-blue-500" /> Assign Peer Observation</h3>
-                            <p className="text-sm" style={{ color: "var(--text-muted)" }}>Schedule a mandatory session observation between two lecturers.</p>
-                        </div>
 
-                        {obsMsg && (
-                            <div className={`mb-6 p-4 rounded-2xl text-sm border animate-in slide-in-from-top-2 duration-300 ${obsMsg.startsWith("✅") ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-rose-500/10 border-rose-500/20 text-rose-400"}`}>
-                                {obsMsg}
-                            </div>
-                        )}
-
-                        <form onSubmit={assignObservation} className="space-y-5">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Lecturer to Observe *</label>
-                                    <SearchableSelect
-                                        value={obsForm.lecturerId}
-                                        onChange={(val) => setObsForm({ ...obsForm, lecturerId: String(val) })}
-                                        options={lecturers.map(l => ({ label: `${l.name} (${l.email})`, value: String(l.id) }))}
-                                        placeholder="Select Lecturer..."
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Assigned Observer *</label>
-                                    <SearchableSelect
-                                        value={obsForm.observerId}
-                                        onChange={(val) => setObsForm({ ...obsForm, observerId: String(val) })}
-                                        options={lecturers.map(l => ({ label: `${l.name} (${l.email})`, value: String(l.id) }))}
-                                        placeholder="Select Observer..."
-                                        disabledValues={obsForm.lecturerId ? [obsForm.lecturerId] : []}
-                                    />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Session Date *</label>
-                                    <input type="date" value={obsForm.sessionDate} onChange={e => setObsForm({ ...obsForm, sessionDate: e.target.value })} required
-                                        className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>Course Code *</label>
-                                    <SearchableSelect
-                                        value={obsForm.courseCode}
-                                        onChange={(val) => setObsForm({ ...obsForm, courseCode: String(val) })}
-                                        options={courses.map(c => ({ label: `${c.code} - ${c.title}`, value: c.code }))}
-                                        placeholder="Search Course..."
-                                    />
-                                </div>
-                            </div>
-                            <button type="submit"
-                                className="w-full py-4 rounded-xl text-white font-bold text-sm transition-all shadow-xl active:scale-[0.98]"
-                                style={{ backgroundColor: "var(--primary)" }}>
-                                Assign Observation Notification
-                            </button>
-                        </form>
-                    </div>
-                )}
 
                 {/* Department Broadcast */}
                 {tab === "notify" && (

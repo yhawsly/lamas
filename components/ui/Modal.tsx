@@ -12,6 +12,7 @@ interface ModalProps {
     confirmText?: string;
     cancelText?: string;
     children?: React.ReactNode;
+    size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl";
 }
 
 export default function Modal({
@@ -23,7 +24,8 @@ export default function Modal({
     onConfirm,
     confirmText = "Confirm",
     cancelText = "Cancel",
-    children
+    children,
+    size = "lg"
 }: ModalProps) {
     useEffect(() => {
         if (isOpen) {
@@ -38,11 +40,22 @@ export default function Modal({
 
     if (!isOpen) return null;
 
+    const sizeClasses = {
+        sm: "max-w-sm",
+        md: "max-w-md",
+        lg: "max-w-lg",
+        xl: "max-w-xl",
+        "2xl": "max-w-2xl",
+        "3xl": "max-w-3xl",
+        "4xl": "max-w-4xl",
+    };
+    const maxWClass = sizeClasses[size] || "max-w-lg";
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={onClose} />
             <div
-                className="relative w-full max-w-lg rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+                className={`relative w-full ${maxWClass} rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200`}
                 style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}
             >
                 <h3 className="text-xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>{title}</h3>

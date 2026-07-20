@@ -3,6 +3,30 @@ import { useEffect, useState } from "react";
 import Loader from "@/components/ui/Loader";
 import { Eye, Calendar, User, ChevronRight } from "lucide-react";
 
+const ObservationsSkeleton = () => (
+    <div className="divide-y divide-slate-100 dark:divide-slate-800/60 animate-pulse">
+        {[1, 2, 3].map((i) => (
+            <div key={i} className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-5 items-center">
+                <div className="col-span-4 space-y-2">
+                    <div className="h-4 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+                    <div className="h-3.5 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
+                </div>
+                <div className="col-span-3 space-y-3">
+                    <div className="h-4 w-28 bg-slate-200 dark:bg-slate-800 rounded" />
+                    <div className="h-4 w-28 bg-slate-200 dark:bg-slate-800 rounded" />
+                </div>
+                <div className="col-span-2">
+                    <div className="h-3.5 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
+                </div>
+                <div className="col-span-3 flex flex-col items-end gap-2">
+                    <div className="h-6 w-20 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                    <div className="h-3.5 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+                </div>
+            </div>
+        ))}
+    </div>
+);
+
 export default function ObservationsTab() {
     const [observations, setObservations] = useState<any[]>([]);
     const [courses, setCourses] = useState<any[]>([]);
@@ -38,9 +62,7 @@ export default function ObservationsTab() {
 
                 <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
                     {loading ? (
-                        <div className="flex justify-center items-center h-48">
-                            <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" />
-                        </div>
+                        <ObservationsSkeleton />
                     ) : observations.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-48 text-center p-8">
                             <Eye className="w-10 h-10 text-slate-400 mb-4" />

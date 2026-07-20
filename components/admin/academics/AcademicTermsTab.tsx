@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Calendar, CheckCircle, Clock } from "lucide-react";
+import { Calendar, CheckCircle, HelpCircle, CalendarPlus } from "lucide-react";
 
 function computeWeeks(start: string, end: string) {
     if (!start || !end) return null;
@@ -15,6 +15,8 @@ export default function AcademicTermsTab() {
     const [loading, setLoading] = useState(true);
     const [form, setForm] = useState({ name: "", startDate: "", endDate: "" });
     const [msg, setMsg] = useState("");
+    const [customModal, setCustomModal] = useState<{ isOpen: boolean; type: "alert" | "confirm"; title: string; message: string; onConfirm?: () => void } | null>(null);
+    const showConfirm = (title: string, message: string, onConfirm: () => void) => setCustomModal({ isOpen: true, type: "confirm", title, message, onConfirm });
 
     // Live preview of weeks based on form dates
     const previewWeeks = useMemo(() => computeWeeks(form.startDate, form.endDate), [form.startDate, form.endDate]);
@@ -34,6 +36,7 @@ export default function AcademicTermsTab() {
     };
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchTerms();
     }, []);
 
@@ -60,18 +63,21 @@ export default function AcademicTermsTab() {
     };
 
     const activateTerm = async (id: number) => {
-        setMsg("");
-        try {
-            const res = await fetch(`/api/admin/terms/${id}`, { method: "PATCH" });
-            if (res.ok) {
-                setMsg("✅ Term activated successfully.");
-                fetchTerms();
-            } else {
-                setMsg("❌ Failed to activate term.");
+        showConfirm("Activate Academic Term", "Are you sure you want to activate this academic term? This will set it as active globally and deactivate other terms.", async () => {
+            setCustomModal(null);
+            setMsg("");
+            try {
+                const res = await fetch(`/api/admin/terms/${id}`, { method: "PATCH" });
+                if (res.ok) {
+                    setMsg("✅ Term activated successfully.");
+                    fetchTerms();
+                } else {
+                    setMsg("❌ Failed to activate term.");
+                }
+            } catch (e: any) {
+                setMsg("❌ Error: " + e.message);
             }
-        } catch (e: any) {
-            setMsg("❌ Error: " + e.message);
-        }
+        });
     };
 
     return (
@@ -93,56 +99,45 @@ export default function AcademicTermsTab() {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Create Form */}
-                <div className="lg:col-span-1 border rounded-2xl p-6 shadow-sm" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
+            <div className="space-y-6">
+                {/* Create Form - Row Aligned */}
+                <div className="border rounded-2xl p-6 shadow-sm" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
                     <h2 className="text-lg font-bold mb-4" style={{ color: "var(--text-primary)" }}>Create New Term</h2>
-                    <form onSubmit={createTerm} className="space-y-4">
-                        <div>
+                    <form onSubmit={createTerm} className="flex flex-col lg:flex-row gap-4 items-end">
+                        <div className="flex-1 w-full min-w-[200px]">
                             <label className="block text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: "var(--text-muted)" }}>Term Name</label>
                             <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required
                                 placeholder="Semester 1 2026/2027"
                                 className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900" style={{ color: "var(--text-primary)" }} />
                         </div>
-                        <div>
+                        <div className="flex-1 w-full min-w-[150px]">
                             <label className="block text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: "var(--text-muted)" }}>Start Date</label>
                             <input type="date" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })} required
                                 className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900" style={{ color: "var(--text-primary)" }} />
                         </div>
-                        <div>
+                        <div className="flex-1 w-full min-w-[150px]">
                             <label className="block text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: "var(--text-muted)" }}>End Date</label>
                             <input type="date" value={form.endDate} onChange={e => setForm({ ...form, endDate: e.target.value })} required
                                 className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900" style={{ color: "var(--text-primary)" }} />
                         </div>
 
-                        {/* Live week preview */}
-                        {previewWeeks !== null ? (
-                            <div className="flex items-center gap-3 px-4 py-3 rounded-xl border" style={{ backgroundColor: "rgba(99,102,241,0.08)", borderColor: "rgba(99,102,241,0.25)" }}>
-                                <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-sm font-bold" style={{ color: "var(--primary)" }}>
-                                    {previewWeeks}
-                                </div>
-                                <div>
-                                    <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--primary)" }}>Weeks Auto-Calculated</div>
-                                    <div className="text-[11px] font-semibold" style={{ color: "var(--text-muted)" }}>
-                                        Calendar will generate {previewWeeks} week slots
-                                    </div>
-                                </div>
-                            </div>
-                        ) : (form.startDate && form.endDate) ? (
-                            <div className="px-4 py-2 rounded-xl text-xs font-semibold" style={{ backgroundColor: "rgba(239,68,68,0.08)", color: "#ef4444" }}>
-                                ⚠️ End date must be after start date
-                            </div>
-                        ) : null}
-
-                        <button type="submit" className="w-full py-2.5 rounded-xl text-sm font-bold transition-opacity active:scale-95 text-white flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 mt-2"
+                        <button type="submit" className="w-full lg:w-auto px-6 py-2.5 rounded-xl text-sm font-bold transition-all hover:brightness-105 active:scale-[0.98] text-white flex items-center justify-center gap-2 shrink-0 h-[42px] shadow-md shadow-blue-500/10"
                             style={{ backgroundColor: "var(--primary)" }}>
-                            <span>➕ Add Term</span>
+                            <CalendarPlus className="w-4 h-4" />
+                            <span>Add Term</span>
                         </button>
                     </form>
+
+                    {/* Date validation warning */}
+                    {previewWeeks === null && form.startDate && form.endDate ? (
+                        <div className="px-4 py-2 rounded-xl text-xs font-semibold mt-4 w-fit" style={{ backgroundColor: "rgba(239,68,68,0.08)", color: "#ef4444" }}>
+                            ⚠️ End date must be after start date
+                        </div>
+                    ) : null}
                 </div>
 
                 {/* Term List - Professional UI */}
-                <div className="lg:col-span-2 border border-slate-200 dark:border-slate-800/60 rounded-2xl overflow-hidden shadow-sm flex flex-col" style={{ backgroundColor: "var(--bg-surface)" }}>
+                <div className="border border-slate-200 dark:border-slate-800/60 rounded-2xl overflow-hidden shadow-sm flex flex-col" style={{ backgroundColor: "var(--bg-surface)" }}>
                     <div className="hidden sm:grid grid-cols-12 gap-4 p-4 border-b border-slate-200 dark:border-slate-800/60 text-[10px] font-black uppercase tracking-widest" style={{ backgroundColor: "var(--bg-hover)", color: "var(--text-muted)" }}>
                         <div className="col-span-4">Term Name</div>
                         <div className="col-span-4">Period</div>
@@ -217,6 +212,37 @@ export default function AcademicTermsTab() {
                     </div>
                 </div>
             </div>
+
+            {/* Custom Modal */}
+            {customModal && (
+                <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="w-full max-w-sm rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200 text-center" style={{ backgroundColor: "var(--bg-base)", border: "1px solid var(--bg-border)" }}>
+                        <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: "var(--bg-hover)" }}>
+                            <HelpCircle className="w-6 h-6" style={{ color: "var(--primary)" }} />
+                        </div>
+                        <h2 className="text-xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>{customModal.title}</h2>
+                        <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>{customModal.message}</p>
+                        
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setCustomModal(null)}
+                                className="flex-1 py-2.5 rounded-xl font-bold transition border"
+                                style={{ borderColor: "var(--bg-border)", color: "var(--text-primary)" }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (customModal.onConfirm) customModal.onConfirm();
+                                }}
+                                className="flex-1 py-2.5 rounded-xl font-bold transition bg-emerald-600 hover:bg-emerald-500 text-white"
+                            >
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

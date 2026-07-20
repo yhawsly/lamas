@@ -6,5 +6,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
     const session = await auth();
     if (!session) redirect("/login");
 
+    if ((session.user as any).requirePasswordReset) {
+        redirect("/reset-password");
+    }
+
     return <DashboardShell>{children}</DashboardShell>;
 }

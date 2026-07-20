@@ -1,7 +1,53 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Loader from "@/components/ui/Loader";
+
+const DetailWorkspaceSkeleton = () => (
+    <div className="max-w-4xl mx-auto space-y-8 animate-pulse pb-20 pt-6 px-4">
+        {/* Header Skeleton */}
+        <div className="space-y-3">
+            <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+            <div className="h-4 w-96 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+        </div>
+
+        {/* Info Card Skeleton */}
+        <div className="rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[1, 2, 3].map(i => (
+                    <div key={i} className="space-y-2">
+                        <div className="h-3 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-5 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+                    </div>
+                ))}
+            </div>
+        </div>
+
+        {/* Form Body Skeleton */}
+        <div className="rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-6">
+            <div className="h-6 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="space-y-4">
+                {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
+                        <div className="h-4 w-72 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="flex gap-2">
+                            <div className="h-5 w-12 bg-slate-200 dark:bg-slate-800 rounded" />
+                            <div className="h-5 w-12 bg-slate-200 dark:bg-slate-800 rounded" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+            <div className="space-y-2">
+                <div className="h-3.5 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-20 w-full bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+            </div>
+            <div className="flex justify-end gap-3">
+                <div className="h-10 w-24 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                <div className="h-10 w-32 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+            </div>
+        </div>
+    </div>
+);
 
 // Define Form B types
 type FormBReviewData = {
@@ -88,9 +134,17 @@ export default function ConductTeachingObservationPage() {
                     setData(d);
                     if (d.sessionDate) setScheduleDate(new Date(d.sessionDate).toISOString().split('T')[0]);
                     if (d.venue) setScheduleVenue(d.venue);
+                    const defaultMeta = {
+                        ...DEFAULT_FORM_B.metadata,
+                        venue: d.venue || ""
+                    };
                     if (d.formBData) {
                         setReviewData({
-                            metadata: { ...DEFAULT_FORM_B.metadata, ...(d.formBData.metadata || {}) },
+                            metadata: { 
+                                ...defaultMeta, 
+                                ...(d.formBData.metadata || {}),
+                                venue: d.formBData.metadata?.venue || d.venue || ""
+                            },
                             criteria: {
                                 startOfLesson: { ...DEFAULT_FORM_B.criteria.startOfLesson, ...(d.formBData.criteria?.startOfLesson || {}) },
                                 delivery: { ...DEFAULT_FORM_B.criteria.delivery, ...(d.formBData.criteria?.delivery || {}) },
@@ -102,6 +156,11 @@ export default function ConductTeachingObservationPage() {
                             overallRating: d.formBData.overallRating || null,
                             teacherComments: d.formBData.teacherComments || "",
                         });
+                    } else {
+                        setReviewData({
+                            ...DEFAULT_FORM_B,
+                            metadata: defaultMeta
+                        });
                     }
                 }
                 setLoading(false);
@@ -110,7 +169,7 @@ export default function ConductTeachingObservationPage() {
 
     const isCompleted = true; // DEO view is strictly read-only
 
-    if (loading || !data) return <Loader message="Synchronizing Observation Artifact..." />;
+    if (loading || !data) return <DetailWorkspaceSkeleton />;
 
     const lecturer = data.lecturer?.name || "Unknown Lecturer";
     const observerName = data.observer?.name || "Unknown Observer";
@@ -175,6 +234,14 @@ export default function ConductTeachingObservationPage() {
                     <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--text-secondary)" }}>
                         Academic Peer Review - APR Form B
                     </h2>
+                    <div className="text-sm space-y-1" style={{ color: "var(--text-secondary)" }}>
+                        <p><strong>Course Lecturer:</strong> {lecturer}</p>
+                        <p><strong>Course Code:</strong> {data.courseCode}</p>
+                        {data.sessionDate && (
+                            <p><strong>Scheduled Session:</strong> {new Date(data.sessionDate).toLocaleString("en-GB", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+                        )}
+                        {data.venue && <p><strong>Scheduled Venue/Location:</strong> {data.venue}</p>}
+                    </div>
                 </div>
                 <div className="flex flex-col items-end gap-3 mt-4 md:mt-0">
                     <button onClick={() => router.back()} className="px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors font-bold flex items-center gap-2 shadow-sm text-sm border border-slate-200 dark:border-slate-700">

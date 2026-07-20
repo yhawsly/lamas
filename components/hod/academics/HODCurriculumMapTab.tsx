@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { ListPlus } from "lucide-react";
 
 const LEVELS = [100, 200, 300, 400, 500];
 const SEMESTERS = [1, 2];
@@ -439,9 +440,16 @@ export default function HODCurriculumMapTab() {
                                     {activeCourse.departmentId === userDeptId && (
                                         <button
                                             onClick={() => setShowAddSection(!showAddSection)}
-                                            className="text-xs font-bold text-blue-500 hover:text-blue-400 transition"
+                                            className="text-xs font-bold text-blue-500 hover:text-blue-400 transition flex items-center gap-1"
                                         >
-                                            {showAddSection ? "Cancel" : "+ Add Class"}
+                                            {showAddSection ? (
+                                                <span>Cancel</span>
+                                            ) : (
+                                                <>
+                                                    <ListPlus className="w-3.5 h-3.5" />
+                                                    <span>Add Class</span>
+                                                </>
+                                            )}
                                         </button>
                                     )}
                                 </div>

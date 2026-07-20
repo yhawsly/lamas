@@ -9,6 +9,12 @@ const { auth } = NextAuth({
 });
 
 export default auth((req) => {
+    const requestId = crypto.randomUUID();
+    const start = Date.now();
+
+    // Set request header for API route consumption
+    req.headers.set("x-request-id", requestId);
+
     const { nextUrl } = req;
     const isLoggedIn = !!req.auth;
     const userRole = (req.auth?.user as any)?.role || null;
@@ -23,6 +29,8 @@ export default auth((req) => {
 
     console.log(`[MIDDLEWARE] Path: ${nextUrl.pathname}, LoggedIn: ${isLoggedIn}, RequireReset: ${requireReset}`);
 
+    let response = NextResponse.next();
+
     // 1. Authorization check: Role-based path protection & forced password reset
     if (isLoggedIn) {
         // Force Password Reset Flow
@@ -33,38 +41,63 @@ export default auth((req) => {
                 const isPasswordApi = nextUrl.pathname === "/api/user/password";
                 if (!isAuthApi && !isPasswordApi) {
                     console.log(`[MIDDLEWARE] Blocking API request for user requiring password reset: ${nextUrl.pathname}`);
-                    return NextResponse.json({ error: "Password reset required" }, { status: 403 });
+                    response = NextResponse.json({ error: "Password reset required" }, { status: 403 });
+                } else {
+                    response = NextResponse.next();
                 }
             } else if (isAdminPath || isHodPath || isDeoPath || isLecturerPath) {
                 console.log(`[MIDDLEWARE] Redirecting to reset-password for user`);
-                return NextResponse.redirect(new URL("/reset-password", nextUrl));
+                response = NextResponse.redirect(new URL("/reset-password", nextUrl));
+            } else {
+                response = NextResponse.next();
+            }
+        } else {
+            if (!userRole && (isAdminPath || isHodPath || isDeoPath || isLecturerPath)) {
+                response = isApiPath ? NextResponse.json({ error: "Unauthorized" }, { status: 401 }) : NextResponse.redirect(new URL("/login", nextUrl));
+            } else if (isAdminPath && !isAdmin(userRole)) {
+                // Special cases: allow HODs to access the analytics and curriculum APIs
+                const isAnalyticsApi = nextUrl.pathname.startsWith("/api/admin/analytics");
+                const isCurriculumApi = nextUrl.pathname.startsWith("/api/admin/curriculum");
+                if ((isAnalyticsApi || isCurriculumApi) && userRole === ROLES.HOD) {
+                    response = NextResponse.next();
+                } else {
+                    response = isApiPath ? NextResponse.json({ error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL("/", nextUrl));
+                }
+            } else if (isHodPath && !hasHodPrivileges(userRole)) {
+                response = isApiPath ? NextResponse.json({ error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL("/", nextUrl));
+            } else if (isDeoPath && !hasDeoPrivileges(userRole)) {
+                response = isApiPath ? NextResponse.json({ error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL("/", nextUrl));
+            } else if (isLecturerPath && !hasLecturerPrivileges(userRole)) {
+                response = isApiPath ? NextResponse.json({ error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL("/", nextUrl));
+            } else {
+                response = NextResponse.next();
             }
         }
+    } else {
+        response = NextResponse.next();
+    }
 
-        if (!userRole && (isAdminPath || isHodPath || isDeoPath || isLecturerPath)) {
-            return isApiPath ? NextResponse.json({ error: "Unauthorized" }, { status: 401 }) : NextResponse.redirect(new URL("/login", nextUrl));
-        }
-        if (isAdminPath && !isAdmin(userRole)) {
-            // Special cases: allow HODs to access the analytics and curriculum APIs
-            const isAnalyticsApi = nextUrl.pathname.startsWith("/api/admin/analytics");
-            const isCurriculumApi = nextUrl.pathname.startsWith("/api/admin/curriculum");
-            if ((isAnalyticsApi || isCurriculumApi) && userRole === ROLES.HOD) {
-                return NextResponse.next();
-            }
-            return isApiPath ? NextResponse.json({ error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL("/", nextUrl));
-        }
-        if (isHodPath && !hasHodPrivileges(userRole)) {
-            return isApiPath ? NextResponse.json({ error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL("/", nextUrl));
-        }
-        if (isDeoPath && !hasDeoPrivileges(userRole)) {
-            return isApiPath ? NextResponse.json({ error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL("/", nextUrl));
-        }
-        if (isLecturerPath && !hasLecturerPrivileges(userRole)) {
-            return isApiPath ? NextResponse.json({ error: "Forbidden" }, { status: 403 }) : NextResponse.redirect(new URL("/", nextUrl));
+    // Attach request ID and measure timing
+    response.headers.set("x-request-id", requestId);
+
+    if (isApiPath) {
+        const durationMs = Date.now() - start;
+        const logEntry = {
+            timestamp: new Date().toISOString(),
+            requestId,
+            method: req.method,
+            path: nextUrl.pathname,
+            durationMs,
+            userAgent: req.headers.get("user-agent")?.substring(0, 100),
+        };
+        if (process.env.NODE_ENV === "production") {
+            console.log(JSON.stringify(logEntry));
+        } else {
+            console.log(`[REQ] ${req.method} ${nextUrl.pathname} (${durationMs}ms) rid=${requestId.substring(0, 8)}`);
         }
     }
 
-    return NextResponse.next();
+    return response;
 });
 
 export const config = {

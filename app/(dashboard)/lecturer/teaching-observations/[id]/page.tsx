@@ -1,7 +1,53 @@
 "use client";
 import { useState, useEffect } from "react"; import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
-import Loader from "@/components/ui/Loader";
+
+const DetailWorkspaceSkeleton = () => (
+    <div className="max-w-4xl mx-auto space-y-8 animate-pulse pb-20 pt-6 px-4">
+        {/* Header Skeleton */}
+        <div className="space-y-3">
+            <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+            <div className="h-4 w-96 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+        </div>
+
+        {/* Info Card Skeleton */}
+        <div className="rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[1, 2, 3].map(i => (
+                    <div key={i} className="space-y-2">
+                        <div className="h-3 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-5 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+                    </div>
+                ))}
+            </div>
+        </div>
+
+        {/* Form Body Skeleton */}
+        <div className="rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-6">
+            <div className="h-6 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="space-y-4">
+                {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
+                        <div className="h-4 w-72 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="flex gap-2">
+                            <div className="h-5 w-12 bg-slate-200 dark:bg-slate-800 rounded" />
+                            <div className="h-5 w-12 bg-slate-200 dark:bg-slate-800 rounded" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+            <div className="space-y-2">
+                <div className="h-3.5 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-20 w-full bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+            </div>
+            <div className="flex justify-end gap-3">
+                <div className="h-10 w-24 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                <div className="h-10 w-32 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+            </div>
+        </div>
+    </div>
+);
 
 // Define Form B types
 type FormBReviewData = {
@@ -80,6 +126,7 @@ export default function ConductTeachingObservationPage() {
     const { data: session, status } = useSession();
     const [error, setError] = useState("");
     const [scheduleDate, setScheduleDate] = useState("");
+    const [scheduleTime, setScheduleTime] = useState("");
     const [scheduleVenue, setScheduleVenue] = useState("");
     const [scheduling, setScheduling] = useState(false);
 
@@ -91,11 +138,28 @@ export default function ConductTeachingObservationPage() {
             .then(d => {
                 if (d) {
                     setData(d);
-                    if (d.sessionDate) setScheduleDate(new Date(d.sessionDate).toISOString().split('T')[0]);
+                    if (d.sessionDate) {
+                        const dt = new Date(d.sessionDate);
+                        const yyyy = dt.getFullYear();
+                        const mm = String(dt.getMonth() + 1).padStart(2, '0');
+                        const dd = String(dt.getDate()).padStart(2, '0');
+                        setScheduleDate(`${yyyy}-${mm}-${dd}`);
+                        const hh = String(dt.getHours()).padStart(2, '0');
+                        const min = String(dt.getMinutes()).padStart(2, '0');
+                        setScheduleTime(`${hh}:${min}`);
+                    }
                     if (d.venue) setScheduleVenue(d.venue);
+                    const defaultMeta = {
+                        ...DEFAULT_FORM_B.metadata,
+                        venue: d.venue || ""
+                    };
                     if (d.formBData) {
                         setReviewData({
-                            metadata: { ...DEFAULT_FORM_B.metadata, ...(d.formBData.metadata || {}) },
+                            metadata: { 
+                                ...defaultMeta, 
+                                ...(d.formBData.metadata || {}),
+                                venue: d.formBData.metadata?.venue || d.venue || ""
+                            },
                             criteria: {
                                 startOfLesson: { ...DEFAULT_FORM_B.criteria.startOfLesson, ...(d.formBData.criteria?.startOfLesson || {}) },
                                 delivery: { ...DEFAULT_FORM_B.criteria.delivery, ...(d.formBData.criteria?.delivery || {}) },
@@ -106,6 +170,11 @@ export default function ConductTeachingObservationPage() {
                             recommendations: d.formBData.recommendations || "",
                             overallRating: d.formBData.overallRating || null,
                             teacherComments: d.formBData.teacherComments || "",
+                        });
+                    } else {
+                        setReviewData({
+                            ...DEFAULT_FORM_B,
+                            metadata: defaultMeta
                         });
                     }
                 }
@@ -162,14 +231,19 @@ export default function ConductTeachingObservationPage() {
     };
 
     const handleSchedule = async () => {
-        if (!scheduleDate) return setError("Please select a date.");
+        if (!scheduleDate || !scheduleTime) return setError("Please select both a date and a time.");
         setError("");
         setScheduling(true);
         try {
+            const dateObj = new Date(scheduleDate);
+            const [hrs, mins] = scheduleTime.split(":");
+            dateObj.setHours(parseInt(hrs), parseInt(mins));
+            const combinedDateTime = dateObj.toISOString();
+
             const res = await fetch(`/api/teaching-observations/${id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ sessionDate: scheduleDate, venue: scheduleVenue }),
+                body: JSON.stringify({ sessionDate: combinedDateTime, venue: scheduleVenue }),
             });
             if (res.ok) {
                 const d = await res.json();
@@ -183,7 +257,7 @@ export default function ConductTeachingObservationPage() {
         }
     };
 
-    if (loading || status === "loading" || !data) return <Loader message="Synchronizing Observation Artifact..." />;
+    if (loading || status === "loading" || !data) return <DetailWorkspaceSkeleton />;
 
     const lecturer = data.lecturer?.name || "Unknown Lecturer";
     const observerName = data.observer?.name || "Unknown Observer";
@@ -294,6 +368,20 @@ export default function ConductTeachingObservationPage() {
                         <p className="text-sm font-medium mb-1" style={{ color: "var(--text-muted)" }}>Course Code:</p>
                         <p className="font-semibold" style={{ color: "var(--text-primary)" }}>{data.courseCode}</p>
                     </div>
+                    {data.sessionDate && (
+                        <div>
+                            <p className="text-sm font-medium mb-1" style={{ color: "var(--text-muted)" }}>Scheduled Session:</p>
+                            <p className="font-semibold" style={{ color: "var(--text-primary)" }}>
+                                {new Date(data.sessionDate).toLocaleString("en-GB", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                        </div>
+                    )}
+                    {data.venue && (
+                        <div>
+                            <p className="text-sm font-medium mb-1" style={{ color: "var(--text-muted)" }}>Scheduled Location/Venue:</p>
+                            <p className="font-semibold" style={{ color: "var(--text-primary)" }}>{data.venue}</p>
+                        </div>
+                    )}
 
                     <div>
                         <p className="text-sm font-medium mb-1" style={{ color: "var(--text-muted)" }}>Programme:</p>
@@ -310,7 +398,7 @@ export default function ConductTeachingObservationPage() {
                     </div>
                     <div>
                         <p className="text-sm font-medium mb-1" style={{ color: "var(--text-muted)" }}>Lesson Venue:</p>
-                        <input type="text" disabled={isDisabled} value={reviewData.metadata.venue} onChange={e => setReviewData(p => ({ ...p, metadata: { ...p.metadata, venue: e.target.value } }))} className="w-full bg-transparent border-b outline-none px-2 py-1" style={{ borderColor: "var(--bg-border)", color: "var(--text-primary)" }} />
+                        <input type="text" disabled={isDisabled} value={reviewData.metadata.venue} onChange={e => setReviewData(p => ({ ...p, metadata: { ...p.metadata, venue: e.target.value.toUpperCase() } }))} className="w-full bg-transparent border-b outline-none px-2 py-1" style={{ borderColor: "var(--bg-border)", color: "var(--text-primary)" }} />
                     </div>
 
                     <div className="flex gap-4">
@@ -360,11 +448,16 @@ export default function ConductTeachingObservationPage() {
                                 className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 border-blue-200 dark:border-slate-700" />
                         </div>
                         <div className="flex-1">
-                            <label className="block text-xs font-bold mb-1.5 text-blue-700/70 dark:text-blue-400/70 uppercase tracking-widest">Venue</label>
-                            <input type="text" value={scheduleVenue} onChange={e => setScheduleVenue(e.target.value)} placeholder="e.g. Room 101"
+                            <label className="block text-xs font-bold mb-1.5 text-blue-700/70 dark:text-blue-400/70 uppercase tracking-widest">Time</label>
+                            <input type="time" value={scheduleTime} onChange={e => setScheduleTime(e.target.value)}
                                 className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 border-blue-200 dark:border-slate-700" />
                         </div>
-                        <button onClick={handleSchedule} disabled={scheduling} className="w-full md:w-auto px-6 py-2.5 rounded-xl text-white font-bold text-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                        <div className="flex-1">
+                            <label className="block text-xs font-bold mb-1.5 text-blue-700/70 dark:text-blue-400/70 uppercase tracking-widest">Venue/Location</label>
+                            <input type="text" value={scheduleVenue} onChange={e => setScheduleVenue(e.target.value.toUpperCase())} placeholder="e.g. Room 101"
+                                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 border-blue-200 dark:border-slate-700" />
+                        </div>
+                        <button onClick={handleSchedule} disabled={scheduling} className="w-full md:w-auto px-6 py-2.5 rounded-xl text-white font-bold text-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm">
                             {scheduling ? "Saving..." : "Lock Schedule"}
                         </button>
                     </div>

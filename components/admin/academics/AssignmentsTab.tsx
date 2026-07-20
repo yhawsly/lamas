@@ -1,9 +1,48 @@
 "use client";
-import { BookOpen, CheckCircle, AlertTriangle, BarChart, Search, Edit2, AlertCircle } from "lucide-react";
-import SearchableSelect from "@/components/ui/SearchableSelect";
+import { BookOpen, AlertCircle, Clock, X, Check, CheckCircle, AlertTriangle, BarChart, ListPlus } from "lucide-react";
 import KPICard from "@/components/ui/KPICard";
 
 import { useEffect, useState } from "react";
+
+const AssignmentsSkeleton = () => (
+    <div className="max-w-5xl mx-auto space-y-8 animate-pulse">
+        {/* Title skeleton */}
+        <div className="space-y-2">
+            <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+            <div className="h-4 w-[420px] bg-slate-200 dark:bg-slate-800 rounded" />
+        </div>
+
+        {/* KPI Cards Skeletons */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => (
+                <div key={i} className="h-24 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+            ))}
+        </div>
+
+        {/* Program Filter Skeletons */}
+        <div className="flex gap-2 flex-wrap mb-4">
+            {[1, 2, 3].map(i => (
+                <div key={i} className="h-9 w-28 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+            ))}
+        </div>
+
+        {/* List of Courses Skeletons */}
+        <div className="space-y-6">
+            {[1, 2, 3].map(i => (
+                <div key={i} className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900 space-y-4">
+                    <div className="flex justify-between items-center">
+                        <div className="space-y-2">
+                            <div className="h-5 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
+                            <div className="h-3.5 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+                        </div>
+                        <div className="h-8 w-24 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                    </div>
+                    <div className="h-20 bg-slate-100 dark:bg-slate-800/50 rounded-xl" />
+                </div>
+            ))}
+        </div>
+    </div>
+);
 
 export default function AssignmentsTab() {
     const [courses, setCourses] = useState<any[]>([]);
@@ -19,9 +58,58 @@ export default function AssignmentsTab() {
     const [newClassSession, setNewClassSession] = useState<"REGULAR" | "WEEKEND">("REGULAR");
     const [isSavingClass, setIsSavingClass] = useState(false);
 
+    // Schedule editing state — keyed by sectionId
+    const [activeScheduleId, setActiveScheduleId] = useState<number | null>(null);
+    const [scheduleForm, setScheduleForm] = useState<{
+        dayOfWeek: string; startTime: string; endTime: string; venue: string;
+    }>({ dayOfWeek: "", startTime: "", endTime: "", venue: "" });
+    const [isSavingSchedule, setIsSavingSchedule] = useState(false);
+
     // Custom Alert Modal State
     const [customModal, setCustomModal] = useState<{ isOpen: boolean; type: "alert"; title: string; message: string } | null>(null);
     const showAlert = (title: string, message: string) => setCustomModal({ isOpen: true, type: "alert", title, message });
+
+    const openScheduleForm = (section: any) => {
+        setActiveScheduleId(section.id);
+        setScheduleForm({
+            dayOfWeek: section.dayOfWeek || "",
+            startTime: section.startTime || "",
+            endTime: section.endTime || "",
+            venue: section.venue || "",
+        });
+    };
+
+    const handleSaveSchedule = async (courseId: number, sectionId: number) => {
+        setIsSavingSchedule(true);
+        try {
+            const res = await fetch(`/api/courses/sections/${sectionId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(scheduleForm),
+            });
+            if (res.ok) {
+                setCourses(prev => prev.map(c => {
+                    if (c.id !== courseId) return c;
+                    return {
+                        ...c,
+                        sections: c.sections.map((s: any) =>
+                            s.id === sectionId ? { ...s, ...scheduleForm } : s
+                        ),
+                    };
+                }));
+                setActiveScheduleId(null);
+                showAlert("Success", "Schedule saved successfully!");
+            } else {
+                const data = await res.json().catch(() => ({}));
+                showAlert("Error", data.error || "Failed to save schedule.");
+            }
+        } catch (err) {
+            console.error("Schedule save error:", err);
+            showAlert("Error", "An unexpected error occurred.");
+        } finally {
+            setIsSavingSchedule(false);
+        }
+    };
 
     useEffect(() => {
         Promise.all([
@@ -95,11 +183,7 @@ export default function AssignmentsTab() {
     };
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full" />
-            </div>
-        );
+        return <AssignmentsSkeleton />;
     }
 
     const totalClasses = courses.reduce((acc, c) => acc + (c.sections?.length || 0), 0);
@@ -267,7 +351,7 @@ export default function AssignmentsTab() {
                                         className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800/60 text-xs font-bold transition flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800"
                                         style={{ color: "var(--text-primary)" }}
                                     >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                                        <ListPlus className="w-4 h-4" />
                                         Add Section
                                     </button>
                                 </div>
@@ -325,61 +409,162 @@ export default function AssignmentsTab() {
                                         const currentLecturer = lecturers.find(l => l.id === section.lecturerId);
                                         
                                         return (
-                                            <div key={section.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 pl-4 rounded-xl border border-slate-100 dark:border-slate-800/60 bg-white dark:bg-slate-850 shadow-sm hover:shadow-md transition-shadow group/section">
-                                                {/* Section Info */}
-                                                <div className="flex items-center gap-4 flex-1">
-                                                    <div className={`w-1.5 h-8 rounded-full ${section.session === 'WEEKEND' ? 'bg-amber-500' : 'bg-blue-500'}`} />
-                                                    <div className="flex-1">
-                                                        <div className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{section.name}</div>
-                                                        <div className="text-[10px] font-bold uppercase tracking-widest mt-0.5" style={{ color: "var(--text-muted)" }}>{section.session}</div>
+                                            <div key={section.id} className="rounded-xl border border-slate-100 dark:border-slate-800/60 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                                                {/* Main Row */}
+                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 pl-4">
+                                                    {/* Section Info */}
+                                                    <div className="flex items-center gap-4 flex-1">
+                                                        <div className={`w-1.5 h-8 rounded-full ${section.session === 'WEEKEND' ? 'bg-amber-500' : 'bg-blue-500'}`} />
+                                                        <div className="flex-1">
+                                                            <div className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{section.name}</div>
+                                                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                                                <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>{section.session}</span>
+                                                                {section.dayOfWeek && (
+                                                                    <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-1.5 py-0.5 rounded-md border border-blue-200/50 dark:border-blue-500/20 flex items-center gap-1">
+                                                                        <Clock className="w-2.5 h-2.5" />
+                                                                        {section.dayOfWeek} {section.startTime && `· ${section.startTime}`} {section.venue && `· ${section.venue}`}
+                                                                    </span>
+                                                                )}
+                                                                {!section.dayOfWeek && (
+                                                                    <span className="text-[10px] font-bold text-slate-400 italic">No schedule set</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
 
-                                                {/* Assignment Controls */}
-                                                <div className="flex items-center gap-4 border-t sm:border-t-0 sm:border-l border-slate-100 dark:border-slate-800/60 pt-3 sm:pt-0 sm:pl-5 mt-3 sm:mt-0">
-                                                    <div className="w-[180px] shrink-0 flex items-center justify-end sm:justify-start">
+                                                    {/* Assignment Controls */}
+                                                    <div className="flex items-center gap-2 border-t sm:border-t-0 sm:border-l border-slate-100 dark:border-slate-800/60 pt-3 sm:pt-0 sm:pl-4 mt-3 sm:mt-0">
                                                         {currentLecturer ? (
-                                                            <div className="flex items-center gap-2.5">
+                                                            <div className="flex items-center gap-2">
                                                                 <div className="w-7 h-7 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold rounded-full flex items-center justify-center border border-blue-200 dark:border-blue-500/20 uppercase shrink-0">
                                                                     {currentLecturer.name.substring(0, 2).toUpperCase()}
                                                                 </div>
-                                                                <div className="text-xs font-semibold truncate" style={{ color: "var(--text-primary)" }}>
+                                                                <div className="text-xs font-semibold truncate max-w-[100px]" style={{ color: "var(--text-primary)" }}>
                                                                     {currentLecturer.name}
                                                                 </div>
                                                             </div>
                                                         ) : (
-                                                            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-2.5 py-1.5 rounded-lg border border-amber-200/50 dark:border-amber-500/20">
+                                                            <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-200/50 dark:border-amber-500/20">
                                                                 <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                                                                 <span className="text-[10px] font-bold uppercase tracking-widest">Unassigned</span>
                                                             </div>
                                                         )}
-                                                    </div>
 
-                                                    <select
-                                                        value={section.lecturerId || ""}
-                                                        onChange={(e) => {
-                                                            const val = e.target.value;
-                                                            handleAssignLecturer(course.id, section.id, val ? parseInt(val) : null);
-                                                        }}
-                                                        className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800/60 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/40 transition hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer w-[140px] shrink-0"
-                                                        style={{ color: "var(--text-primary)" }}
-                                                    >
-                                                        <option value="">+ Assign Staff</option>
-                                                        {lecturers.length > 0 ? (
-                                                            lecturers.map(l => (
-                                                                <option key={l.id} value={l.id}>{l.name}</option>
-                                                            ))
-                                                        ) : (
-                                                            <option value="" disabled>No staff available</option>
-                                                        )}
-                                                    </select>
+                                                        <select
+                                                            value={section.lecturerId || ""}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                handleAssignLecturer(course.id, section.id, val ? parseInt(val) : null);
+                                                            }}
+                                                            className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800/60 rounded-lg px-2 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/40 transition hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer w-[130px] shrink-0"
+                                                            style={{ color: "var(--text-primary)" }}
+                                                        >
+                                                            <option value="">+ Assign Staff</option>
+                                                            {lecturers.length > 0 ? (
+                                                                lecturers.map(l => (
+                                                                    <option key={l.id} value={l.id}>{l.name}</option>
+                                                                ))
+                                                            ) : (
+                                                                <option value="" disabled>No staff available</option>
+                                                            )}
+                                                        </select>
+
+                                                        {/* Schedule Toggle Button */}
+                                                        <button
+                                                            onClick={() => activeScheduleId === section.id ? setActiveScheduleId(null) : openScheduleForm(section)}
+                                                            title="Set class schedule"
+                                                            className={`w-8 h-8 rounded-lg flex items-center justify-center border transition shrink-0 ${
+                                                                activeScheduleId === section.id
+                                                                    ? 'bg-blue-600 text-white border-blue-600'
+                                                                    : section.dayOfWeek
+                                                                        ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 border-green-200 dark:border-green-500/30'
+                                                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:border-blue-400 hover:text-blue-500'
+                                                            }`}
+                                                        >
+                                                            <Clock className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
                                                 </div>
+
+                                                {/* Inline Schedule Form */}
+                                                {activeScheduleId === section.id && (
+                                                    <div className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/30 px-4 py-4">
+                                                        <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-1.5">
+                                                            <Clock className="w-3 h-3" /> Set Timetable Schedule
+                                                        </div>
+                                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                                            <div className="flex flex-col gap-1">
+                                                                <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Day of Week</label>
+                                                                <select
+                                                                    value={scheduleForm.dayOfWeek}
+                                                                    onChange={e => setScheduleForm(f => ({ ...f, dayOfWeek: e.target.value }))}
+                                                                    className="border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1.5 text-xs font-bold bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-blue-500"
+                                                                    style={{ color: 'var(--text-primary)' }}
+                                                                >
+                                                                    <option value="">— Select —</option>
+                                                                    {["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].map(d => (
+                                                                        <option key={d} value={d}>{d}</option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
+                                                            <div className="flex flex-col gap-1">
+                                                                <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Start Time</label>
+                                                                <input
+                                                                    type="time"
+                                                                    value={scheduleForm.startTime}
+                                                                    onChange={e => setScheduleForm(f => ({ ...f, startTime: e.target.value }))}
+                                                                    className="border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1.5 text-xs font-bold bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-blue-500"
+                                                                    style={{ color: 'var(--text-primary)' }}
+                                                                />
+                                                            </div>
+                                                            <div className="flex flex-col gap-1">
+                                                                <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>End Time</label>
+                                                                <input
+                                                                    type="time"
+                                                                    value={scheduleForm.endTime}
+                                                                    onChange={e => setScheduleForm(f => ({ ...f, endTime: e.target.value }))}
+                                                                    className="border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1.5 text-xs font-bold bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-blue-500"
+                                                                    style={{ color: 'var(--text-primary)' }}
+                                                                />
+                                                            </div>
+                                                            <div className="flex flex-col gap-1">
+                                                                <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Venue / Room</label>
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="e.g. LT1, Room 204"
+                                                                    value={scheduleForm.venue}
+                                                                    onChange={e => setScheduleForm(f => ({ ...f, venue: e.target.value }))}
+                                                                    className="border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1.5 text-xs font-bold bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-blue-500"
+                                                                    style={{ color: 'var(--text-primary)' }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex gap-2 mt-3">
+                                                            <button
+                                                                onClick={() => handleSaveSchedule(course.id, section.id)}
+                                                                disabled={isSavingSchedule || !scheduleForm.dayOfWeek || !scheduleForm.startTime || !scheduleForm.endTime || !scheduleForm.venue}
+                                                                className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition disabled:opacity-50 shadow-sm"
+                                                                title={!scheduleForm.dayOfWeek || !scheduleForm.startTime || !scheduleForm.endTime || !scheduleForm.venue ? "Please fill in all schedule fields" : ""}
+                                                            >
+                                                                <Check className="w-3 h-3" />
+                                                                {isSavingSchedule ? "Saving..." : "Save Schedule"}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setActiveScheduleId(null)}
+                                                                className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold transition hover:bg-slate-100 dark:hover:bg-slate-800"
+                                                                style={{ color: 'var(--text-primary)' }}
+                                                            >
+                                                                <X className="w-3 h-3" /> Cancel
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     }) : (
                                         <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-sm font-medium italic" style={{ color: "var(--text-muted)" }}>
                                             <BookOpen className="w-4 h-4 opacity-50" />
-                                            No sections configured yet. Click "Add Section" to create one.
+                                            No sections configured yet. Click &quot;Add Section&quot; to create one.
                                         </div>
                                     )}
                                 </div>
