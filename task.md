@@ -62,6 +62,8 @@
   - [x] Overhaul the active deadlines list into a responsive horizontal grid of cards
   - [x] Overhaul the active deadlines layout style to follow Course Management layout style (horizontal creation form on top, card grid list below)
   - [x] Overhaul Appraisal Submissions list load state to use skeleton loaders
+  - [x] Upgrade Next.js & dependencies to ^15.5.0 to resolve React Server Components CVE-2025-66478
+  - [x] Append .js file extension to eslint-config-next ESM subpath imports in eslint.config.mjs to resolve Vercel build ESLint resolution errors
 - [x] Reusable Components Upgrades
   - [x] Add full `disabled` prop styling and click-inhibition support to `SearchableSelect`
   - [x] Set light mode as default theme instead of dark mode in ThemeProvider
