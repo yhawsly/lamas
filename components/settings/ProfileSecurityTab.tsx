@@ -2,6 +2,7 @@
 import { User, Camera, Mail, Phone, Shield, Lock, Eye, EyeOff, CheckCircle2, AlertCircle, Building2, BadgeCheck } from "lucide-react";
 import { useState, useRef } from "react";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 
 export interface UserProfile {
     id: number;
@@ -45,6 +46,7 @@ function StatusBanner({ status }: { status: { type: "success" | "error"; msg: st
 }
 
 export default function ProfileSecurityTab({ user }: { user: UserProfile }) {
+    const { update } = useSession();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string>(user.avatarUrl || "");
@@ -101,6 +103,8 @@ export default function ProfileSecurityTab({ user }: { user: UserProfile }) {
                 const data = await res.json();
                 throw new Error(data.error || "Failed to update profile");
             }
+            // Trigger NextAuth session update to refresh token data on client side
+            await update();
             setProfileStatus({ type: "success", msg: "Profile updated successfully!" });
             setTimeout(() => window.location.reload(), 1500);
         } catch (error: any) {

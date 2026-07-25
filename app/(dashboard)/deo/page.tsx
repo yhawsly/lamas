@@ -45,6 +45,7 @@ export default function DeoDashboard() {
     const [form, setForm] = useState({ lecturerId: "", observerId: "", courseCode: "" });
     const [msg, setMsg] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [activeTab, setActiveTab] = useState<"ALL" | "A" | "B" | "C">("ALL");
 
     useEffect(() => {
         loadData();
@@ -305,9 +306,44 @@ export default function DeoDashboard() {
 
                 {/* Registry Column */}
                 <div className="rounded-3xl p-6 shadow-sm border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
-                    <h3 className="font-semibold mb-6 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-                        <ClipboardList className="w-5 h-5 text-blue-500" /> Assignments Registry
-                    </h3>
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 pb-4 border-b" style={{ borderColor: "var(--bg-border)" }}>
+                        <h3 className="font-semibold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+                            <ClipboardList className="w-5 h-5 text-blue-500" /> Assignments Registry
+                        </h3>
+
+                        {/* Tabs for Form Types */}
+                        <div className="flex flex-wrap gap-1 p-1 rounded-2xl bg-slate-100/80 dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50">
+                            {[
+                                { id: "ALL", label: "All", icon: null, color: "text-blue-600 dark:text-blue-450", bgActive: "bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white", count: assignments.length },
+                                { id: "A", label: "Instructional Materials", icon: BookOpen, color: "text-amber-600 dark:text-amber-450", bgActive: "bg-white dark:bg-slate-800 shadow-sm text-amber-600 dark:text-amber-400", count: assignments.filter(o => o.formType === "A").length },
+                                { id: "B", label: "Teaching Observation", icon: Video, color: "text-blue-600 dark:text-blue-450", bgActive: "bg-white dark:bg-slate-800 shadow-sm text-blue-600 dark:text-blue-400", count: assignments.filter(o => o.formType === "B").length },
+                                { id: "C", label: "Exam Moderation", icon: ShieldCheck, color: "text-purple-600 dark:text-purple-450", bgActive: "bg-white dark:bg-slate-800 shadow-sm text-purple-600 dark:text-purple-400", count: assignments.filter(o => o.formType === "C").length },
+                            ].map((t) => {
+                                const Icon = t.icon;
+                                const isActive = activeTab === t.id;
+                                return (
+                                    <button
+                                        key={t.id}
+                                        type="button"
+                                        onClick={() => setActiveTab(t.id as any)}
+                                        className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+                                            isActive
+                                                ? t.bgActive
+                                                : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
+                                        }`}
+                                    >
+                                        {Icon && <Icon className="w-3.5 h-3.5" />}
+                                        <span>{t.label}</span>
+                                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
+                                            isActive 
+                                                ? "bg-slate-100 dark:bg-slate-700/50 text-slate-700 dark:text-slate-300" 
+                                                : "bg-slate-200/80 dark:bg-slate-800 text-slate-500"
+                                        }`}>{t.count}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
                     
                     {loading ? (
                         <RegistrySkeleton />
@@ -316,51 +352,86 @@ export default function DeoDashboard() {
                             <div className="flex justify-center mb-4"><Inbox className="w-10 h-10 text-gray-400" /></div>
                             <p>No reviews assigned yet.</p>
                         </div>
+                    ) : assignments.filter(o => activeTab === "ALL" || o.formType === activeTab).length === 0 ? (
+                        <div className="text-center py-20" style={{ color: "var(--text-muted)" }}>
+                            <div className="flex justify-center mb-4"><Inbox className="w-10 h-10 text-gray-400" /></div>
+                            <p>No {activeTab === "A" ? "Instructional Materials" : activeTab === "B" ? "Teaching Observation" : "Exam Moderation"} reviews assigned yet.</p>
+                        </div>
                     ) : (
                         <div className="space-y-3">
-                            {assignments.map(o => (
-                                <div key={`${o.formType}-${o.id}`} className="group p-4 rounded-2xl transition-all hover:shadow-md border" style={{ backgroundColor: "var(--bg-hover)", borderColor: "var(--bg-border)" }}>
-                                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                                        <div className="flex items-start gap-4">
-                                            <div className="flex flex-col items-center justify-center w-12 h-12 rounded-xl shrink-0 border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
-                                                <span className="text-[10px] font-black uppercase text-slate-400">FORM</span>
-                                                <span className="text-lg font-black" style={{ color: "var(--text-primary)" }}>{o.formType}</span>
-                                            </div>
-                                            <div>
-                                                <div className="font-bold text-base flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-                                                    {o.courseCode}
-                                                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${statusColors[o.status]}`}>
-                                                        {o.status}
-                                                    </span>
+                            {assignments
+                                .filter(o => activeTab === "ALL" || o.formType === activeTab)
+                                .map(o => (
+                                    <div key={`${o.formType}-${o.id}`} className="group p-4 rounded-2xl transition-all hover:shadow-md border" style={{ backgroundColor: "var(--bg-hover)", borderColor: "var(--bg-border)" }}>
+                                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                                            <div className="flex items-start gap-4">
+                                                {/* Colored Icon box based on Form Type */}
+                                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${
+                                                    o.formType === "A" ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400" :
+                                                    o.formType === "B" ? "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400" :
+                                                    "bg-purple-500/10 border-purple-500/20 text-purple-600 dark:text-purple-400"
+                                                }`}>
+                                                    {o.formType === "A" && <BookOpen className="w-5 h-5" />}
+                                                    {o.formType === "B" && <Video className="w-5 h-5" />}
+                                                    {o.formType === "C" && <ShieldCheck className="w-5 h-5" />}
                                                 </div>
-                                                <div className="text-xs mt-1 font-medium" style={{ color: "var(--text-secondary)" }}>
-                                                    Target: <span className="font-bold" style={{ color: "var(--text-primary)" }}>{o.lecturer?.name}</span>
-                                                </div>
-                                                <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-                                                    Assigned to: {o.formType === "C" ? o.moderator?.name : o.observer?.name}
+                                                
+                                                <div>
+                                                    {/* Form Name & Type - Important First */}
+                                                    <div className="flex items-center flex-wrap gap-2">
+                                                        <span className="font-extrabold text-sm text-slate-900 dark:text-white">
+                                                            {o.typeName}
+                                                        </span>
+                                                        <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
+                                                            o.formType === "A" ? "bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400" :
+                                                            o.formType === "B" ? "bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400" :
+                                                            "bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400"
+                                                        }`}>
+                                                            Form {o.formType}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Course & Status - Secondary Important */}
+                                                    <div className="font-bold text-base mt-1 flex items-center gap-3.5" style={{ color: "var(--text-primary)" }}>
+                                                        {o.courseCode}
+                                                        <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${statusColors[o.status]}`}>
+                                                            {o.status}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Target & Assigned Partners - Details */}
+                                                    <div className="flex flex-col sm:flex-row sm:items-center gap-x-3 gap-y-0.5 mt-2 text-xs">
+                                                        <div style={{ color: "var(--text-secondary)" }}>
+                                                            Target: <span className="font-bold text-slate-900 dark:text-white">{o.lecturer?.name}</span>
+                                                        </div>
+                                                        <span className="hidden sm:inline text-slate-300 dark:text-slate-700">|</span>
+                                                        <div style={{ color: "var(--text-muted)" }}>
+                                                            Assigned: <span className="font-semibold text-slate-700 dark:text-slate-300">{o.formType === "C" ? o.moderator?.name : o.observer?.name}</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
-                                            <div className="text-right hidden sm:block mr-2">
-                                                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Dispatched</div>
-                                                <div className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>{new Date(o.createdAt).toLocaleDateString()}</div>
+                                            <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
+                                                <div className="text-right hidden sm:block mr-2">
+                                                    <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Dispatched</div>
+                                                    <div className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>{new Date(o.createdAt).toLocaleDateString()}</div>
+                                                </div>
+                                                <button 
+                                                    onClick={() => router.push(getRoute(o.formType, o.id))}
+                                                    className="px-4 py-2 rounded-xl text-xs font-bold transition-all border opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                                    style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)", color: "var(--text-primary)" }}
+                                                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--primary)"; e.currentTarget.style.color = "white"; e.currentTarget.style.borderColor = "var(--primary)"; }}
+                                                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "var(--bg-surface)"; e.currentTarget.style.color = "var(--text-primary)"; e.currentTarget.style.borderColor = "var(--bg-border)"; }}
+                                                >
+                                                    View Details →
+                                                </button>
                                             </div>
-                                            <button 
-                                                onClick={() => router.push(getRoute(o.formType, o.id))}
-                                                className="px-4 py-2 rounded-xl text-xs font-bold transition-all border opacity-0 group-hover:opacity-100 focus:opacity-100"
-                                                style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)", color: "var(--text-primary)" }}
-                                                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--primary)"; e.currentTarget.style.color = "white"; e.currentTarget.style.borderColor = "var(--primary)"; }}
-                                                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "var(--bg-surface)"; e.currentTarget.style.color = "var(--text-primary)"; e.currentTarget.style.borderColor = "var(--bg-border)"; }}
-                                            >
-                                                View Details →
-                                            </button>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
                         </div>
                     )}
+
                 </div>
             </div>
         </div>

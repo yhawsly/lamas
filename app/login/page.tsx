@@ -31,8 +31,7 @@ export default function LoginPage() {
         if (result?.error) {
             setError("Invalid email or password. Please try again.");
         } else {
-            router.refresh();
-            router.push("/");
+            window.location.href = "/";
         }
     }
 
@@ -54,8 +53,7 @@ export default function LoginPage() {
             if (result?.error) {
                 setError("Google authentication profile mismatch. Please try again.");
             } else {
-                router.refresh();
-                router.push("/");
+                window.location.href = "/";
             }
         } catch {
             setError("Google connection timed out.");

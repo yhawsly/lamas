@@ -83,9 +83,9 @@ export default function CourseOutlinePrototype() {
   });
 
   const [assessments, setAssessments] = useState([
-    { id: 1, name: "Midterm Exam", weight: 30 },
-    { id: 2, name: "Final Exam", weight: 40 },
-    { id: 3, name: "Assignments", weight: 30 },
+    { id: 1, name: "Midterm Exam", weight: 20 },
+    { id: 2, name: "Final Exam", weight: 60 },
+    { id: 3, name: "Assignments", weight: 20 },
   ]);
 
   // Classes State — starts empty; populated from /api/courses/my-sections

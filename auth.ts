@@ -102,9 +102,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         console.log(`[AUTH] Node JWT Created for user: ${user.email}, role: ${token.role}`);
       }
       
-      // Track last activity for timeout
+      // Track last activity for timeout or sync database on profile update
       if (trigger === "update") {
         token.lastActivity = Date.now();
+        if (token.id) {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: Number(token.id) },
+            select: { name: true, email: true, avatarUrl: true, role: true, departmentId: true, requirePasswordReset: true }
+          });
+          if (dbUser) {
+            token.name = dbUser.name;
+            token.email = dbUser.email;
+            token.picture = dbUser.avatarUrl;
+            token.role = dbUser.role;
+            token.departmentId = dbUser.departmentId;
+            token.requirePasswordReset = dbUser.requirePasswordReset;
+          }
+        }
       }
       return token;
     },

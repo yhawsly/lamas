@@ -1,5 +1,5 @@
 "use client";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, BookOpen, Video, ShieldCheck, Inbox } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,8 @@ export default function AppraisalsPage() {
     const userId = parseInt(session?.user?.id || "0");
     const [assignments, setAssignments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<"ALL" | "A" | "B" | "C">("ALL");
+    const [activeRoleTab, setActiveRoleTab] = useState<"ALL" | "EVALUATE" | "TARGET">("ALL");
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -70,9 +72,80 @@ export default function AppraisalsPage() {
             </div>
 
             <div className="border rounded-2xl p-6 shadow-xl relative overflow-hidden" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
-                <h3 className="font-semibold mb-6 flex items-center gap-2 relative z-10" style={{ color: "var(--text-primary)" }}>
-                    <ClipboardList className="w-5 h-5 text-blue-500" /> Appraisals Registry
-                </h3>
+                <div className="flex flex-col gap-4 mb-6 pb-4 border-b relative z-10" style={{ borderColor: "var(--bg-border)" }}>
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <h3 className="font-semibold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+                            <ClipboardList className="w-5 h-5 text-blue-500" /> Appraisals Registry
+                        </h3>
+                        
+                        {/* Role Filter (Observer vs Target) */}
+                        <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 w-fit shrink-0">
+                            {[
+                                { id: "ALL", label: "All Roles", count: assignments.length },
+                                { id: "EVALUATE", label: "Assigned to Observe", count: assignments.filter(o => o.observerId === userId).length },
+                                { id: "TARGET", label: "Being Evaluated", count: assignments.filter(o => o.lecturerId === userId).length },
+                            ].map((r) => {
+                                const isActive = activeRoleTab === r.id;
+                                return (
+                                    <button
+                                        key={r.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setActiveRoleTab(r.id as any);
+                                            setActiveTab("ALL"); // Reset form type tab on role change to avoid empty states
+                                        }}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                                            isActive
+                                                ? "bg-white dark:bg-slate-800 shadow-sm text-blue-600 dark:text-blue-400 font-extrabold"
+                                                : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
+                                        }`}
+                                    >
+                                        <span>{r.label}</span>
+                                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
+                                            isActive 
+                                                ? "bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400" 
+                                                : "bg-slate-200/80 dark:bg-slate-800 text-slate-500"
+                                        }`}>{r.count}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    
+                    {/* Form Type Filter - Dynamic based on selected role */}
+                    <div className="flex flex-wrap gap-1 p-1 rounded-2xl bg-slate-100/80 dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 w-fit">
+                        {[
+                            { id: "ALL", label: "All", icon: null, bgActive: "bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white", count: assignments.filter(o => activeRoleTab === "ALL" || (activeRoleTab === "EVALUATE" ? o.observerId === userId : o.lecturerId === userId)).length },
+                            { id: "A", label: "Peer Observation", icon: BookOpen, bgActive: "bg-white dark:bg-slate-800 shadow-sm text-amber-600 dark:text-amber-400", count: assignments.filter(o => o.formType === "A" && (activeRoleTab === "ALL" || (activeRoleTab === "EVALUATE" ? o.observerId === userId : o.lecturerId === userId))).length },
+                            { id: "B", label: "Teaching Observation", icon: Video, bgActive: "bg-white dark:bg-slate-800 shadow-sm text-blue-600 dark:text-blue-400", count: assignments.filter(o => o.formType === "B" && (activeRoleTab === "ALL" || (activeRoleTab === "EVALUATE" ? o.observerId === userId : o.lecturerId === userId))).length },
+                            { id: "C", label: "Exam Moderation", icon: ShieldCheck, bgActive: "bg-white dark:bg-slate-800 shadow-sm text-purple-600 dark:text-purple-400", count: assignments.filter(o => o.formType === "C" && (activeRoleTab === "ALL" || (activeRoleTab === "EVALUATE" ? o.observerId === userId : o.lecturerId === userId))).length },
+                        ].map((t) => {
+                            const Icon = t.icon;
+                            const isActive = activeTab === t.id;
+                            return (
+                                <button
+                                    key={t.id}
+                                    type="button"
+                                    onClick={() => setActiveTab(t.id as any)}
+                                    className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+                                        isActive
+                                            ? t.bgActive
+                                            : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
+                                    }`}
+                                >
+                                    {Icon && <Icon className="w-3.5 h-3.5" />}
+                                    <span>{t.label}</span>
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
+                                        isActive 
+                                            ? "bg-slate-100 dark:bg-slate-700/50 text-slate-700 dark:text-slate-300" 
+                                            : "bg-slate-200/80 dark:bg-slate-800 text-slate-500"
+                                    }`}>{t.count}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
                 {loading ? (
                     <div className="space-y-4 mt-6">
                         {[1, 2, 3].map(i => (
@@ -86,31 +159,77 @@ export default function AppraisalsPage() {
                             </div>
                         ))}
                     </div>
-                ) : assignments.length === 0 ? <p className="text-center py-12" style={{ color: "var(--text-muted)" }}>No assignments found.</p> :
-                        <div className="space-y-4 relative z-10">
-                            {assignments.map(o => {
+                ) : assignments.length === 0 ? (
+                    <div className="text-center py-20" style={{ color: "var(--text-muted)" }}>
+                        <div className="flex justify-center mb-4"><Inbox className="w-10 h-10 text-gray-400" /></div>
+                        <p>No assignments found.</p>
+                    </div>
+                ) : assignments.filter(o => (activeRoleTab === "ALL" || (activeRoleTab === "EVALUATE" ? o.observerId === userId : o.lecturerId === userId)) && (activeTab === "ALL" || o.formType === activeTab)).length === 0 ? (
+                    <div className="text-center py-20" style={{ color: "var(--text-muted)" }}>
+                        <div className="flex justify-center mb-4"><Inbox className="w-10 h-10 text-gray-400" /></div>
+                        <p>
+                            No {activeTab === "ALL" ? "appraisals" : activeTab === "A" ? "Peer Observation" : activeTab === "B" ? "Teaching Observation" : "Exam Moderation"}{" "}
+                            {activeRoleTab === "ALL" ? "" : activeRoleTab === "EVALUATE" ? "where you are observing" : "where you are being observed"}{" "}
+                            found.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="space-y-4 relative z-10">
+                        {assignments
+                            .filter(o => (activeRoleTab === "ALL" || (activeRoleTab === "EVALUATE" ? o.observerId === userId : o.lecturerId === userId)) && (activeTab === "ALL" || o.formType === activeTab))
+                            .map(o => {
                                 const isObserver = o.observerId === userId;
                                 return (
                                     <div 
                                         key={`${o.formType}-${o.id}`} 
-                                        className="flex flex-col md:flex-row md:items-center justify-between p-5 border rounded-2xl transition-all duration-300 hover:shadow-md hover:scale-[1.002]" 
-                                        style={{ backgroundColor: "var(--bg-base)", borderColor: "var(--bg-border)" }}
+                                        className="flex flex-col md:flex-row md:items-center justify-between p-5 border rounded-2xl transition-all duration-300 hover:shadow-md hover:scale-[1.002] border-l-4" 
+                                        style={{ 
+                                            backgroundColor: "var(--bg-base)", 
+                                            borderColor: "var(--bg-border)",
+                                            borderLeftColor: isObserver ? "rgb(168, 85, 247)" : "rgb(59, 130, 246)" // purple-500 vs blue-500
+                                        }}
                                     >
-                                        {/* Left: Info */}
                                         <div className="flex items-start gap-4">
-                                            <div className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-center shrink-0 min-w-[70px]">
-                                                <span className="block font-black text-xs tracking-widest text-slate-700 dark:text-slate-200">FORM {o.formType}</span>
-                                                <span className="block text-[8px] font-black uppercase tracking-widest text-slate-400 mt-0.5">{o.formType === "A" ? "Peer" : o.formType === "B" ? "Teach" : "Exam"}</span>
+                                            {/* Colored Icon box based on Form Type */}
+                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${
+                                                o.formType === "A" ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400" :
+                                                o.formType === "B" ? "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400" :
+                                                "bg-purple-500/10 border-purple-500/20 text-purple-600 dark:text-purple-400"
+                                            }`}>
+                                                {o.formType === "A" && <BookOpen className="w-5 h-5" />}
+                                                {o.formType === "B" && <Video className="w-5 h-5" />}
+                                                {o.formType === "C" && <ShieldCheck className="w-5 h-5" />}
                                             </div>
+
                                             <div>
-                                                <div className="flex items-center gap-2 flex-wrap">
-                                                    <span className="text-sm font-black tracking-tight" style={{ color: "var(--primary)" }}>{o.courseCode}</span>
+                                                {/* Form Name & Type - Important First */}
+                                                <div className="flex items-center flex-wrap gap-2">
+                                                    <span className="font-extrabold text-sm text-slate-900 dark:text-white">
+                                                        {o.typeName}
+                                                    </span>
+                                                    <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
+                                                        o.formType === "A" ? "bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400" :
+                                                        o.formType === "B" ? "bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400" :
+                                                        "bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400"
+                                                    }`}>
+                                                        Form {o.formType}
+                                                    </span>
+                                                </div>
+
+                                                {/* Course, Status, & Role - Secondary Important */}
+                                                <div className="font-bold text-base mt-1.5 flex items-center flex-wrap gap-2.5" style={{ color: "var(--text-primary)" }}>
+                                                    <span>{o.courseCode}</span>
                                                     <span className={`text-[9px] px-2 py-0.5 rounded-md font-black tracking-widest uppercase ${isObserver ? 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300'}`}>
                                                         {isObserver ? (o.formType === "C" ? 'MODERATOR' : 'OBSERVER') : 'LECTURER'}
                                                     </span>
+                                                    <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${statusColors[o.status]}`}>
+                                                        {o.status}
+                                                    </span>
                                                 </div>
-                                                <div className="text-xs font-semibold mt-1" style={{ color: "var(--text-primary)" }}>
-                                                    {o.typeName} • <span className="font-normal" style={{ color: "var(--text-muted)" }}>Partner: {isObserver ? (o.lecturer?.name || "Peer") : (o.formType === "C" ? o.moderator?.name : o.observer?.name) || "Peer"}</span>
+
+                                                {/* Partner details */}
+                                                <div className="text-xs font-semibold mt-2" style={{ color: "var(--text-muted)" }}>
+                                                    Partner: <span className="font-bold text-slate-700 dark:text-slate-300">{isObserver ? (o.lecturer?.name || "Peer") : (o.formType === "C" ? o.moderator?.name : o.observer?.name) || "Peer"}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -133,13 +252,6 @@ export default function AppraisalsPage() {
                                                 )}
                                             </div>
 
-                                            {/* Status Badge */}
-                                            <div className="w-fit">
-                                                <span className={`inline-block text-[9px] px-2.5 py-1 rounded-full font-black tracking-widest uppercase ${statusColors[o.status] || ""}`}>
-                                                    {o.status}
-                                                </span>
-                                            </div>
-
                                             {/* Action Button */}
                                             <div className="shrink-0">
                                                 <button
@@ -157,8 +269,8 @@ export default function AppraisalsPage() {
                                     </div>
                                 );
                             })}
-                        </div>
-                }
+                    </div>
+                )}
             </div>
         </div>
     );

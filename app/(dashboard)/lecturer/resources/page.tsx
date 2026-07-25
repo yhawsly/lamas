@@ -103,6 +103,31 @@ export default function LecturerResourcesPage() {
     // Search & Filter state
     const [searchQuery, setSearchQuery] = useState("");
     const [typeFilter, setTypeFilter] = useState("ALL");
+    const [courses, setCourses] = useState<any[]>([]);
+    const [selectedCourseFilter, setSelectedCourseFilter] = useState("ALL");
+    const [selectedCourseUpload, setSelectedCourseUpload] = useState("NONE");
+
+    const fetchCourses = async () => {
+        try {
+            const res = await fetch("/api/courses/my-sections");
+            const json = res.ok ? await res.json().catch(() => ({})) : {};
+            setCourses(json.courses || []);
+        } catch (error) {
+            console.error("Failed to fetch courses:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchCourses();
+    }, []);
+
+    useEffect(() => {
+        if (selectedCourseFilter !== "ALL") {
+            setSelectedCourseUpload(selectedCourseFilter);
+        } else {
+            setSelectedCourseUpload("NONE");
+        }
+    }, [selectedCourseFilter]);
 
     const [modal, setModal] = useState<{ isOpen: boolean; type: "alert" | "confirm"; title: string; message: string; onConfirm?: () => void }>({ isOpen: false, type: "alert", title: "", message: "" });
     const showAlert = (title: string, message: string) => setModal({ isOpen: true, type: "alert", title, message });
@@ -219,11 +244,15 @@ export default function LecturerResourcesPage() {
 
             if (!uploadRes.ok) throw new Error(uploadErr || "File upload failed");
 
+            const finalTitle = selectedCourseUpload !== "NONE" && !title.startsWith(`[${selectedCourseUpload}]`)
+                ? `[${selectedCourseUpload}] ${title}`
+                : title;
+
             // 2. Submit the resource record with the returned URL
             const res = await fetch("/api/resources", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title, description, type: detectedFormat || "OTHER", url: uploadedUrl }),
+                body: JSON.stringify({ title: finalTitle, description, type: detectedFormat || "OTHER", url: uploadedUrl }),
             });
 
             if (res.ok) {
@@ -319,7 +348,13 @@ export default function LecturerResourcesPage() {
         const q = searchQuery.toLowerCase();
         const matchesSearch = !q || r.title.toLowerCase().includes(q) || r.description?.toLowerCase().includes(q);
         const matchesType = typeFilter === "ALL" || r.type === typeFilter;
-        return matchesSearch && matchesType;
+        
+        let matchesCourse = true;
+        if (selectedCourseFilter !== "ALL") {
+            matchesCourse = r.title.startsWith(`[${selectedCourseFilter}]`) || r.description?.includes(selectedCourseFilter) || false;
+        }
+        
+        return matchesSearch && matchesType && matchesCourse;
     });
 
     const filteredShared = sharedResources.filter(r => {
@@ -470,6 +505,23 @@ export default function LecturerResourcesPage() {
                                 {/* Metadata fields */}
                                 {!uploadingFile && (
                                     <form onSubmit={handleUpload} className="space-y-4">
+                                        {courses.length > 0 && (
+                                            <div>
+                                                <label htmlFor="resource-course" className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Associate with Course</label>
+                                                <SearchableSelect 
+                                                    value={selectedCourseUpload}
+                                                    onChange={val => setSelectedCourseUpload(String(val))}
+                                                    placeholder="General / Select Course..."
+                                                    options={[
+                                                        { label: "None (General Upload)", value: "NONE" },
+                                                        ...courses.map((c: any) => ({
+                                                            label: `${c.course?.code} - ${c.course?.title}`,
+                                                            value: c.course?.code
+                                                        }))
+                                                    ]}
+                                                />
+                                            </div>
+                                        )}
                                         <div>
                                             <label htmlFor="resource-title" className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">Document Title *</label>
                                             <input 
@@ -518,13 +570,61 @@ export default function LecturerResourcesPage() {
 
                     {/* ATTACHED FILES TABLE GRID */}
                     <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-3xl overflow-hidden shadow-sm">
-                        <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-850 flex items-center justify-between">
-                            <h3 className="text-slate-900 dark:text-white font-bold flex items-center gap-2 text-base">
-                                <Library className="w-5 h-5 text-slate-500" /> Attached Course Materials
-                            </h3>
-                            <span className="text-xs bg-slate-100 dark:bg-slate-800 rounded-full px-3 py-1 font-semibold text-slate-500 dark:text-slate-400">
-                                {myResources.length} Total Uploads
-                            </span>
+                        <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-850 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                            <div className="flex items-center justify-between w-full lg:w-auto gap-4">
+                                <h3 className="text-slate-900 dark:text-white font-bold flex items-center gap-2 text-base">
+                                    <Library className="w-5 h-5 text-slate-500" /> Attached Course Materials
+                                </h3>
+                                <span className="text-xs bg-slate-100 dark:bg-slate-800 rounded-full px-3 py-1 font-semibold text-slate-500 dark:text-slate-400 shrink-0">
+                                    {myResources.length} Total Uploads
+                                </span>
+                            </div>
+
+                            {/* Quick Course Filters */}
+                            {courses.length > 0 && (
+                                <div className="flex flex-wrap gap-1 p-1 rounded-2xl bg-slate-100/80 dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 w-fit shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedCourseFilter("ALL")}
+                                        className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                                            selectedCourseFilter === "ALL"
+                                                ? "bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white"
+                                                : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
+                                        }`}
+                                    >
+                                        All Courses
+                                    </button>
+                                    {courses.map((c: any) => {
+                                        const code = c.course?.code;
+                                        if (!code) return null;
+                                        const isActive = selectedCourseFilter === code;
+                                        // Count files for this course in the list
+                                        const fileCount = myResources.filter(r => 
+                                            r.title.startsWith(`[${code}]`) || 
+                                            r.description?.includes(code)
+                                        ).length;
+                                        return (
+                                            <button
+                                                key={code}
+                                                type="button"
+                                                onClick={() => setSelectedCourseFilter(code)}
+                                                className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                                                    isActive
+                                                        ? "bg-white dark:bg-slate-800 shadow-sm text-blue-600 dark:text-blue-400 font-extrabold"
+                                                        : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
+                                                }`}
+                                            >
+                                                <span>{code}</span>
+                                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
+                                                    isActive 
+                                                        ? "bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400" 
+                                                        : "bg-slate-200/80 dark:bg-slate-800 text-slate-500"
+                                                }`}>{fileCount}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
 
                         {myLoading ? (

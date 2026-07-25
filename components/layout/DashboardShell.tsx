@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { User, Settings, LogOut, ChevronDown } from "lucide-react";
+import { usePathname } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import NotificationBell from "@/components/ui/NotificationBell";
 import ThemeToggle from "@/components/ui/ThemeToggle";
@@ -22,8 +23,19 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
     const { data: session } = useSession();
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const pathname = usePathname();
 
-    const role = (session?.user as any)?.role || "LECTURER";
+    const getRoleFromPath = (path: string | null): string => {
+        if (!path) return "";
+        if (path.startsWith("/admin")) return "ADMIN";
+        if (path.startsWith("/hod")) return "HOD";
+        if (path.startsWith("/deo")) return "DEO";
+        if (path.startsWith("/lecturer")) return "LECTURER";
+        return "";
+    };
+
+    const pathRole = getRoleFromPath(pathname);
+    const role = pathRole || (session?.user as any)?.role || "LECTURER";
     
     // determine initials
     const name = session?.user?.name || "User";

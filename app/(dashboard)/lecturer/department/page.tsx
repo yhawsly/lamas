@@ -113,7 +113,7 @@ export default function LecturerDepartmentPage() {
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">My Department</h1>
+                    <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Colleagues</h1>
                     <p className="text-gray-500 mt-1 text-sm">Connect with your academic colleagues and send direct updates.</p>
                 </div>
                 <div className="flex items-center gap-4">

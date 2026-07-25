@@ -13,20 +13,20 @@ const fetcher = (url: string) => fetch(url).then(r => r.json());
 const navByRole: Record<string, { label: string; href: string; icon: React.ReactNode }[]> = {
     LECTURER: [
         { label: "Dashboard", href: "/lecturer", icon: <Home className="w-5 h-5" /> },
-        { label: "My Department", href: "/lecturer/department", icon: <Megaphone className="w-5 h-5" /> },
-        { label: "Course Syllabus", href: "/lecturer/courses", icon: <ClipboardList className="w-5 h-5" /> },
         { label: "Appraisals & Reviews", href: "/lecturer/appraisals", icon: <Eye className="w-5 h-5" /> },
+        { label: "Course Syllabus", href: "/lecturer/courses", icon: <ClipboardList className="w-5 h-5" /> },
         { label: "Resources", href: "/lecturer/resources", icon: <Library className="w-5 h-5" /> },
         { label: "My Reports", href: "/lecturer/reports", icon: <FileText className="w-5 h-5" /> },
+        { label: "Colleagues", href: "/lecturer/department", icon: <Megaphone className="w-5 h-5" /> },
         { label: "Notifications", href: "/notifications", icon: <Bell className="w-5 h-5" /> },
     ],
     HOD: [
         { label: "Dashboard", href: "/hod", icon: <Home className="w-5 h-5" /> },
-        { label: "Academics", href: "/hod/curriculum", icon: <Map className="w-5 h-5" /> },
         { label: "Staff & Reviews", href: "/hod/staff", icon: <Users className="w-5 h-5" /> },
-        { label: "Reports", href: "/hod/reports", icon: <FileText className="w-5 h-5" /> },
-        { label: "Resources", href: "/lecturer/resources", icon: <Library className="w-5 h-5" /> },
         { label: "Resource Approvals", href: "/hod/resources", icon: <CheckCircle className="w-5 h-5" /> },
+        { label: "Academics", href: "/hod/curriculum", icon: <Map className="w-5 h-5" /> },
+        { label: "Resources", href: "/lecturer/resources", icon: <Library className="w-5 h-5" /> },
+        { label: "Reports", href: "/hod/reports", icon: <FileText className="w-5 h-5" /> },
         { label: "Notifications", href: "/notifications", icon: <Bell className="w-5 h-5" /> },
     ],
     DEO: [
@@ -36,8 +36,8 @@ const navByRole: Record<string, { label: string; href: string; icon: React.React
     ADMIN: [
         { label: "Dashboard", href: "/admin", icon: <Home className="w-5 h-5" /> },
         { label: "User Management", href: "/admin/users", icon: <Users className="w-5 h-5" /> },
-        { label: "Academics", href: "/admin/curriculum", icon: <Map className="w-5 h-5" /> },
         { label: "Submissions", href: "/admin/submissions", icon: <ClipboardList className="w-5 h-5" /> },
+        { label: "Academics", href: "/admin/curriculum", icon: <Map className="w-5 h-5" /> },
         { label: "System Insights", href: "/admin/analytics", icon: <BarChart2 className="w-5 h-5" /> },
         { label: "Communications", href: "/admin/notify", icon: <Megaphone className="w-5 h-5" /> },
         { label: "Notifications", href: "/notifications", icon: <Bell className="w-5 h-5" /> },
@@ -45,8 +45,8 @@ const navByRole: Record<string, { label: string; href: string; icon: React.React
     SUPER_ADMIN: [
         { label: "Dashboard", href: "/admin", icon: <Home className="w-5 h-5" /> },
         { label: "User Management", href: "/admin/users", icon: <Users className="w-5 h-5" /> },
-        { label: "Academics", href: "/admin/curriculum", icon: <Map className="w-5 h-5" /> },
         { label: "Submissions", href: "/admin/submissions", icon: <ClipboardList className="w-5 h-5" /> },
+        { label: "Academics", href: "/admin/curriculum", icon: <Map className="w-5 h-5" /> },
         { label: "System Insights", href: "/admin/analytics", icon: <BarChart2 className="w-5 h-5" /> },
         { label: "Communications", href: "/admin/notify", icon: <Megaphone className="w-5 h-5" /> },
         { label: "Notifications", href: "/notifications", icon: <Bell className="w-5 h-5" /> },
@@ -69,15 +69,16 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     const pathname = usePathname();
 
     const getRoleFromPath = (path: string | null): string => {
-        if (!path) return "LECTURER";
+        if (!path) return "";
         if (path.startsWith("/admin")) return "ADMIN";
         if (path.startsWith("/hod")) return "HOD";
         if (path.startsWith("/deo")) return "DEO";
         if (path.startsWith("/lecturer")) return "LECTURER";
-        return "LECTURER";
+        return "";
     };
 
-    const role = (session?.user as any)?.role || getRoleFromPath(pathname);
+    const pathRole = getRoleFromPath(pathname);
+    const role = pathRole || (session?.user as any)?.role || "LECTURER";
     const nav = navByRole[role] || navByRole.LECTURER;
     const { data: notificationsData } = useSWR("/api/notifications", fetcher, {
         refreshInterval: 30000,

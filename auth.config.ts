@@ -3,6 +3,7 @@ import type { NextAuthConfig } from "next-auth";
 export const authConfig = {
     pages: {
         signIn: "/login",
+        error: "/login",
     },
     // Explicitly define secret for middleware and auth handlers
     secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
@@ -72,6 +73,9 @@ export const authConfig = {
             
             if (token && session.user) {
                 session.user.id = String(token.id || token.sub);
+                if (token.name) session.user.name = token.name as string;
+                if (token.email) session.user.email = token.email as string;
+                if (token.picture) session.user.image = token.picture as string;
                 (session.user as any).role = token.role as string;
                 (session.user as any).departmentId = token.departmentId as number;
                 (session.user as any).requirePasswordReset = token.requirePasswordReset as boolean;
