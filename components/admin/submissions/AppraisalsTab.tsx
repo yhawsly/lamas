@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import KPICard from "@/components/ui/KPICard";
 import { CheckCircle, Clock, AlertCircle, FileText, Search } from "lucide-react";
+import { useTerm } from "@/context/TermContext";
 
 const AppraisalsSkeleton = () => (
     <div className="divide-y divide-slate-100 dark:divide-slate-800/60 animate-pulse">
@@ -41,6 +42,7 @@ const AppraisalsSkeleton = () => (
 );
 
 export default function AppraisalsTab() {
+    const { selectedTermId } = useTerm();
     const [submissions, setSubmissions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState({ status: "", type: "" });
@@ -50,8 +52,9 @@ export default function AppraisalsTab() {
         const params = new URLSearchParams();
         if (filter.status) params.set("status", filter.status);
         if (filter.type) params.set("type", filter.type);
+        if (selectedTermId) params.set("termId", String(selectedTermId));
         fetch(`/api/submissions?${params}`).then(r => r.json()).then(d => { setSubmissions(Array.isArray(d) ? d : (d && Array.isArray(d.data) ? d.data : [])); setLoading(false); });
-    }, [filter]);
+    }, [filter, selectedTermId]);
 
     const filteredSubmissions = submissions.filter((s: any) =>
         (s.lecturer?.name || "").toLowerCase().includes(search.toLowerCase()) ||

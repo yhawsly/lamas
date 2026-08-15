@@ -169,6 +169,16 @@ export async function POST(req: NextRequest) {
 
         const userId = parseInt(session.user.id!);
         const body = await req.json();
+
+        // Check backend term archive guard
+        const { assertTermIsActive } = await import("@/lib/term-guard");
+        const termGuard = await assertTermIsActive(body.termId);
+        if (!termGuard.allowed) {
+            return NextResponse.json(
+                { error: termGuard.reason || "Read-Only Archive: Submissions are disabled for archived academic terms." },
+                { status: 403 }
+            );
+        }
         
         // Zod validation
         const validation = SubmissionSchema.safeParse(body);

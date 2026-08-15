@@ -141,7 +141,17 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { lecturerId, observerId, courseCode } = body;
+        const { lecturerId, observerId, courseCode, termId } = body;
+
+        // Check backend term archive guard
+        const { assertTermIsActive } = await import("@/lib/term-guard");
+        const termGuard = await assertTermIsActive(termId);
+        if (!termGuard.allowed) {
+            return NextResponse.json(
+                { error: termGuard.reason || "Read-Only Archive: Actions are disabled for archived terms." },
+                { status: 403 }
+            );
+        }
 
         if (!lecturerId || !observerId || !courseCode) {
             return NextResponse.json(

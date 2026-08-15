@@ -8,11 +8,11 @@ import { usePathname } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import NotificationBell from "@/components/ui/NotificationBell";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import TermSwitcher from "@/components/workspace/TermSwitcher";
+import ArchiveModeBanner from "@/components/workspace/ArchiveModeBanner";
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-
-    // The sidebar state starts closed, so no need to set it on mount.
 
     // Close on ESC key
     useEffect(() => {
@@ -71,7 +71,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             {/* ── Main content area (pushed right by fixed sidebar on desktop) ── */}
             <div className="flex-1 flex flex-col min-w-0 lg:ml-64">
                 {/* Top bar (Visible on all screens, but hamburger is mobile-only) */}
-                <header className="flex items-center justify-between px-4 lg:px-8 py-3 lg:py-4 border-b sticky top-0 z-20"
+                <header className="flex items-center justify-between px-4 lg:px-8 py-3 lg:py-4 border-b sticky top-0 z-30"
                     style={{ background: "var(--bg-base)", borderColor: "var(--bg-border)" }}>
                     <div className="flex items-center gap-4">
                         <button
@@ -104,11 +104,12 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                     </div> {/* End left side flex */}
 
                     {/* Right side global actions */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5 sm:gap-3">
+                        <TermSwitcher />
                         <ThemeToggle />
                         <NotificationBell />
                         
-                        <div className="relative profile-dropdown ml-2">
+                        <div className="relative profile-dropdown ml-1 sm:ml-2">
                             <button 
                                 onClick={() => setDropdownOpen(!dropdownOpen)}
                                 className="flex items-center gap-3 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
@@ -161,6 +162,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                         </div>
                     </div>
                 </header>
+
+                {/* Sticky Archive Read-Only Warning Banner */}
+                <ArchiveModeBanner />
 
                 <main className="flex-1 overflow-x-hidden overflow-y-auto">
                     <div className="px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8 max-w-[1400px] w-full">{children}</div>

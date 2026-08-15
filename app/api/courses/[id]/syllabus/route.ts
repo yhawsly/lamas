@@ -43,12 +43,23 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             include: { course: { select: { code: true, title: true, credits: true } } }
         });
 
-        // Fetch lecturer's personalized topics/classes if any
+        const termIdParam = url.searchParams.get("termId");
+
+        const subWhere: any = {
+            lecturerId: userId,
+            type: "COURSE_TOPICS"
+        };
+        if (termIdParam) {
+            subWhere.termId = parseInt(termIdParam);
+        } else {
+            const { checkAndGetActiveTerm } = await import("@/lib/active-term");
+            const activeTerm = await checkAndGetActiveTerm();
+            if (activeTerm) subWhere.termId = activeTerm.id;
+        }
+
+        // Fetch lecturer's personalized topics/classes if any for the specified term
         const allSubmissions = await prisma.submission.findMany({
-            where: {
-                lecturerId: userId,
-                type: "COURSE_TOPICS"
-            },
+            where: subWhere,
             orderBy: { createdAt: 'desc' }
         });
 
@@ -104,7 +115,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             return NextResponse.json({ error: "Invalid Course ID" }, { status: 400 });
         }
 
-        const { topics, classes, basicInfo, assessments, outcomes, submit } = await req.json();
+        const { topics, classes, basicInfo, assessments, outcomes, submit, termId } = await req.json();
+
+        // Check backend term archive guard
+        const { assertTermIsActive } = await import("@/lib/term-guard");
+        const termGuard = await assertTermIsActive(termId);
+        if (!termGuard.allowed) {
+            return NextResponse.json(
+                { error: termGuard.reason || "Read-Only Archive: Course syllabus updates cannot be saved for archived terms." },
+                { status: 403 }
+            );
+        }
 
         // Check for existing submission for this specific course
         const allSubmissions = await prisma.submission.findMany({
@@ -147,6 +168,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
                     lecturerId: userId,
                     title: `Course Outline for Course #${courseId}`,
                     type: "COURSE_TOPICS",
+                    termId: termId ? parseInt(termId) : undefined,
                     content: contentToSave as any,
                     status: targetStatus,
                     submittedAt: targetSubmittedAt

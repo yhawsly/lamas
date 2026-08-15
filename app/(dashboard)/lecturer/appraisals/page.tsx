@@ -3,10 +3,12 @@ import { ClipboardList, BookOpen, Video, ShieldCheck, Inbox } from "lucide-react
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useTerm } from "@/context/TermContext";
 
 export default function AppraisalsPage() {
     const { data: session } = useSession();
     const router = useRouter();
+    const { selectedTermId } = useTerm();
     const userId = parseInt(session?.user?.id || "0");
     const [assignments, setAssignments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -16,10 +18,13 @@ export default function AppraisalsPage() {
     const load = useCallback(async () => {
         setLoading(true);
         try {
+            const termQuery = selectedTermId ? `?termId=${selectedTermId}` : "";
+            const obsQuery = selectedTermId ? `?termId=${selectedTermId}&limit=100` : "?limit=100";
+
             const [obsRes, teachRes, modRes] = await Promise.all([
-                fetch(`/api/observations?limit=100`).then(r => r.json()),
-                fetch(`/api/teaching-observations`).then(r => r.json()),
-                fetch(`/api/moderations`).then(r => r.json())
+                fetch(`/api/observations${obsQuery}`).then(r => r.json()),
+                fetch(`/api/teaching-observations${termQuery}`).then(r => r.json()),
+                fetch(`/api/moderations${termQuery}`).then(r => r.json())
             ]);
             
             const obs = (obsRes.data || (Array.isArray(obsRes) ? obsRes : [])).map((o: any) => ({...o, formType: "A", typeName: "Peer Observation"}));
@@ -30,7 +35,7 @@ export default function AppraisalsPage() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [selectedTermId]);
 
     useEffect(() => {
         load();

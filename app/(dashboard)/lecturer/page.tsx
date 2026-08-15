@@ -6,6 +6,7 @@ import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import KPICard from "@/components/ui/KPICard";
 import useSWR from "swr";
+import { useTerm } from "@/context/TermContext";
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
@@ -27,11 +28,15 @@ const typeIcon: Record<string, ReactNode> = {
 };
 
 export default function LecturerDashboard() {
-    const { data: subsData } = useSWR("/api/submissions", fetcher);
-    const { data: dlsData } = useSWR("/api/deadlines", fetcher);
+    const { selectedTermId } = useTerm();
+    const termQuery = selectedTermId ? `?termId=${selectedTermId}` : "";
+
+    // SWR Data Fetching with global cache
+    const { data: subsData } = useSWR(`/api/submissions${termQuery}`, fetcher);
+    const { data: dlsData } = useSWR(`/api/deadlines${termQuery}`, fetcher);
     const { data: notifsData } = useSWR("/api/notifications", fetcher);
     const { data: resData } = useSWR("/api/resources", fetcher);
-    const { data: mySectionsData } = useSWR("/api/courses/my-sections", fetcher);
+    const { data: mySectionsData } = useSWR(`/api/courses/my-sections${termQuery}`, fetcher);
 
     const submissions = useMemo(() => subsData?.data || [], [subsData]);
     const deadlines = useMemo(() => Array.isArray(dlsData) ? dlsData : [], [dlsData]);

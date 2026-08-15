@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import { Clock, Plus, Calendar, AlertTriangle } from "lucide-react";
+import { useTerm } from "@/context/TermContext";
 
 const DeadlinesSkeleton = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-pulse">
@@ -28,6 +29,7 @@ const DeadlinesSkeleton = () => (
 );
 
 export default function DeadlinesTab() {
+    const { isArchiveMode, selectedTermId } = useTerm();
     const [deadlines, setDeadlines] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [form, setForm] = useState({ type: "SEMESTER_CALENDAR", label: "", dueDate: "" });
@@ -36,17 +38,24 @@ export default function DeadlinesTab() {
 
     useEffect(() => {
         async function load() {
-            const r = await fetch("/api/deadlines");
+            const termParam = selectedTermId ? `?termId=${selectedTermId}` : "";
+            const r = await fetch(`/api/deadlines${termParam}`);
             const d = await r.ok ? r.json().catch(() => []) : [];
             setDeadlines(Array.isArray(d) ? d : []);
             setLoading(false);
         }
         load();
-    }, []);
+    }, [selectedTermId]);
 
     async function createDeadline(e: React.FormEvent) {
-        e.preventDefault(); setSaving(true);
-        const res = await fetch("/api/deadlines", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+        e.preventDefault(); 
+        if (isArchiveMode) {
+            setMsg("❌ Action Disabled: You are currently viewing a read-only historical archive.");
+            setTimeout(() => setMsg(""), 3000);
+            return;
+        }
+        setSaving(true);
+        const res = await fetch("/api/deadlines", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, termId: selectedTermId }) });
         if (res.ok) {
             const d = await res.json().catch(() => ({}));
             setDeadlines(p => [d, ...p]);
@@ -98,9 +107,11 @@ export default function DeadlinesTab() {
                         <h2 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>New Deadline</h2>
                     </div>
 
-                    <form onSubmit={createDeadline} className="flex flex-col lg:flex-row gap-4 items-end">
-                        <div className="flex-1 w-full min-w-[200px]">
-                            <label className="block text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: "var(--text-muted)" }}>Submission Type</label>
+                    <form onSubmit={createDeadline} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
+                        <div className="lg:col-span-3">
+                            <label className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>
+                                Submission Type
+                            </label>
                             <SearchableSelect
                                 value={form.type}
                                 onChange={val => setForm({ ...form, type: String(val) })}
@@ -112,22 +123,49 @@ export default function DeadlinesTab() {
                                 ]}
                             />
                         </div>
-                        <div className="flex-[2] w-full min-w-[250px]">
-                            <label htmlFor="deadline-label" className="block text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: "var(--text-muted)" }}>Label</label>
-                            <input id="deadline-label" name="label" value={form.label} onChange={e => setForm({ ...form, label: e.target.value })} required placeholder="e.g. Semester Calendar — Sem 2 2025/2026"
-                                className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900" style={{ color: "var(--text-primary)" }} />
-                        </div>
-                        <div className="flex-1.5 w-full min-w-[200px]">
-                            <label htmlFor="deadline-due-date" className="block text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: "var(--text-muted)" }}>Due Date</label>
-                            <input id="deadline-due-date" name="dueDate" type="datetime-local" value={form.dueDate} onChange={e => setForm({ ...form, dueDate: e.target.value })} required
-                                className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900" style={{ color: "var(--text-primary)" }} />
+
+                        <div className="lg:col-span-4">
+                            <label htmlFor="deadline-label" className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>
+                                Deadline Label
+                            </label>
+                            <input 
+                                id="deadline-label" 
+                                name="label" 
+                                value={form.label} 
+                                onChange={e => setForm({ ...form, label: e.target.value })} 
+                                required 
+                                placeholder="e.g. Semester 2 Calendar Submission"
+                                className="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900" 
+                                style={{ color: "var(--text-primary)" }} 
+                            />
                         </div>
 
-                        <button type="submit" disabled={saving}
-                            className="w-full lg:w-auto px-6 py-2.5 rounded-xl text-sm font-bold transition-all hover:brightness-105 active:scale-[0.98] text-white flex items-center justify-center gap-2 shrink-0 h-[42px] shadow-md shadow-blue-500/20 disabled:opacity-50 cursor-pointer"
-                            style={{ backgroundColor: "var(--primary)" }}>
-                            {saving ? "Creating..." : "Create & Notify"}
-                        </button>
+                        <div className="lg:col-span-3">
+                            <label htmlFor="deadline-due-date" className="block text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>
+                                Due Date & Time
+                            </label>
+                            <input 
+                                id="deadline-due-date" 
+                                name="dueDate" 
+                                type="datetime-local" 
+                                value={form.dueDate} 
+                                onChange={e => setForm({ ...form, dueDate: e.target.value })} 
+                                required
+                                className="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900" 
+                                style={{ color: "var(--text-primary)" }} 
+                            />
+                        </div>
+
+                        <div className="lg:col-span-2">
+                            <button 
+                                type="submit" 
+                                disabled={saving}
+                                className="w-full px-5 py-2.5 rounded-xl text-sm font-bold transition-all hover:brightness-105 active:scale-[0.98] text-white flex items-center justify-center gap-2 shrink-0 h-[42px] shadow-md shadow-blue-500/20 disabled:opacity-50 cursor-pointer"
+                                style={{ backgroundColor: "var(--primary)" }}
+                            >
+                                {saving ? "Creating..." : "Create & Notify"}
+                            </button>
+                        </div>
                     </form>
                 </div>
 

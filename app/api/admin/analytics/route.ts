@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
@@ -10,12 +10,10 @@ import {
 } from "@/lib/compliance";
 import { prisma } from "@/lib/prisma";
 
-
 // GET /api/admin/analytics
-export async function GET() {
+export async function GET(req: NextRequest) {
     const session = await auth();
     if (!session || !session.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
 
     const role = (session.user as any).role;
     const userId = Number(session.user.id);
@@ -32,13 +30,14 @@ export async function GET() {
             select: { departmentId: true },
         });
         deptId = hodUser?.departmentId ?? undefined;
-        console.log(`[Analytics API] HOD ${userId} resolved departmentId: ${deptId}`);
     }
+
+    const url = new URL(req.url);
+    const termIdParam = url.searchParams.get("termId");
 
     const { checkAndGetActiveTerm } = await import("@/lib/active-term");
     const activeTerm = await checkAndGetActiveTerm();
-    const termId = activeTerm?.id;
-    console.log(`[Analytics API] Active Term ID: ${termId}`);
+    const termId = termIdParam ? parseInt(termIdParam) : activeTerm?.id;
 
 
     const [scores, heatmap, trend] = await Promise.all([

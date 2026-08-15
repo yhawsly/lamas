@@ -61,7 +61,17 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json();
-        const { lecturerId, observerId, courseCode } = body;
+        const { lecturerId, observerId, courseCode, termId } = body;
+
+        // Check backend term archive guard
+        const { assertTermIsActive } = await import("@/lib/term-guard");
+        const termGuard = await assertTermIsActive(termId);
+        if (!termGuard.allowed) {
+            return NextResponse.json(
+                { error: termGuard.reason || "Read-Only Archive: Teaching observations cannot be created for archived terms." },
+                { status: 403 }
+            );
+        }
 
         // Validate that the lecturer is assigned to the course
         const isAssigned = await prisma.courseSection.findFirst({

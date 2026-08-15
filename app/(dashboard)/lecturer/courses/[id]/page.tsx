@@ -8,6 +8,7 @@ type Module = { id: number, week: number, title: string, description: string, le
 type Class = { id: string, name: string, modules: Module[] };
 
 import { useParams, useRouter } from "next/navigation";
+import { useTerm } from "@/context/TermContext";
 
 const fetcher = (url: string) => fetch(url).then(res => res.ok ? res.json() : null);
 
@@ -133,10 +134,11 @@ export default function CourseOutlinePrototype() {
   const isInitialLoadRef = useRef(true);
 
   // SWR Caching for instant page loads
+  const { selectedTermId, isArchiveMode } = useTerm();
   const courseId = params?.id ? Number(params.id) : null;
   const { data: courseData } = useSWR(courseId ? `/api/courses/${courseId}` : null, fetcher);
-  const { data: sectionsData } = useSWR("/api/courses/my-sections", fetcher);
-  const { data: syllabusData } = useSWR(courseId ? `/api/courses/${courseId}/syllabus` : null, fetcher);
+  const { data: sectionsData } = useSWR(selectedTermId ? `/api/courses/my-sections?termId=${selectedTermId}` : "/api/courses/my-sections", fetcher);
+  const { data: syllabusData } = useSWR(courseId ? `/api/courses/${courseId}/syllabus${selectedTermId ? '?termId=' + selectedTermId : ''}` : null, fetcher);
   const { mutate } = useSWRConfig();
 
   const [loadedCourseId, setLoadedCourseId] = useState<number | null>(null);
@@ -240,14 +242,14 @@ export default function CourseOutlinePrototype() {
 
   // Auto-save effect
   useEffect(() => {
-    if (isInitialLoadRef.current) return;
+    if (isInitialLoadRef.current || isArchiveMode) return;
 
     setIsDirty(true);
     setSaveIndicator("idle");
 
     const delayDebounceFn = setTimeout(() => {
       const autoSave = async () => {
-        if (!params?.id) return;
+        if (!params?.id || isArchiveMode) return;
         setSaveIndicator("saving");
         try {
           const res = await fetch(`/api/courses/${params.id}/syllabus`, {
@@ -258,11 +260,12 @@ export default function CourseOutlinePrototype() {
               topics,
               classes,
               assessments,
-              submit: false
+              submit: false,
+              termId: selectedTermId
             })
           });
           if (res.ok) {
-            mutate(`/api/courses/${params.id}/syllabus`);
+            mutate(`/api/courses/${params.id}/syllabus${selectedTermId ? '?termId=' + selectedTermId : ''}`);
             setSaveIndicator("saved");
             setIsDirty(false);
             setTimeout(() => setSaveIndicator("idle"), 2000);
@@ -278,7 +281,7 @@ export default function CourseOutlinePrototype() {
     }, 3000); // 3 seconds of inactivity
 
     return () => clearTimeout(delayDebounceFn);
-  }, [basicInfo, topics, classes, assessments, params?.id, mutate]);
+  }, [basicInfo, topics, classes, assessments, params?.id, mutate, isArchiveMode, selectedTermId]);
 
   // Warn about unsaved changes on tab close/refresh
   useEffect(() => {
@@ -295,6 +298,11 @@ export default function CourseOutlinePrototype() {
 
   const handleSaveToDB = async (submit = false) => {
     if (!params?.id) return;
+    if (isArchiveMode) {
+      setToastMessage("Action Disabled: You are currently viewing a read-only historical archive.");
+      setTimeout(() => setToastMessage(null), 3000);
+      return;
+    }
     setIsSaving(true);
     if (!submit) {
       setSaveIndicator("saving");
@@ -308,13 +316,14 @@ export default function CourseOutlinePrototype() {
           topics,
           classes,
           assessments,
-          submit
+          submit,
+          termId: selectedTermId
         })
       });
       if (res.ok) {
-        mutate(`/api/courses/${params.id}/syllabus`);
+        mutate(`/api/courses/${params.id}/syllabus${selectedTermId ? '?termId=' + selectedTermId : ''}`);
         if (submit) {
-          setToastMessage("Submitted successfully!");
+          setToastMessage("Syllabus submitted for HOD review!");
           setSubmissionStatus("SUBMITTED");
           setTimeout(() => setToastMessage(null), 3000);
         } else {

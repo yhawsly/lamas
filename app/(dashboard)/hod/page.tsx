@@ -5,6 +5,7 @@ import { useState } from "react";
 import KPICard from "@/components/ui/KPICard";
 import useSWR from "swr";
 import dynamic from "next/dynamic";
+import { useTerm } from "@/context/TermContext";
 
 const ComplianceChart = dynamic(() => import("@/components/analytics/ComplianceChart"), { ssr: false });
 const ObservationRadar = dynamic(() => import("@/components/analytics/ObservationRadar"), { ssr: false });
@@ -43,8 +44,11 @@ const HODDashboardSkeleton = () => (
 );
 
 export default function HoDDashboard() {
+    const { selectedTermId } = useTerm();
+    const analyticsUrl = selectedTermId ? `/api/admin/analytics?termId=${selectedTermId}` : "/api/admin/analytics";
+
     // Use SWR for client-side caching of all dashboard datasets
-    const { data: analyticsData } = useSWR("/api/admin/analytics", fetcher);
+    const { data: analyticsData } = useSWR(analyticsUrl, fetcher);
     const { data: coursesData } = useSWR("/api/courses", fetcher);
 
     const data = analyticsData;

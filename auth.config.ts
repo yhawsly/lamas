@@ -45,7 +45,7 @@ export const authConfig = {
                 if (nextUrl.pathname.startsWith("/deo") && role !== "DEO") {
                     return Response.redirect(new URL("/", nextUrl));
                 }
-                if (nextUrl.pathname.startsWith("/lecturer") && role !== "LECTURER") {
+                if (nextUrl.pathname.startsWith("/lecturer") && !["LECTURER", "HOD", "DEO", "ADMIN", "SUPER_ADMIN"].includes(role as string)) {
                     return Response.redirect(new URL("/", nextUrl));
                 }
                 return true;

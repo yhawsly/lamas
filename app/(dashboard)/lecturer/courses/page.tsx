@@ -3,9 +3,12 @@
 import useSWR from "swr";
 import Link from "next/link";
 import { AlertCircle, BookOpen, GraduationCap, BarChart3 } from "lucide-react";
+import { useTerm } from "@/context/TermContext";
 
 export default function LecturerCoursesPage() {
-    const { data, error: swrError, mutate } = useSWR("/api/courses/my-sections", (url) =>
+    const { selectedTermId } = useTerm();
+    const urlKey = selectedTermId ? `/api/courses/my-sections?termId=${selectedTermId}` : "/api/courses/my-sections";
+    const { data, error: swrError, mutate } = useSWR(urlKey, (url) =>
         fetch(url).then(async (r) => {
             if (!r.ok) {
                 const d = await r.json().catch(() => ({}));

@@ -3,6 +3,7 @@ import { Plus, ClipboardList, Inbox, BookOpen, Video, ShieldCheck } from "lucide
 import { useEffect, useState } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import { useRouter } from "next/navigation";
+import { useTerm } from "@/context/TermContext";
 
 const RegistrySkeleton = () => (
     <div className="space-y-3 animate-pulse">
@@ -35,6 +36,7 @@ const RegistrySkeleton = () => (
 
 export default function DeoDashboard() {
     const router = useRouter();
+    const { selectedTermId, isArchiveMode } = useTerm();
     const [assignments, setAssignments] = useState<any[]>([]);
     const [courses, setCourses] = useState<any[]>([]);
     const [lecturers, setLecturers] = useState<any[]>([]);
@@ -49,7 +51,7 @@ export default function DeoDashboard() {
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [selectedTermId]);
 
     // Auto-populate lecturer if exactly 1 lecturer is assigned to sections of the selected course
     useEffect(() => {
@@ -71,10 +73,13 @@ export default function DeoDashboard() {
     const loadData = async () => {
         setLoading(true);
         try {
+            const termParam = selectedTermId ? `?termId=${selectedTermId}` : "";
+            const termLimitParam = selectedTermId ? `?termId=${selectedTermId}&limit=100` : "?limit=100";
+
             const [obsRes, teachRes, modRes, coursesData, lecturersData] = await Promise.all([
-                fetch("/api/observations?limit=100").then(r => r.json()),
-                fetch("/api/teaching-observations").then(r => r.json()),
-                fetch("/api/moderations").then(r => r.json()),
+                fetch(`/api/observations${termLimitParam}`).then(r => r.json()),
+                fetch(`/api/teaching-observations${termParam}`).then(r => r.json()),
+                fetch(`/api/moderations${termParam}`).then(r => r.json()),
                 fetch("/api/courses").then(r => r.json()),
                 fetch("/api/lecturers").then(r => r.json())
             ]);
@@ -96,10 +101,19 @@ export default function DeoDashboard() {
 
     async function assign(e: React.FormEvent) {
         e.preventDefault();
+        if (isArchiveMode) {
+            setMsg("❌ Action Disabled: You are currently viewing a read-only historical archive.");
+            setTimeout(() => setMsg(""), 4000);
+            return;
+        }
         setIsSubmitting(true);
         
         let endpoint = "";
-        const body: any = { courseCode: form.courseCode, lecturerId: parseInt(form.lecturerId) };
+        const body: any = { 
+            courseCode: form.courseCode, 
+            lecturerId: parseInt(form.lecturerId),
+            termId: selectedTermId,
+        };
 
         if (reviewType === "A") {
             endpoint = "/api/observations";

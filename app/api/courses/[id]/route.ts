@@ -71,10 +71,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             return NextResponse.json({ error: "Invalid Course ID" }, { status: 400 });
         }
 
+        const url = new URL(req.url);
+        const termIdParam = url.searchParams.get("termId");
+
         const course = await prisma.course.findUnique({ 
             where: { id: courseId },
             include: {
-                sections: true
+                sections: termIdParam ? { where: { termId: parseInt(termIdParam) } } : true
             }
         });
         

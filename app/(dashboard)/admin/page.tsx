@@ -5,6 +5,7 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import KPICard from "@/components/ui/KPICard";
 import useSWR from "swr";
+import { useTerm } from "@/context/TermContext";
 
 const ComplianceChart = dynamic(() => import("@/components/analytics/ComplianceChart"), { ssr: false });
 const ObservationRadar = dynamic(() => import("@/components/analytics/ObservationRadar"), { ssr: false });
@@ -46,8 +47,11 @@ const AdminSkeleton = () => (
 );
 
 export default function AdminDashboard() {
+    const { selectedTermId } = useTerm();
+    const analyticsUrl = selectedTermId ? `/api/admin/analytics?termId=${selectedTermId}` : "/api/admin/analytics";
+
     // Use SWR for client-side caching of institution analytics
-    const { data: analyticsData } = useSWR<Analytics>("/api/admin/analytics", fetcher);
+    const { data: analyticsData } = useSWR<Analytics>(analyticsUrl, fetcher);
 
     const data = analyticsData;
     const loading = !analyticsData;

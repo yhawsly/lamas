@@ -18,6 +18,8 @@ import {
     Image as ImageIcon
 } from "lucide-react";
 
+import { useTerm } from "@/context/TermContext";
+
 interface Resource {
     id: number;
     title: string;
@@ -76,6 +78,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function HODResourcesPage() {
+    const { isArchiveMode, selectedTermId } = useTerm();
     const [resources, setResources] = useState<Resource[]>([]);
     const [loading, setLoading] = useState(true);
     const [msg, setMsg] = useState("");
@@ -98,9 +101,14 @@ export default function HODResourcesPage() {
 
     useEffect(() => {
         fetchResources();
-    }, []);
+    }, [selectedTermId]);
 
     const updateStatus = async (id: number, status: string, providedFeedback?: string) => {
+        if (isArchiveMode) {
+            setMsg("❌ Action Disabled: You are currently viewing a read-only historical archive.");
+            setTimeout(() => setMsg(""), 4000);
+            return;
+        }
         setMsg("");
         try {
             const bodyData: any = { status };

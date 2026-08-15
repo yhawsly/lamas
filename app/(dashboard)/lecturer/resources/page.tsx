@@ -24,6 +24,7 @@ import {
     CheckSquare,
     Image as ImageIcon
 } from "lucide-react";
+import { useTerm } from "@/context/TermContext";
 
 interface Resource {
     id: number;
@@ -84,6 +85,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function LecturerResourcesPage() {
+    const { isArchiveMode } = useTerm();
     const [activeTab, setActiveTab] = useState<"MY_UPLOADS" | "SHARED">("MY_UPLOADS");
     const [myResources, setMyResources] = useState<Resource[]>([]);
     const [sharedResources, setSharedResources] = useState<Resource[]>([]);
@@ -213,6 +215,11 @@ export default function LecturerResourcesPage() {
 
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (isArchiveMode) {
+            showAlert("Archive Mode", "File uploads are disabled in Read-Only Archive Mode.");
+            return;
+        }
 
         if (!file) {
             showAlert("Action Required", "Please select a file to upload.");
