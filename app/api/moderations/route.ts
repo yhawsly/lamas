@@ -2,22 +2,44 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 
-export async function GET() {
+export async function GET(req: Request) {
     const session = await auth();
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const userRole = (session.user as any).role;
     const userId = Number(session.user.id);
 
     try {
+        const url = new URL(req.url);
+        const termIdParam = url.searchParams.get("termId");
+        const all = url.searchParams.get("all") === "true";
+
+        const { checkAndGetActiveTerm } = await import("@/lib/active-term");
+        const activeTerm = await checkAndGetActiveTerm();
+
+        const termWhere: any = {};
+        if (!all) {
+            if (termIdParam) {
+                termWhere.termId = parseInt(termIdParam);
+            } else if (activeTerm) {
+                termWhere.termId = activeTerm.id;
+            } else {
+                return NextResponse.json([]);
+            }
+        }
+
         let moderations;
         if (userRole === "DEO" || userRole === "ADMIN" || userRole === "SUPER_ADMIN" || userRole === "HOD") {
             moderations = await prisma.examModeration.findMany({
+                where: termWhere,
                 include: { lecturer: true, moderator: true, deo: true },
                 orderBy: { createdAt: "desc" },
             });
         } else {
             moderations = await prisma.examModeration.findMany({
-                where: { OR: [{ lecturerId: userId }, { moderatorId: userId }] },
+                where: {
+                    ...termWhere,
+                    OR: [{ lecturerId: userId }, { moderatorId: userId }]
+                },
                 include: { lecturer: true, moderator: true, deo: true },
                 orderBy: { createdAt: "desc" },
             });

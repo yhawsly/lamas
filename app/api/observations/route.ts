@@ -41,7 +41,13 @@ export async function GET(req?: any) {
 
         const userId = parseInt(session.user.id!);
         const role = (session.user as any).role;
-        const departmentId = (session.user as any).departmentId;
+        // Always do a live DB lookup for departmentId — JWT can be stale if HOD was
+        // assigned to a department after their last login.
+        let departmentId: number | null = (session.user as any).departmentId ?? null;
+        if ((hasHodPrivileges(role) || role === ROLES.DEO) && !['ADMIN','SUPER_ADMIN'].includes(role)) {
+            const dbUser = await prisma.user.findUnique({ where: { id: userId }, select: { departmentId: true } });
+            departmentId = dbUser?.departmentId ?? null;
+        }
 
         // Pagination params with defaults
         const url = new URL(req?.url || "http://localhost/api/observations");
@@ -49,17 +55,36 @@ export async function GET(req?: any) {
         const limit = parseInt(url.searchParams.get("limit") || "10");
         const skip = (page - 1) * limit;
 
-        let where: any = {};
-        if (role === ROLES.LECTURER) {
-            where = { OR: [{ lecturerId: userId }, { observerId: userId }] };
-        } else if ((hasHodPrivileges(role) || role === ROLES.DEO) && !["ADMIN", "SUPER_ADMIN"].includes(role) && departmentId) {
-            where = {
-                OR: [
-                    { lecturer: { departmentId: departmentId } },
-                    { observer: { departmentId: departmentId } }
-                ]
-            };
+        const termIdParam = url.searchParams.get("termId");
+        const all = url.searchParams.get("all") === "true";
+
+        const { checkAndGetActiveTerm } = await import("@/lib/active-term");
+        const activeTerm = await checkAndGetActiveTerm();
+
+        // Build term filter — scope to active term by default
+        let termFilter: any = {};
+        if (termIdParam) {
+            termFilter = { termId: parseInt(termIdParam) };
+        } else if (activeTerm) {
+            termFilter = { termId: activeTerm.id };
         }
+        // If no active term and no explicit termId — no restriction (show all)
+
+
+        // Build role-scoped where clause
+        let where: any;
+        if (role === ROLES.LECTURER) {
+            // Lecturers only see their own observations (as observed or observer)
+            where = {
+                ...termFilter,
+                OR: [{ lecturerId: userId }, { observerId: userId }],
+            };
+        } else {
+            // HOD, DEO, ADMIN, SUPER_ADMIN — see all observations within the term
+            // HODs need full visibility for scheduling and oversight
+            where = { ...termFilter };
+        }
+
 
         const [observations, totalCount] = await Promise.all([
             prisma.observation.findMany({
@@ -150,6 +175,23 @@ export async function POST(req: NextRequest) {
         }
 
         const activeTerm = await prisma.academicTerm.findFirst({ where: { isActive: true } });
+
+        // Prevent duplicate observations for the same lecturer+observer+course+term
+        const existingObservation = await prisma.observation.findFirst({
+            where: {
+                lecturerId,
+                observerId,
+                courseCode,
+                termId: activeTerm?.id || null,
+            },
+        });
+
+        if (existingObservation) {
+            return NextResponse.json(
+                { error: `An observation for this lecturer-observer pair on course ${courseCode} already exists this term.` },
+                { status: 409 }
+            );
+        }
 
         const observation = await prisma.observation.create({
             data: {

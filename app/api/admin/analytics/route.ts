@@ -35,7 +35,8 @@ export async function GET() {
         console.log(`[Analytics API] HOD ${userId} resolved departmentId: ${deptId}`);
     }
 
-    const activeTerm = await prisma.academicTerm.findFirst({ where: { isActive: true } });
+    const { checkAndGetActiveTerm } = await import("@/lib/active-term");
+    const activeTerm = await checkAndGetActiveTerm();
     const termId = activeTerm?.id;
     console.log(`[Analytics API] Active Term ID: ${termId}`);
 

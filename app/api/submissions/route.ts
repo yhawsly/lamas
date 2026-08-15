@@ -71,7 +71,30 @@ export async function GET(req: NextRequest) {
             );
         }
 
+        const termIdParam = url.searchParams.get("termId");
+        const all = url.searchParams.get("all") === "true";
+
+        const { checkAndGetActiveTerm } = await import("@/lib/active-term");
+        const activeTerm = await checkAndGetActiveTerm();
+
         const where: any = {};
+        if (!all) {
+            if (termIdParam) {
+                where.termId = parseInt(termIdParam);
+            } else if (activeTerm) {
+                where.termId = activeTerm.id;
+            } else {
+                return NextResponse.json({
+                    data: [],
+                    meta: {
+                        totalCount: 0,
+                        page,
+                        limit,
+                        totalPages: 0
+                    }
+                });
+            }
+        }
         if (role === ROLES.LECTURER) {
             where.lecturerId = userId;
         } else if (hasHodPrivileges(role) && !["ADMIN", "SUPER_ADMIN"].includes(role)) {

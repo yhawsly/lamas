@@ -21,6 +21,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
         if (isNaN(termId)) return NextResponse.json({ error: "Invalid Term ID" }, { status: 400 });
 
+        const term = await prisma.academicTerm.findUnique({ where: { id: termId } });
+        if (!term) return NextResponse.json({ error: "Term not found" }, { status: 404 });
+
+        const now = new Date();
+        const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const termEndDate = new Date(term.endDate);
+        const termEndDay = new Date(termEndDate.getFullYear(), termEndDate.getMonth(), termEndDate.getDate());
+
+        if (termEndDay < todayDate) {
+            return NextResponse.json({ error: "Cannot activate an academic term that has already ended (its end date is in the past)." }, { status: 400 });
+        }
+
         // Enforce only one active term at a time by turning off all others
         // using Prisma transactions.
         await prisma.$transaction([

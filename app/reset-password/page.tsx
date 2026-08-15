@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signOut } from "next-auth/react";
+import { ShieldCheck, ShieldAlert, CheckCircle2 } from "lucide-react";
 
 export default function ResetPasswordPage() {
     const [password, setPassword] = useState("");
@@ -50,77 +51,72 @@ export default function ResetPasswordPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-slate-950">
-            {/* Background Decorations */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-[10%] -right-[10%] w-[50%] h-[50%] rounded-full bg-blue-500/10 blur-[120px]" />
-                <div className="absolute -bottom-[10%] -left-[10%] w-[50%] h-[50%] rounded-full bg-indigo-500/10 blur-[120px]" />
-            </div>
-
-            <div className="relative w-full max-w-md animate-in fade-in zoom-in duration-500">
-                <div className="p-8 rounded-[2.5rem] border border-white/10 bg-slate-900/50 backdrop-blur-3xl shadow-2xl">
-                    <div className="text-center mb-10">
-                        <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-3xl mx-auto mb-6 shadow-xl shadow-blue-500/20">
-                            🔐
+        <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50 font-sans antialiased">
+            <div className="relative w-full max-w-md animate-in fade-in zoom-in duration-300">
+                <div className="p-8 rounded-3xl border border-slate-200 bg-white shadow-xl">
+                    <div className="text-center mb-8">
+                        <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 text-[#1E3A8A] flex items-center justify-center mx-auto mb-5 shadow-sm">
+                            <ShieldCheck className="w-8 h-8" />
                         </div>
-                        <h1 className="text-3xl font-black text-white tracking-tight mb-2">Secure Your Account</h1>
-                        <p className="text-slate-400 text-sm">You are required to update your password before proceeding to the LAMAS dashboard.</p>
+                        <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-1.5">Secure Your Account</h1>
+                        <p className="text-slate-500 text-sm">You are required to update your password before proceeding to the LAMAS dashboard.</p>
                     </div>
 
                     {error && (
-                        <div className="mb-6 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold animate-in slide-in-from-top-2">
-                            ⚠️ {error}
+                        <div className="mb-6 p-3.5 rounded-xl bg-rose-50 border border-rose-100 text-rose-700 text-xs font-semibold flex items-start gap-2.5 shadow-sm animate-in slide-in-from-top-2">
+                            <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
+                            <span>{error}</span>
                         </div>
                     )}
 
                     {success ? (
-                        <div className="text-center py-10 space-y-4 animate-in fade-in duration-500">
-                            <div className="text-5xl">✅</div>
-                            <h2 className="text-xl font-bold text-white">Password Updated!</h2>
-                            <p className="text-slate-400 text-sm">Security protocols verified. Logging you out for a fresh session...</p>
-                            <div className="w-12 h-1.5 bg-slate-800 rounded-full mx-auto overflow-hidden">
+                        <div className="text-center py-6 space-y-4 animate-in fade-in duration-300">
+                            <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto text-emerald-600">
+                                <CheckCircle2 className="w-7 h-7" />
+                            </div>
+                            <h2 className="text-lg font-bold text-slate-900">Password Updated!</h2>
+                            <p className="text-slate-600 text-sm">Security protocols verified. Logging you out for a fresh session...</p>
+                            <div className="w-12 h-1.5 bg-slate-100 rounded-full mx-auto overflow-hidden">
                                 <div className="h-full bg-emerald-500 animate-[progress_2s_ease-in-out]" style={{ width: '100%' }} />
                             </div>
                         </div>
                     ) : (
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-5">
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 ml-1">New Password</label>
+                                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-2">New Password</label>
                                 <input
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="At least 8 characters"
                                     required
-                                    className="w-full px-5 py-4 rounded-2xl bg-slate-950/50 border border-white/10 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                                    className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] transition-all text-sm"
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 ml-1">Confirm New Password</label>
+                                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-2">Confirm New Password</label>
                                 <input
                                     type="password"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     placeholder="Confirm your password"
                                     required
-                                    className="w-full px-5 py-4 rounded-2xl bg-slate-950/50 border border-white/10 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                                    className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] transition-all text-sm"
                                 />
                             </div>
 
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="group relative w-full py-4 rounded-2xl bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-blue-50 transition-all active:scale-95 disabled:opacity-50 overflow-hidden shadow-xl"
+                                className="w-full py-3.5 rounded-xl bg-[#1E3A8A] hover:bg-[#1e40af] text-white font-bold text-xs uppercase tracking-widest transition-all shadow-md active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2"
                             >
-                                <div className="relative z-10 flex items-center justify-center gap-2">
-                                    {loading ? <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" /> : "Update Credentials"}
-                                </div>
+                                {loading ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "Update Credentials"}
                             </button>
                         </form>
                     )}
 
-                    <div className="mt-10 pt-8 border-t border-white/5 text-center">
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                    <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                             Official Academic Security Protocol
                         </p>
                     </div>

@@ -7,8 +7,8 @@ const COLORS: Record<string, string> = {
     APPROVED: "#10b981",
     SUBMITTED: "#3b82f6",
     PENDING: "#f59e0b",
-    LATE: "#ef4444",
-    REJECTED: "#f43f5e",
+    LATE: "#ea580c",     // Distinct Orange for Late
+    REJECTED: "#dc2626", // Distinct Red for Rejected
     REVIEWED: "#818cf8",
     DRAFT: "#64748b"
 };

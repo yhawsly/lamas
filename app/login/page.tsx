@@ -11,9 +11,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-    const [googleLoading, setGoogleLoading] = useState(false);
     const [showDemoAccounts, setShowDemoAccounts] = useState(false);
-    const [showGoogleModal, setShowGoogleModal] = useState(false);
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -34,32 +32,6 @@ export default function LoginPage() {
             window.location.href = "/";
         }
     }
-
-    async function handleGoogleLogin() {
-        setShowGoogleModal(true);
-    }
-
-    const handleSelectMockGoogleUser = async (selectedEmail: string) => {
-        setShowGoogleModal(false);
-        setGoogleLoading(true);
-        setError("");
-        try {
-            const result = await signIn("credentials", {
-                email: selectedEmail,
-                isGoogleMock: "true",
-                redirect: false,
-            });
-            setGoogleLoading(false);
-            if (result?.error) {
-                setError("Google authentication profile mismatch. Please try again.");
-            } else {
-                window.location.href = "/";
-            }
-        } catch {
-            setError("Google connection timed out.");
-            setGoogleLoading(false);
-        }
-    };
 
     return (
         <div 
@@ -122,13 +94,7 @@ export default function LoginPage() {
                     </svg>
                 </div>
 
-                {/* Footer Links */}
-                <div className="relative z-10 flex gap-6 text-[11px] text-blue-200/50 font-medium">
-                    <a href="#" className="hover:text-white transition-colors duration-150">About</a>
-                    <a href="#" className="hover:text-white transition-colors duration-150">Privacy</a>
-                    <a href="#" className="hover:text-white transition-colors duration-150">Terms of Use</a>
-                    <a href="#" className="hover:text-white transition-colors duration-150">FAQ</a>
-                </div>
+
             </div>
 
             {/* Right Column - Login Form Panel */}
@@ -183,7 +149,7 @@ export default function LoginPage() {
                         <div className="flex items-center gap-4 mt-2">
                             <button
                                 type="submit"
-                                disabled={loading || googleLoading}
+                                disabled={loading}
                                 className="px-8 py-2.5 bg-[#1E3A8A] hover:bg-[#1e40af] text-white text-xs font-bold tracking-widest rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
                             >
                                 {loading ? (
@@ -202,61 +168,13 @@ export default function LoginPage() {
                                 )}
                             </button>
 
-                            <a href="#" className="text-xs font-semibold text-[#1E3A8A] hover:underline transition-colors duration-150">
+                            <a href="/reset-password/request" className="text-xs font-semibold text-[#1E3A8A] hover:underline transition-colors duration-150">
                                 Forgot your User ID or Password?
                             </a>
                         </div>
                     </form>
 
-                    {/* OR Divider */}
-                    <div className="relative my-2">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-slate-100"></div>
-                        </div>
-                        <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest">
-                            <span className="bg-white px-3 text-slate-500">OR</span>
-                        </div>
-                    </div>
 
-                    {/* Google OAuth Login Button */}
-                    <button
-                        type="button"
-                        onClick={handleGoogleLogin}
-                        disabled={loading || googleLoading}
-                        className="w-full py-3 bg-white border text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-[#1E3A8A]/30 focus:outline-none focus:ring-1 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] text-xs font-bold tracking-widest transition flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50"
-                    >
-                        {googleLoading ? (
-                            <>
-                                <svg className="animate-spin h-3.5 w-3.5 text-slate-600" viewBox="0 0 24 24" fill="none">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                </svg>
-                                <span>CONNECTING TO GOOGLE...</span>
-                            </>
-                        ) : (
-                            <>
-                                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                                    <path
-                                        fill="#EA4335"
-                                        d="M5.266 9.765A7.077 7.077 0 0 1 12 4.909c1.69 0 3.218.6 4.418 1.582L19.91 3C17.782 1.145 15.055 0 12 0 7.336 0 3.336 2.682 1.4 6.6L5.266 9.765Z"
-                                    />
-                                    <path
-                                        fill="#34A853"
-                                        d="M16.04 15.69A7.054 7.054 0 0 1 12 17.09c-2.918 0-5.39-1.963-6.273-4.636L1.873 15.6C3.818 19.49 7.827 22.09 12 22.09c2.973 0 5.69-.973 7.736-2.673l-3.696-3.727Z"
-                                    />
-                                    <path
-                                        fill="#4285F4"
-                                        d="M23.49 12.27c0-.818-.082-1.609-.218-2.373H12v4.51h6.464a5.536 5.536 0 0 1-2.409 3.636l3.696 3.727c2.155-2 3.736-4.936 3.736-9.5Z"
-                                    />
-                                    <path
-                                        fill="#FBBC05"
-                                        d="M5.727 12.454A7.127 7.127 0 0 1 5.727 11.5L1.873 8.355C1.29 9.5 1 10.727 1 12s.29 2.5.873 3.645l3.854-3.19Z"
-                                    />
-                                </svg>
-                                <span>CONTINUE WITH GOOGLE</span>
-                            </>
-                        )}
-                    </button>
 
                     {/* Collapsible Demo Credentials Panel */}
                     <div className="border border-slate-100 rounded-2xl bg-slate-50/50 overflow-hidden mt-4">
@@ -298,56 +216,7 @@ export default function LoginPage() {
                     </div>
                 </div>
 
-                {/* Google Sign-in Mock Accounts Modal */}
-                {showGoogleModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-                        <div className="bg-white border border-slate-200 w-full max-w-md rounded-3xl shadow-2xl overflow-hidden p-6 relative">
-                            {/* Close Trigger */}
-                            <button 
-                                onClick={() => setShowGoogleModal(false)}
-                                className="absolute top-4 right-4 text-slate-400 hover:text-slate-900 transition"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
 
-                            {/* Google Branding Header */}
-                            <div className="flex flex-col items-center text-center mt-3 mb-6">
-                                <svg className="w-8 h-8 mb-3" viewBox="0 0 24 24">
-                                    <path fill="#EA4335" d="M5.266 9.765A7.077 7.077 0 0 1 12 4.909c1.69 0 3.218.6 4.418 1.582L19.91 3C17.782 1.145 15.055 0 12 0 7.336 0 3.336 2.682 1.4 6.6L5.266 9.765Z" />
-                                    <path fill="#34A853" d="M16.04 15.69A7.054 7.054 0 0 1 12 17.09c-2.918 0-5.39-1.963-6.273-4.636L1.873 15.6C3.818 19.49 7.827 22.09 12 22.09c2.973 0 5.69-.973 7.736-2.673l-3.696-3.727Z" />
-                                    <path fill="#4285F4" d="M23.49 12.27c0-.818-.082-1.609-.218-2.373H12v4.51h6.464a5.536 5.536 0 0 1-2.409 3.636l3.696 3.727c2.155-2 3.736-4.936 3.736-9.5Z" />
-                                    <path fill="#FBBC05" d="M5.727 12.454A7.127 7.127 0 0 1 5.727 11.5L1.873 8.355C1.29 9.5 1 10.727 1 12s.29 2.5.873 3.645l3.854-3.19Z" />
-                                </svg>
-                                <h3 className="text-lg font-bold text-slate-900">Sign in with Google</h3>
-                                <p className="text-xs text-slate-500 mt-1">Choose an account to continue to LAMAS</p>
-                            </div>
-
-                            {/* Account List Grid */}
-                            <div className="space-y-2">
-                                {[
-                                    { name: "Super Admin Control", email: "superadmin@lamas.edu", initials: "SA", desc: "Full Academic Configuration" },
-                                    { name: "Head of Dept (CS)", email: "ahmad@lamas.edu", initials: "AR", desc: "Department Curriculum & Staff" },
-                                    { name: "Dept Exam Officer", email: "deo@lamas.edu", initials: "EO", desc: "Moderation & Audits" },
-                                    { name: "Lecturer Workspace", email: "slyyhaw@gmail.com", initials: "LH", desc: "Assigned Courses & Schedules" }
-                                ].map((profile) => (
-                                    <button
-                                        key={profile.email}
-                                        onClick={() => handleSelectMockGoogleUser(profile.email)}
-                                        className="w-full text-left p-3.5 rounded-2xl hover:bg-slate-50 border border-slate-100 hover:border-blue-600/30 transition flex items-center gap-3 cursor-pointer group"
-                                    >
-                                        <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center text-xs font-bold shrink-0">
-                                            {profile.initials}
-                                        </div>
-                                        <div className="min-w-0 flex-1">
-                                            <div className="text-xs font-bold text-slate-800 group-hover:text-blue-600 transition-colors leading-tight">{profile.name}</div>
-                                            <div className="text-[10px] text-slate-400 truncate mt-0.5 font-mono">{profile.email}</div>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );

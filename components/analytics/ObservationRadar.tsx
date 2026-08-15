@@ -1,6 +1,4 @@
 "use client";
-
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { useEffect, useState } from "react";
 
 export default function ObservationRadar() {
@@ -21,25 +19,30 @@ export default function ObservationRadar() {
 
     if (data.length === 0) return (
         <div className="h-64 flex flex-col items-center justify-center" style={{ color: "var(--text-muted)" }}>
-            <span className="text-3xl mb-2">🕸️</span>
+            <span className="text-3xl mb-2">📊</span>
             <p>No observation records available</p>
         </div>
     );
 
     return (
-        <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
-                    <PolarGrid strokeOpacity={0.2} stroke="#9CA3AF" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#475569', fontSize: 12 }} />
-                    <PolarRadiusAxis angle={30} domain={[0, 5]} tick={false} axisLine={false} />
-                    <Radar name="Average Rubric Score" dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.5} />
-                    <Tooltip
-                        contentStyle={{ borderRadius: '12px', border: '1px solid var(--bg-border)', background: 'var(--bg-surface)', color: 'var(--text-primary)' }}
-                        itemStyle={{ color: '#3b82f6', fontWeight: 'bold' }}
-                    />
-                </RadarChart>
-            </ResponsiveContainer>
+        <div className="space-y-4 py-1">
+            {data.map((item) => {
+                const percentage = Math.round((item.A / item.fullMark) * 100);
+                return (
+                    <div key={item.subject} className="space-y-1.5">
+                        <div className="flex justify-between items-center text-xs font-semibold" style={{ color: "var(--text-primary)" }}>
+                            <span>{item.subject}</span>
+                            <span className="font-bold" style={{ color: "var(--primary)" }}>{item.A} / {item.fullMark} ({percentage}%)</span>
+                        </div>
+                        <div className="h-2 rounded-full w-full overflow-hidden" style={{ backgroundColor: "var(--bg-border)" }}>
+                            <div 
+                                className="h-full rounded-full transition-all duration-1000 bg-blue-500 dark:bg-blue-400" 
+                                style={{ width: `${percentage}%` }} 
+                            />
+                        </div>
+                    </div>
+                );
+            })}
         </div>
     );
 }

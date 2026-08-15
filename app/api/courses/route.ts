@@ -15,7 +15,7 @@ const CourseSchema = z.object({
     departmentId: z.union([z.number(), z.string().transform(v => parseInt(v))]),
 });
 
-export async function GET() {
+export async function GET(req: Request) {
     await headers();
     await cookies();
     try {
@@ -32,6 +32,24 @@ export async function GET() {
 
         if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
+        const url = new URL(req.url);
+        const termIdParam = url.searchParams.get("termId");
+        const all = url.searchParams.get("all") === "true";
+
+        const { checkAndGetActiveTerm } = await import("@/lib/active-term");
+        const activeTerm = await checkAndGetActiveTerm();
+
+        const termWhere: any = {};
+        if (!all) {
+            if (termIdParam) {
+                termWhere.termId = parseInt(termIdParam);
+            } else if (activeTerm) {
+                termWhere.termId = activeTerm.id;
+            } else {
+                termWhere.termId = 0;
+            }
+        }
+
         // Admins see all courses, HODs/Lecturers see their own department's courses
         const whereClause = ["ADMIN", "SUPER_ADMIN"].includes(user.role)
             ? {}
@@ -41,6 +59,7 @@ export async function GET() {
             where: whereClause,
             include: { 
                 sections: {
+                    where: termWhere,
                     select: { id: true, name: true, session: true, lecturerId: true, lecturer: { select: { name: true } } }
                 },
                 curriculumMaps: {

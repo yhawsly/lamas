@@ -1,5 +1,5 @@
 "use client";
-import { BookOpen, AlertCircle, Clock, X, Check, CheckCircle, AlertTriangle, BarChart, ListPlus } from "lucide-react";
+import { BookOpen, AlertCircle, X, CheckCircle, AlertTriangle, BarChart, ListPlus } from "lucide-react";
 import KPICard from "@/components/ui/KPICard";
 
 import { useEffect, useState } from "react";
@@ -58,58 +58,9 @@ export default function AssignmentsTab() {
     const [newClassSession, setNewClassSession] = useState<"REGULAR" | "WEEKEND">("REGULAR");
     const [isSavingClass, setIsSavingClass] = useState(false);
 
-    // Schedule editing state — keyed by sectionId
-    const [activeScheduleId, setActiveScheduleId] = useState<number | null>(null);
-    const [scheduleForm, setScheduleForm] = useState<{
-        dayOfWeek: string; startTime: string; endTime: string; venue: string;
-    }>({ dayOfWeek: "", startTime: "", endTime: "", venue: "" });
-    const [isSavingSchedule, setIsSavingSchedule] = useState(false);
-
     // Custom Alert Modal State
     const [customModal, setCustomModal] = useState<{ isOpen: boolean; type: "alert"; title: string; message: string } | null>(null);
     const showAlert = (title: string, message: string) => setCustomModal({ isOpen: true, type: "alert", title, message });
-
-    const openScheduleForm = (section: any) => {
-        setActiveScheduleId(section.id);
-        setScheduleForm({
-            dayOfWeek: section.dayOfWeek || "",
-            startTime: section.startTime || "",
-            endTime: section.endTime || "",
-            venue: section.venue || "",
-        });
-    };
-
-    const handleSaveSchedule = async (courseId: number, sectionId: number) => {
-        setIsSavingSchedule(true);
-        try {
-            const res = await fetch(`/api/courses/sections/${sectionId}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(scheduleForm),
-            });
-            if (res.ok) {
-                setCourses(prev => prev.map(c => {
-                    if (c.id !== courseId) return c;
-                    return {
-                        ...c,
-                        sections: c.sections.map((s: any) =>
-                            s.id === sectionId ? { ...s, ...scheduleForm } : s
-                        ),
-                    };
-                }));
-                setActiveScheduleId(null);
-                showAlert("Success", "Schedule saved successfully!");
-            } else {
-                const data = await res.json().catch(() => ({}));
-                showAlert("Error", data.error || "Failed to save schedule.");
-            }
-        } catch (err) {
-            console.error("Schedule save error:", err);
-            showAlert("Error", "An unexpected error occurred.");
-        } finally {
-            setIsSavingSchedule(false);
-        }
-    };
 
     useEffect(() => {
         Promise.all([
@@ -419,15 +370,6 @@ export default function AssignmentsTab() {
                                                             <div className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{section.name}</div>
                                                             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                                                 <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>{section.session}</span>
-                                                                {section.dayOfWeek && (
-                                                                    <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-1.5 py-0.5 rounded-md border border-blue-200/50 dark:border-blue-500/20 flex items-center gap-1">
-                                                                        <Clock className="w-2.5 h-2.5" />
-                                                                        {section.dayOfWeek} {section.startTime && `· ${section.startTime}`} {section.venue && `· ${section.venue}`}
-                                                                    </span>
-                                                                )}
-                                                                {!section.dayOfWeek && (
-                                                                    <span className="text-[10px] font-bold text-slate-400 italic">No schedule set</span>
-                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -469,96 +411,11 @@ export default function AssignmentsTab() {
                                                             )}
                                                         </select>
 
-                                                        {/* Schedule Toggle Button */}
-                                                        <button
-                                                            onClick={() => activeScheduleId === section.id ? setActiveScheduleId(null) : openScheduleForm(section)}
-                                                            title="Set class schedule"
-                                                            className={`w-8 h-8 rounded-lg flex items-center justify-center border transition shrink-0 ${
-                                                                activeScheduleId === section.id
-                                                                    ? 'bg-blue-600 text-white border-blue-600'
-                                                                    : section.dayOfWeek
-                                                                        ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 border-green-200 dark:border-green-500/30'
-                                                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:border-blue-400 hover:text-blue-500'
-                                                            }`}
-                                                        >
-                                                            <Clock className="w-3.5 h-3.5" />
-                                                        </button>
+
                                                     </div>
                                                 </div>
 
-                                                {/* Inline Schedule Form */}
-                                                {activeScheduleId === section.id && (
-                                                    <div className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/30 px-4 py-4">
-                                                        <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-1.5">
-                                                            <Clock className="w-3 h-3" /> Set Timetable Schedule
-                                                        </div>
-                                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                                            <div className="flex flex-col gap-1">
-                                                                <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Day of Week</label>
-                                                                <select
-                                                                    value={scheduleForm.dayOfWeek}
-                                                                    onChange={e => setScheduleForm(f => ({ ...f, dayOfWeek: e.target.value }))}
-                                                                    className="border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1.5 text-xs font-bold bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-blue-500"
-                                                                    style={{ color: 'var(--text-primary)' }}
-                                                                >
-                                                                    <option value="">— Select —</option>
-                                                                    {["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].map(d => (
-                                                                        <option key={d} value={d}>{d}</option>
-                                                                    ))}
-                                                                </select>
-                                                            </div>
-                                                            <div className="flex flex-col gap-1">
-                                                                <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Start Time</label>
-                                                                <input
-                                                                    type="time"
-                                                                    value={scheduleForm.startTime}
-                                                                    onChange={e => setScheduleForm(f => ({ ...f, startTime: e.target.value }))}
-                                                                    className="border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1.5 text-xs font-bold bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-blue-500"
-                                                                    style={{ color: 'var(--text-primary)' }}
-                                                                />
-                                                            </div>
-                                                            <div className="flex flex-col gap-1">
-                                                                <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>End Time</label>
-                                                                <input
-                                                                    type="time"
-                                                                    value={scheduleForm.endTime}
-                                                                    onChange={e => setScheduleForm(f => ({ ...f, endTime: e.target.value }))}
-                                                                    className="border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1.5 text-xs font-bold bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-blue-500"
-                                                                    style={{ color: 'var(--text-primary)' }}
-                                                                />
-                                                            </div>
-                                                            <div className="flex flex-col gap-1">
-                                                                <label className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Venue / Room</label>
-                                                                <input
-                                                                    type="text"
-                                                                    placeholder="e.g. LT1, Room 204"
-                                                                    value={scheduleForm.venue}
-                                                                    onChange={e => setScheduleForm(f => ({ ...f, venue: e.target.value }))}
-                                                                    className="border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1.5 text-xs font-bold bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-blue-500"
-                                                                    style={{ color: 'var(--text-primary)' }}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex gap-2 mt-3">
-                                                            <button
-                                                                onClick={() => handleSaveSchedule(course.id, section.id)}
-                                                                disabled={isSavingSchedule || !scheduleForm.dayOfWeek || !scheduleForm.startTime || !scheduleForm.endTime || !scheduleForm.venue}
-                                                                className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition disabled:opacity-50 shadow-sm"
-                                                                title={!scheduleForm.dayOfWeek || !scheduleForm.startTime || !scheduleForm.endTime || !scheduleForm.venue ? "Please fill in all schedule fields" : ""}
-                                                            >
-                                                                <Check className="w-3 h-3" />
-                                                                {isSavingSchedule ? "Saving..." : "Save Schedule"}
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setActiveScheduleId(null)}
-                                                                className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold transition hover:bg-slate-100 dark:hover:bg-slate-800"
-                                                                style={{ color: 'var(--text-primary)' }}
-                                                            >
-                                                                <X className="w-3 h-3" /> Cancel
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                )}
+
                                             </div>
                                         );
                                     }) : (

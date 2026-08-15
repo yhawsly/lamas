@@ -144,7 +144,7 @@ export default function LecturerDepartmentPage() {
                 {loading ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {[1, 2, 3, 4, 5, 6].map(i => (
-                            <div key={i} className="p-4 rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 animate-pulse flex flex-col items-center">
+                            <div key={i} className="p-4 rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 animate-pulse flex flex-col items-center h-fit">
                                 <div className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-gray-700 mb-3" />
                                 <div className="w-3/4 h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
                                 <div className="w-1/2 h-3 bg-gray-200 dark:bg-gray-700 rounded mb-3" />
@@ -168,7 +168,7 @@ export default function LecturerDepartmentPage() {
                             {filteredColleagues.map(colleague => (
                                 <div 
                                     key={colleague.id} 
-                                    className="group p-4 rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center relative overflow-hidden"
+                                    className="group p-4 rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center relative overflow-hidden h-fit"
                                 >
                                     {/* Decorative top bar */}
                                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -180,13 +180,13 @@ export default function LecturerDepartmentPage() {
                                     <h4 className="font-bold text-sm text-gray-900 dark:text-white truncate w-full">{colleague.name}</h4>
                                     <p className="text-[11px] text-gray-500 truncate w-full mt-0.5 mb-3">{colleague.email}</p>
                                     
-                                    <button 
-                                        onClick={() => openModal(String(colleague.id), colleague.name)}
+                                    <a 
+                                        href={`mailto:${colleague.email}?subject=${encodeURIComponent("LAMAS Academic Update")}`}
                                         className="mt-auto w-full py-2 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 border border-transparent hover:border-indigo-200 dark:hover:border-indigo-800"
                                     >
                                         <Send className="w-3 h-3" />
                                         Message
-                                    </button>
+                                    </a>
                                 </div>
                             ))}
                         </div>

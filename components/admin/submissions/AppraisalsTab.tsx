@@ -50,7 +50,7 @@ export default function AppraisalsTab() {
         const params = new URLSearchParams();
         if (filter.status) params.set("status", filter.status);
         if (filter.type) params.set("type", filter.type);
-        fetch(`/api/submissions?${params}`).then(r => r.json()).then(d => { setSubmissions(Array.isArray(d) ? d : []); setLoading(false); });
+        fetch(`/api/submissions?${params}`).then(r => r.json()).then(d => { setSubmissions(Array.isArray(d) ? d : (d && Array.isArray(d.data) ? d.data : [])); setLoading(false); });
     }, [filter]);
 
     const filteredSubmissions = submissions.filter((s: any) =>

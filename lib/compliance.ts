@@ -18,7 +18,9 @@ export async function computeComplianceScores(
     departmentId?: number,
     termId?: number
 ): Promise<ComplianceScore[]> {
-    const activeTermId = termId ?? (await prisma.academicTerm.findFirst({ where: { isActive: true } }))?.id;
+    const { checkAndGetActiveTerm } = await import("./active-term");
+    const activeTerm = await checkAndGetActiveTerm();
+    const activeTermId = termId ?? activeTerm?.id;
     const currentTermId = activeTermId;
 
     const whereClause: any = { isActive: true, role: { in: ["LECTURER", "HOD"] } };

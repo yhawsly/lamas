@@ -17,10 +17,8 @@ export async function GET() {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const term = await prisma.academicTerm.findFirst({
-            where: { isActive: true },
-            select: { id: true, name: true, startDate: true, endDate: true }
-        });
+        const { checkAndGetActiveTerm } = await import("@/lib/active-term");
+        const term = await checkAndGetActiveTerm();
 
         if (!term) {
             // Institutional Fallback: If no term is marked active, provide a standard 18-week default

@@ -11,7 +11,6 @@ import {
     Paperclip, 
     Download, 
     Eye,
-    CheckSquare,
     Check,
     X,
     RotateCcw,
@@ -192,11 +191,6 @@ export default function HODResourcesPage() {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="border-b border-slate-100 dark:border-slate-850 text-slate-400 dark:text-white/30 text-xs font-bold uppercase tracking-wider">
-                                    <th className="px-6 py-4 w-10">
-                                        <div className="flex items-center justify-center">
-                                            <CheckSquare className="w-4 h-4 text-slate-300" />
-                                        </div>
-                                    </th>
                                     <th className="px-6 py-4">File Name</th>
                                     <th className="px-6 py-4">File Size</th>
                                     <th className="px-6 py-4">Posted Date</th>
@@ -211,11 +205,6 @@ export default function HODResourcesPage() {
                                     const initials = (r.lecturer?.name || "L").split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
                                     return (
                                         <tr key={r.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10 transition group">
-                                            <td className="px-6 py-4 w-10">
-                                                <div className="flex items-center justify-center">
-                                                    <div className="w-4 h-4 rounded border border-slate-200 dark:border-slate-800" />
-                                                </div>
-                                            </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${config.bgClass} ${config.borderClass} ${config.textClass} flex-shrink-0`}>

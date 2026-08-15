@@ -83,9 +83,13 @@ export async function PATCH(
 
         const body = await req.json();
         
-        // Simple status logic: if feedback was provided, it's COMPLETED
+        // Mark COMPLETED when:
+        // - feedback text is provided, OR
+        // - reviewData (Form A) is submitted (form filled with radio buttons etc.)
         let status = observation.status;
-        if (body.feedback && body.feedback.trim() !== "") {
+        const hasFeedback = body.feedback && body.feedback.trim() !== "";
+        const hasReviewData = body.reviewData !== undefined && body.reviewData !== null;
+        if (hasFeedback || hasReviewData) {
             status = "COMPLETED";
         }
 

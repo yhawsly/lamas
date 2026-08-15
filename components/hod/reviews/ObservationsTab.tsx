@@ -7,7 +7,7 @@ const ObservationsSkeleton = () => (
     <div className="divide-y divide-slate-100 dark:divide-slate-800/60 animate-pulse">
         {[1, 2, 3].map((i) => (
             <div key={i} className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-5 items-center">
-                <div className="col-span-4 space-y-2">
+                <div className="col-span-3 space-y-2">
                     <div className="h-4 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
                     <div className="h-3.5 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
                 </div>
@@ -16,11 +16,14 @@ const ObservationsSkeleton = () => (
                     <div className="h-4 w-28 bg-slate-200 dark:bg-slate-800 rounded" />
                 </div>
                 <div className="col-span-2">
-                    <div className="h-3.5 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
+                    <div className="h-4 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
+                    <div className="h-3.5 w-16 bg-slate-200 dark:bg-slate-800 rounded mt-1" />
                 </div>
-                <div className="col-span-3 flex flex-col items-end gap-2">
-                    <div className="h-6 w-20 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                    <div className="h-3.5 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="col-span-2">
+                    <div className="h-6 w-16 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                </div>
+                <div className="col-span-2 flex justify-end">
+                    <div className="h-5 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
                 </div>
             </div>
         ))}
@@ -34,7 +37,12 @@ export default function ObservationsTab() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch("/api/observations").then(r => r.json()).then(d => { setObservations(Array.isArray(d) ? d : []); setLoading(false); });
+        fetch("/api/observations").then(r => r.json()).then(d => {
+            // API returns { data: [...], meta: {...} } — not a plain array
+            const list = Array.isArray(d) ? d : (Array.isArray(d?.data) ? d.data : []);
+            setObservations(list);
+            setLoading(false);
+        }).catch(() => setLoading(false));
         fetch("/api/courses").then(r => r.json()).then(d => setCourses(Array.isArray(d) ? d : []));
         fetch("/api/lecturers").then(r => r.json()).then(d => setLecturers(Array.isArray(d) ? d : []));
     }, []);
@@ -54,10 +62,11 @@ export default function ObservationsTab() {
 
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800/60 overflow-hidden shadow-sm flex flex-col" style={{ backgroundColor: "var(--bg-surface)" }}>
                 <div className="hidden sm:grid grid-cols-12 gap-4 p-4 border-b border-slate-200 dark:border-slate-800/60 text-[10px] font-black uppercase tracking-widest" style={{ backgroundColor: "var(--bg-hover)", color: "var(--text-muted)" }}>
-                    <div className="col-span-4">Course Info</div>
+                    <div className="col-span-3">Course Info</div>
                     <div className="col-span-3">Lecturer / Observer</div>
                     <div className="col-span-2">Date</div>
-                    <div className="col-span-3 text-right">Status & Action</div>
+                    <div className="col-span-2">Status</div>
+                    <div className="col-span-2 text-right">Action</div>
                 </div>
 
                 <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
@@ -74,7 +83,7 @@ export default function ObservationsTab() {
                             <div key={o.id} className="group flex flex-col transition-colors hover:bg-[var(--bg-hover)]" style={{ backgroundColor: "var(--bg-base)" }}>
                                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 sm:p-5 items-center">
                                     {/* Course Info */}
-                                    <div className="col-span-1 sm:col-span-4">
+                                    <div className="col-span-1 sm:col-span-3">
                                         <div className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>{o.courseCode}</div>
                                         <div className="inline-flex mt-1 px-2 py-0.5 rounded bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 text-[9px] font-black uppercase tracking-widest border border-slate-200 dark:border-slate-700">
                                             {o.status === "PENDING" ? "Scheduled" : "Recorded"}
@@ -112,18 +121,22 @@ export default function ObservationsTab() {
                                         </div>
                                     </div>
 
-                                    {/* Status & Action */}
-                                    <div className="col-span-1 sm:col-span-3 flex flex-col items-end gap-2 border-t sm:border-t-0 pt-3 sm:pt-0" style={{ borderColor: "var(--bg-border)" }}>
+                                    {/* Status */}
+                                    <div className="col-span-1 sm:col-span-2">
                                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${statusColors[o.status] || statusColors.PENDING}`}>
                                             {o.status}
                                         </span>
+                                    </div>
+
+                                    {/* Action */}
+                                    <div className="col-span-1 sm:col-span-2 flex justify-end border-t sm:border-t-0 pt-3 sm:pt-0" style={{ borderColor: "var(--bg-border)" }}>
                                         <button 
                                             onClick={() => window.location.href = `/hod/observations/${o.id}`}
                                             className="group/btn flex items-center gap-1 text-[10px] font-black uppercase tracking-widest transition-colors hover:text-blue-500"
                                             style={{ color: "var(--text-muted)" }}
                                         >
-                                            {o.status === "PENDING" ? "Conduct Session" : "View Details"}
-                                            <ChevronRight className="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform" />
+                                            {o.status === "PENDING" ? "Conduct" : "View Details"}
+                                            <ChevronRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
                                         </button>
                                     </div>
                                 </div>

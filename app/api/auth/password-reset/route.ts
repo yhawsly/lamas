@@ -75,7 +75,8 @@ export async function POST(req: NextRequest) {
         });
 
         // Send reset email
-        const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${resetToken}`;
+        const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+        const resetUrl = `${baseUrl}/reset-password/token?token=${resetToken}`;
         await sendEmail({
             to: user.email,
             subject: "LAMAS - Password Reset Request",

@@ -19,14 +19,33 @@ const deadlineSchema = z.object({
 });
 
 // GET /api/deadlines — any authenticated user
-export async function GET() {
+export async function GET(req: NextRequest) {
     await headers();
     await cookies();
     try {
         const session = await auth();
         if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+        const url = new URL(req.url);
+        const termIdParam = url.searchParams.get("termId");
+        const all = url.searchParams.get("all") === "true";
+
+        const { checkAndGetActiveTerm } = await import("@/lib/active-term");
+        const activeTerm = await checkAndGetActiveTerm();
+
+        const where: any = {};
+        if (!all) {
+            if (termIdParam) {
+                where.termId = parseInt(termIdParam);
+            } else if (activeTerm) {
+                where.termId = activeTerm.id;
+            } else {
+                return NextResponse.json([]);
+            }
+        }
+
         const deadlines = await prisma.deadline.findMany({
+            where,
             orderBy: { dueDate: "asc" },
         });
 

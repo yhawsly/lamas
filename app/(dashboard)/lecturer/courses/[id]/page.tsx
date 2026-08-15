@@ -151,7 +151,7 @@ export default function CourseOutlinePrototype() {
   useEffect(() => {
     if (!courseId) return;
     if (loadedCourseId === courseId) return;
-    if (!courseData || !sectionsData || !syllabusData) return;
+    if (!courseData || !sectionsData || syllabusData === undefined) return;
 
     // 1. Basic Course Info
     if (courseData && courseData.code) {
@@ -510,7 +510,7 @@ export default function CourseOutlinePrototype() {
 
   const activeClass = classes.find(c => c.id === selectedClassId);
 
-  if (!courseData || !sectionsData || !syllabusData) {
+  if (!courseData || !sectionsData || (syllabusData === undefined)) {
     return <CourseOutlineSkeleton />;
   }
 

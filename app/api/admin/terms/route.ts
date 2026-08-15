@@ -42,11 +42,32 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
+        const start = new Date(body.startDate);
+        const end = new Date(body.endDate);
+
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            return NextResponse.json({ error: "Invalid date format" }, { status: 400 });
+        }
+
+        // Compare day, month, and year strictly by resetting hours
+        const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+        const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+
+        if (endDay <= startDay) {
+            return NextResponse.json({ error: "End date must be after the start date." }, { status: 400 });
+        }
+
+        const now = new Date();
+        const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        if (endDay < todayDate) {
+            return NextResponse.json({ error: "Cannot create an academic term with an end date in the past." }, { status: 400 });
+        }
+
         const term = await prisma.academicTerm.create({
             data: {
                 name: body.name,
-                startDate: new Date(body.startDate),
-                endDate: new Date(body.endDate),
+                startDate: start,
+                endDate: end,
                 createdBy: parseInt(session.user!.id!)
             }
         });

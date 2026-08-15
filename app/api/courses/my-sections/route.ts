@@ -9,7 +9,7 @@ export const fetchCache = "force-no-store";
 
 // GET /api/courses/my-sections
 // Returns all course sections assigned to the currently logged-in lecturer.
-export async function GET() {
+export async function GET(req: Request) {
     await headers();
     await cookies();
     try {
@@ -19,9 +19,29 @@ export async function GET() {
         }
 
         const userId = Number(session.user.id);
+        const url = new URL(req.url);
+        const termIdParam = url.searchParams.get("termId");
+        const all = url.searchParams.get("all") === "true";
+
+        const { checkAndGetActiveTerm } = await import("@/lib/active-term");
+        const activeTerm = await checkAndGetActiveTerm();
+
+        const termWhere: any = {};
+        if (!all) {
+            if (termIdParam) {
+                termWhere.termId = parseInt(termIdParam);
+            } else if (activeTerm) {
+                termWhere.termId = activeTerm.id;
+            } else {
+                termWhere.termId = 0;
+            }
+        }
 
         const sections = await prisma.courseSection.findMany({
-            where: { lecturerId: userId },
+            where: { 
+                lecturerId: userId,
+                ...termWhere
+            },
             include: {
                 course: true,
                 term: {
