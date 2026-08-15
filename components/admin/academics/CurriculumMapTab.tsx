@@ -1,7 +1,6 @@
 "use client";
 import { BookOpen, AlertTriangle, HelpCircle } from "lucide-react";
 import { useState, useEffect } from "react";
-import TabsNav from "@/components/admin/TabsNav";
 
 const LEVELS = [100, 200, 300, 400, 500];
 const SEMESTERS = [1, 2];

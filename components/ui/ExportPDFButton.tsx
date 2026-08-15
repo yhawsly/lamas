@@ -7,7 +7,7 @@ interface ExportPDFButtonProps {
     filename?: string;
 }
 
-export default function ExportPDFButton({ targetRef, filename = "report.pdf" }: ExportPDFButtonProps) {
+export default function ExportPDFButton({}: ExportPDFButtonProps) {
     const [loading, setLoading] = useState(false);
 
     const handleExport = () => {

@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import HODCurriculumMapTab from "@/components/hod/academics/HODCurriculumMapTab";
 import CourseDirectoryTab from "@/components/admin/academics/CourseDirectoryTab";
 import AssignmentsTab from "@/components/admin/academics/AssignmentsTab";
 import AcademicTermsTab from "@/components/admin/academics/AcademicTermsTab";

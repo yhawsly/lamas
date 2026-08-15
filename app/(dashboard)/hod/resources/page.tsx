@@ -157,7 +157,7 @@ export default function HODResourcesPage() {
         }
     };
 
-    const handleViewClick = (e: React.MouseEvent, url: string, type?: string, title?: string) => {
+    const handleViewClick = (e: React.MouseEvent, url: string) => {
         e.preventDefault();
         window.open(url, "_blank");
     };
@@ -258,7 +258,7 @@ export default function HODResourcesPage() {
                                                     </a>
                                                     <a 
                                                         href={r.url} 
-                                                        onClick={(e) => handleViewClick(e, r.url, r.type, r.title)} 
+                                                        onClick={(e) => handleViewClick(e, r.url)} 
                                                         className="inline-flex items-center justify-center p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
                                                         title="View Source"
                                                     >

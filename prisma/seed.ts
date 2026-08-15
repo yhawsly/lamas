@@ -78,6 +78,7 @@ async function main() {
     });
 
     for (const c of courseData) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { level: _level, semester: _semester, ...cleanCourse } = c;
         await prisma.course.upsert({
             where: { code: c.code },
@@ -178,7 +179,7 @@ async function main() {
         },
     });
 
-    const userSlyyhaw = await prisma.user.upsert({
+    await prisma.user.upsert({
         where: { email: "slyyhaw@gmail.com" },
         update: { role: "LECTURER", departmentId: cs.id },
         create: {

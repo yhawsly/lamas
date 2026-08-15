@@ -125,8 +125,7 @@ export default function ConductModerationPage() {
     const router = useRouter();
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState("");
+
 
     const [reviewData, setReviewData] = useState<FormCReviewData>(DEFAULT_FORM_C);
 

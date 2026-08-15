@@ -4,7 +4,7 @@ import SearchableSelect from "@/components/ui/SearchableSelect";
 import KPICard from "@/components/ui/KPICard";
 import { AlertCircle, Trash2, Key, Users, CheckCircle, Search, UserPlus } from "lucide-react";
 
-import { TableSkeleton } from "@/components/ui/Skeleton";
+
 
 export default function AllUsersTab() {
     const [users, setUsers] = useState<any[]>([]);

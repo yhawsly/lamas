@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { useTerm, AcademicTerm } from "@/context/TermContext";
+import { useTerm } from "@/context/TermContext";
 import {
     Calendar,
     Lock,

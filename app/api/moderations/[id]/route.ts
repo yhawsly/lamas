@@ -32,7 +32,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             ...moderation,
             isObserveeAssigned: !!isAssigned
         });
-    } catch (e) {
+    } catch {
         return NextResponse.json({ error: "Failed to fetch moderation" }, { status: 500 });
     }
 }
@@ -46,7 +46,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
     try {
         const body = await req.json();
-        const { reviewData, status } = body;
+        const { reviewData } = body;
         
         const { id } = await params;
         const existingMod = await prisma.examModeration.findUnique({
@@ -80,7 +80,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
             },
         });
         return NextResponse.json(moderation);
-    } catch (e) {
+    } catch {
         return NextResponse.json({ error: "Failed to update moderation" }, { status: 500 });
     }
 }

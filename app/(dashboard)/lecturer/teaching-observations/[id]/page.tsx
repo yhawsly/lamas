@@ -260,10 +260,8 @@ export default function ConductTeachingObservationPage() {
     if (loading || status === "loading" || !data) return <DetailWorkspaceSkeleton />;
 
     const lecturer = data.lecturer?.name || "Unknown Lecturer";
-    const observerName = data.observer?.name || "Unknown Observer";
     const isCompleted = data.status !== "PENDING";
     const isBlocked = data.isObserveeAssigned === false;
-    const isObservedUser = parseInt(session?.user?.id || "0") === data.lecturerId;
     const isObserverUser = parseInt(session?.user?.id || "0") === data.observerId;
     const isDisabled = isCompleted || isBlocked || !isObserverUser;
 

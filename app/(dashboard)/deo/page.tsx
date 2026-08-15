@@ -51,6 +51,7 @@ export default function DeoDashboard() {
 
     useEffect(() => {
         loadData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTermId]);
 
     // Auto-populate lecturer if exactly 1 lecturer is assigned to sections of the selected course

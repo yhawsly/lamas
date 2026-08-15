@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import Loader from "@/components/ui/Loader";
 import { Eye, Calendar, User, ChevronRight } from "lucide-react";
+
 
 const ObservationsSkeleton = () => (
     <div className="divide-y divide-slate-100 dark:divide-slate-800/60 animate-pulse">
@@ -32,8 +32,7 @@ const ObservationsSkeleton = () => (
 
 export default function ObservationsTab() {
     const [observations, setObservations] = useState<any[]>([]);
-    const [courses, setCourses] = useState<any[]>([]);
-    const [lecturers, setLecturers] = useState<any[]>([]);
+
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -43,8 +42,6 @@ export default function ObservationsTab() {
             setObservations(list);
             setLoading(false);
         }).catch(() => setLoading(false));
-        fetch("/api/courses").then(r => r.json()).then(d => setCourses(Array.isArray(d) ? d : []));
-        fetch("/api/lecturers").then(r => r.json()).then(d => setLecturers(Array.isArray(d) ? d : []));
     }, []);
 
     const statusColors: Record<string, string> = { 

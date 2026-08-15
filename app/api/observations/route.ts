@@ -41,13 +41,6 @@ export async function GET(req?: any) {
 
         const userId = parseInt(session.user.id!);
         const role = (session.user as any).role;
-        // Always do a live DB lookup for departmentId — JWT can be stale if HOD was
-        // assigned to a department after their last login.
-        let departmentId: number | null = (session.user as any).departmentId ?? null;
-        if ((hasHodPrivileges(role) || role === ROLES.DEO) && !['ADMIN','SUPER_ADMIN'].includes(role)) {
-            const dbUser = await prisma.user.findUnique({ where: { id: userId }, select: { departmentId: true } });
-            departmentId = dbUser?.departmentId ?? null;
-        }
 
         // Pagination params with defaults
         const url = new URL(req?.url || "http://localhost/api/observations");
@@ -56,7 +49,6 @@ export async function GET(req?: any) {
         const skip = (page - 1) * limit;
 
         const termIdParam = url.searchParams.get("termId");
-        const all = url.searchParams.get("all") === "true";
 
         const { checkAndGetActiveTerm } = await import("@/lib/active-term");
         const activeTerm = await checkAndGetActiveTerm();

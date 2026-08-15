@@ -172,7 +172,7 @@ export default function ConductTeachingObservationPage() {
     if (loading || !data) return <DetailWorkspaceSkeleton />;
 
     const lecturer = data.lecturer?.name || "Unknown Lecturer";
-    const observerName = data.observer?.name || "Unknown Observer";
+
 
     const renderRadioGroup = (section: keyof FormBReviewData["criteria"], field: string, sn: number, text: string) => {
         return (

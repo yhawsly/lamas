@@ -1,5 +1,5 @@
 "use client";
-import { BookOpen, AlertCircle, X, CheckCircle, AlertTriangle, BarChart, ListPlus } from "lucide-react";
+import { BookOpen, AlertCircle, CheckCircle, AlertTriangle, BarChart, ListPlus } from "lucide-react";
 import KPICard from "@/components/ui/KPICard";
 
 import { useEffect, useState } from "react";

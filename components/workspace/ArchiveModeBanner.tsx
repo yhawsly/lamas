@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useTerm } from "@/context/TermContext";
-import { Lock, ArrowLeft, ShieldAlert, Sparkles } from "lucide-react";
+import { Lock, ShieldAlert, Sparkles } from "lucide-react";
 
 export default function ArchiveModeBanner() {
     const { isArchiveMode, selectedTerm, activeTerm, setSelectedTermId } = useTerm();

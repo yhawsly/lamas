@@ -32,7 +32,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             ...observation,
             isObserveeAssigned: !!isAssigned
         });
-    } catch (e) {
+    } catch {
         return NextResponse.json({ error: "Failed to fetch observation" }, { status: 500 });
     }
 }

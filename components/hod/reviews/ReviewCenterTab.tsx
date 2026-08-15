@@ -2,7 +2,6 @@
 import { Inbox, Folder } from "lucide-react";
 
 import { useEffect, useState } from "react";
-import Loader from "@/components/ui/Loader";
 import Pagination from "@/components/ui/Pagination";
 import Modal from "@/components/ui/Modal";
 

@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import CurriculumMapTab from "@/components/admin/academics/CurriculumMapTab";
 import CourseDirectoryTab from "@/components/admin/academics/CourseDirectoryTab";
 import AssignmentsTab from "@/components/admin/academics/AssignmentsTab";
 import AcademicTermsTab from "@/components/admin/academics/AcademicTermsTab";
