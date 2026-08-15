@@ -1,9 +1,13 @@
 import pg from "pg";
 const { Pool } = pg;
 
-const connectionString = "postgresql://neondb_owner:npg_oz6hFQDEda2x@ep-snowy-bread-ai5c6uw4-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=verify-full&channel_binding=require";
+const connectionString = process.env.DATABASE_URL;
 
 async function main() {
+    if (!connectionString) {
+        console.error("DATABASE_URL is not defined in environment.");
+        process.exit(1);
+    }
     const pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false } });
 
     console.log("=== CONNECTED TO NEON DB ===");

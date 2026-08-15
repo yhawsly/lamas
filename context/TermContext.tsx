@@ -63,6 +63,7 @@ export function TermProvider({ children }: { children: React.ReactNode }) {
         if (storedId) {
             const parsed = parseInt(storedId, 10);
             if (!isNaN(parsed) && parsed > 0) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setSelectedTermIdState(parsed);
                 setIsInitialized(true);
                 return;

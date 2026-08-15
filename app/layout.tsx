@@ -28,14 +28,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
+            try {
+              var savedTheme = localStorage.getItem('lamas-theme');
+              if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+              } else {
+                document.documentElement.classList.remove('dark');
+              }
+            } catch(e) {}
             if (typeof window !== 'undefined' && window.performance && window.performance.measure) {
               var orig = window.performance.measure;
               window.performance.measure = function() {
                 try {
                   return orig.apply(this, arguments);
-                } catch(e) {
-                  // Suppress Next.js/Turbopack HMR performance.measure negative duration DOMExceptions
-                }
+                } catch(e) {}
               };
             }
           })();

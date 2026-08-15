@@ -93,10 +93,9 @@ export default function AuditLogTab() {
     }, [actionFilter, userFilter]);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         loadLogs(1);
     }, [loadLogs]);
-
-    const actions = Array.from(new Set(logs.map(l => l.action)));
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">

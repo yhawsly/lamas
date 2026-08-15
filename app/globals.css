@@ -41,7 +41,34 @@
 
 /* ─── Design Tokens ─── */
 :root {
-  /* Premium Professional Dark Mode (Ultra Sleek Charcoal & Slate) */
+  /* Premium Light Mode (Clean Slate & Sapphire) — DEFAULT */
+  --bg-base: #F8FAFC; /* Slate 50 */
+  --bg-surface: #FFFFFF; /* Pure white cards */
+  --bg-border: #E2E8F0; /* Slate 200 */
+  --bg-hover: #F1F5F9; /* Slate 100 */
+  --bg-sidebar: #FFFFFF;
+
+  /* Text */
+  --text-primary: #0F172A; /* Slate 900 */
+  --text-secondary: #475569; /* Slate 600 */
+  --text-muted: #94A3B8; /* Slate 400 */
+
+  /* Primary Brand (Sapphire) */
+  --primary: #2563EB; /* Blue 600 */
+  --primary-hover: #1D4ED8; /* Blue 700 */
+
+  /* Accents */
+  --accent-blue: #2563EB;
+  --accent-green: #059669;
+  --accent-red: #e11d48;
+  --accent-amber: #d97706;
+
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(15, 23, 42, 0.05);
+}
+
+/* ─── Premium Professional Dark Mode ─── */
+.dark {
   --bg-base: #090d16; /* Deepest dark slate */
   --bg-surface: #0f172a; /* Slate 900 */
   --bg-border: rgba(148, 163, 184, 0.09); /* Soft slate border */
@@ -65,27 +92,6 @@
 
   --glass-bg: rgba(15, 23, 42, 0.85);
   --glass-border: rgba(148, 163, 184, 0.08);
-}
-
-/* ─── Premium Light Mode (Clean Slate & Sapphire) ─── */
-:root:not(.dark) {
-  --bg-base: #F8FAFC; /* Slate 50 */
-  --bg-surface: #FFFFFF; /* Pure white cards */
-  --bg-border: #E2E8F0; /* Slate 200 */
-  --bg-hover: #F1F5F9; /* Slate 100 */
-  --bg-sidebar: #FFFFFF;
-
-  /* Text */
-  --text-primary: #0F172A; /* Slate 900 */
-  --text-secondary: #475569; /* Slate 600 */
-  --text-muted: #94A3B8; /* Slate 400 */
-
-  /* Primary Brand (Sapphire) */
-  --primary: #2563EB; /* Blue 600 */
-  --primary-hover: #1D4ED8; /* Blue 700 */
-
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(15, 23, 42, 0.05);
 }
 
 /* ─── Base ─── */

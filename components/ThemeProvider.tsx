@@ -1,7 +1,12 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
 
-const ThemeContext = createContext<{ theme: "light" | "dark"; toggle: () => void }>({
+interface ThemeContextType {
+    theme: "light" | "dark";
+    toggle: () => void;
+}
+
+const ThemeContext = createContext<ThemeContextType>({
     theme: "light",
     toggle: () => { },
 });
@@ -14,10 +19,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const [theme, setTheme] = useState<"light" | "dark">("light");
     const [mounted, setMounted] = useState(false);
 
-    // Initialize theme from localStorage on mount
+    // Initialize theme from localStorage on mount (defaulting to light)
     useEffect(() => {
         const savedTheme = localStorage.getItem("lamas-theme") as "light" | "dark" | null;
-        const initialTheme = savedTheme || "light";
+        const initialTheme = savedTheme === "dark" ? "dark" : "light";
 
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setTheme(initialTheme);
@@ -32,7 +37,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         document.documentElement.classList.toggle("dark", newTheme === "dark");
     };
 
-    // Prevent flash of wrong theme
+    // Prevent hydration flash before client mount
     if (!mounted) {
         return <>{children}</>;
     }
