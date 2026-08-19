@@ -29,7 +29,7 @@ const navByRole: Record<string, { label: string; href: string; icon: React.React
         { label: "Notifications", href: "/notifications", icon: <Bell className="w-5 h-5" /> },
     ],
     DEO: [
-        { label: "Dashboard", href: "/deo", icon: <Home className="w-5 h-5" /> },
+        { label: "Dispatch Hub", href: "/deo", icon: <Home className="w-5 h-5" /> },
         { label: "Notifications", href: "/notifications", icon: <Bell className="w-5 h-5" /> },
     ],
     ADMIN: [
@@ -127,33 +127,33 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             ].join(" ")}
             style={{ background: "var(--bg-sidebar)", borderRight: "1px solid var(--bg-border)" }}
         >
-            {/* Brand */}
-            <div className={`p-5 bg-gradient-to-br ${roleColors[role] || roleColors.LECTURER}`}>
+            {/* Brand Header */}
+            <div className={`p-4 sm:p-5 bg-gradient-to-br ${roleColors[role] || roleColors.LECTURER}`}>
                 <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(255, 255, 255, 0.2)" }}>
-                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                            </svg>
+                    <Link href="/" className="flex items-center gap-3 group">
+                        <div className="w-11 h-11 rounded-2xl bg-white p-1 flex items-center justify-center shadow-lg shadow-black/10 shrink-0 border border-white/60 group-hover:scale-105 transition-transform duration-200">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src="/htu-logo.png" alt="HTU Official Crest" className="w-full h-full object-contain" />
                         </div>
-                        <div>
-                            <div className="text-white font-bold text-lg leading-none">LAMAS</div>
-                            <div className="text-white/60 text-xs mt-0.5">Academic System</div>
+                        <div className="min-w-0">
+                            <div className="text-white font-black text-base tracking-wide leading-tight">HTU LAMAS</div>
+                            <div className="text-white/85 text-[10px] font-bold tracking-wider uppercase mt-0.5 truncate">
+                                {role === "SUPER_ADMIN" ? "Super Admin" : role === "ADMIN" ? "Admin Portal" : role === "HOD" ? "HOD Portal" : role === "DEO" ? "Exam Officer" : "Faculty Portal"}
+                            </div>
                         </div>
-                    </div>
+                    </Link>
 
                     {/* Mobile close button */}
                     <button
                         onClick={onClose}
-                        className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center transition-all"
-                        style={{ background: "rgba(255, 255, 255, 0.15)" }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255, 255, 255, 0.25)"}
-                        onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255, 255, 255, 0.15)"}
+                        className="lg:hidden w-8 h-8 rounded-xl flex items-center justify-center transition-all shrink-0 cursor-pointer"
+                        style={{ background: "rgba(255, 255, 255, 0.18)" }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255, 255, 255, 0.3)"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255, 255, 255, 0.18)"}
                         aria-label="Close menu"
                     >
                         <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Send, CheckCircle2, ShieldAlert, KeyRound } from "lucide-react";
+import { ArrowLeft, Send, CheckCircle2, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 
 export default function RequestResetPage() {
@@ -40,9 +40,8 @@ export default function RequestResetPage() {
             <div className="relative w-full max-w-md animate-in fade-in zoom-in duration-300">
                 <div className="p-8 rounded-3xl border border-slate-200 bg-white shadow-xl">
                     <div className="text-center mb-8">
-                        <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 text-[#1E3A8A] flex items-center justify-center mx-auto mb-5 shadow-sm">
-                            <KeyRound className="w-8 h-8" />
-                        </div>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/htu-logo.png" alt="HTU Logo" className="w-16 h-16 object-contain mx-auto mb-4 drop-shadow-sm" />
                         <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-1.5">Reset Password</h1>
                         <p className="text-slate-500 text-sm">Enter your registered email address to receive a secure recovery link.</p>
                     </div>

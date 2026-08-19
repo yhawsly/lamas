@@ -1,9 +1,23 @@
 "use client";
-import { Plus, ClipboardList, Inbox, BookOpen, Video, ShieldCheck } from "lucide-react";
+
+import {
+    Plus,
+    ClipboardList,
+    Inbox,
+    BookOpen,
+    Video,
+    ShieldCheck,
+    BellRing,
+    Calendar,
+    CheckCircle2,
+    AlertTriangle
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import { useRouter } from "next/navigation";
 import { useTerm } from "@/context/TermContext";
+import InvigilationMatrixTab from "@/components/deo/InvigilationMatrixTab";
+import HallsManagementModal from "@/components/deo/HallsManagementModal";
 
 const RegistrySkeleton = () => (
     <div className="space-y-3 animate-pulse">
@@ -42,12 +56,20 @@ export default function DeoDashboard() {
     const [lecturers, setLecturers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     
-    // Form State
+    // Top-Level Navigation Tabs: 'reviews' vs 'invigilation'
+    const [mainTab, setMainTab] = useState<"reviews" | "invigilation">("reviews");
+    const [hallsModalOpen, setHallsModalOpen] = useState(false);
+
+    // Form State for Review Dispatching
     const [reviewType, setReviewType] = useState<"A" | "B" | "C">("A");
     const [form, setForm] = useState({ lecturerId: "", observerId: "", courseCode: "" });
     const [msg, setMsg] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [activeTab, setActiveTab] = useState<"ALL" | "A" | "B" | "C">("ALL");
+
+    // Nudge Reminder States
+    const [isNudgingAll, setIsNudgingAll] = useState(false);
+    const [nudgingId, setNudgingId] = useState<string | null>(null);
 
     useEffect(() => {
         loadData();
@@ -81,7 +103,7 @@ export default function DeoDashboard() {
                 fetch(`/api/observations${termLimitParam}`).then(r => r.json()),
                 fetch(`/api/teaching-observations${termParam}`).then(r => r.json()),
                 fetch(`/api/moderations${termParam}`).then(r => r.json()),
-                fetch("/api/courses").then(r => r.json()),
+                fetch(`/api/courses${termParam}`).then(r => r.json()),
                 fetch("/api/lecturers").then(r => r.json())
             ]);
 
@@ -148,6 +170,61 @@ export default function DeoDashboard() {
         }
     }
 
+    // Individual Reviewer Nudge
+    const handleNudgeReviewer = async (formType: string, reviewId: number) => {
+        if (isArchiveMode) {
+            alert("Action Disabled: You are viewing a read-only historical archive.");
+            return;
+        }
+        const key = `${formType}-${reviewId}`;
+        setNudgingId(key);
+        try {
+            const res = await fetch("/api/deo/reminders", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ formType, reviewId })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setMsg("📢 Notification reminder sent to the assigned reviewer!");
+                setTimeout(() => setMsg(""), 4000);
+            } else {
+                alert(data.error || "Failed to send reminder");
+            }
+        } catch {
+            alert("Network error sending reminder");
+        } finally {
+            setNudgingId(null);
+        }
+    };
+
+    // Bulk Nudge All Pending Reviewers
+    const handleNudgeAllOverdue = async () => {
+        if (isArchiveMode) {
+            alert("Action Disabled: You are viewing a read-only historical archive.");
+            return;
+        }
+        setIsNudgingAll(true);
+        try {
+            const res = await fetch("/api/deo/reminders", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ bulk: true, termId: selectedTermId })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setMsg(`📢 ${data.message || "Reminders sent successfully!"}`);
+                setTimeout(() => setMsg(""), 5000);
+            } else {
+                alert(data.error || "Failed to send bulk reminders");
+            }
+        } catch {
+            alert("Network error sending reminders");
+        } finally {
+            setIsNudgingAll(false);
+        }
+    };
+
     const statusColors: Record<string, string> = { 
         PENDING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300", 
         COMPLETED: "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300", 
@@ -161,294 +238,404 @@ export default function DeoDashboard() {
         return "#";
     };
 
+    // Calculate days elapsed for pending reviews
+    const getDaysElapsed = (dateString: string) => {
+        const diffMs = Date.now() - new Date(dateString).getTime();
+        return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    };
+
+    const pendingAssignments = assignments.filter(a => a.status === "PENDING");
+    const overdueAssignments = pendingAssignments.filter(a => getDaysElapsed(a.createdAt) >= 5);
+
     const partnerLabel = reviewType === "C" ? "Assigned Moderator" : "Assigned Observer";
     const selectedCourseObj = courses.find(c => c.code === form.courseCode);
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
-            <div className="mb-8">
-                <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">DEO Dispatch Dashboard</h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Centralized dispatch for peer reviews, teaching observations, and moderations.</p>
+            {/* Header & Primary Navigation Tabs */}
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Department Examination Officer (DEO)</h1>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        Centralized dispatch for peer reviews, overdue reviewer alerts, and exam invigilation scheduling.
+                    </p>
+                </div>
+
+                {/* Main Tab Switcher */}
+                <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-850 border border-slate-200 dark:border-slate-800">
+                    <button
+                        onClick={() => setMainTab("reviews")}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                            mainTab === "reviews"
+                                ? "bg-white dark:bg-slate-750 text-blue-600 dark:text-blue-400 shadow-sm"
+                                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                        }`}
+                    >
+                        <ClipboardList className="w-4 h-4" />
+                        Peer Reviews & Nudges
+                        {pendingAssignments.length > 0 && (
+                            <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-amber-500 text-white font-black">
+                                {pendingAssignments.length}
+                            </span>
+                        )}
+                    </button>
+
+                    <button
+                        onClick={() => setMainTab("invigilation")}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                            mainTab === "invigilation"
+                                ? "bg-white dark:bg-slate-750 text-emerald-600 dark:text-emerald-400 shadow-sm"
+                                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                        }`}
+                    >
+                        <Calendar className="w-4 h-4" />
+                        Invigilation Matrix
+                    </button>
+                </div>
             </div>
 
-            {/* 3 Clickable Horizontal Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-                {/* Card 1: Form A */}
-                <button
-                    type="button"
-                    onClick={() => setReviewType("A")}
-                    className={`text-left p-5 rounded-[24px] border-2 transition-all duration-200 cursor-pointer flex gap-4 items-center group relative overflow-hidden ${
-                        reviewType === "A"
-                            ? "bg-amber-500/5 dark:bg-amber-500/10 border-amber-500 shadow-md"
-                            : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-850 hover:border-amber-500/40"
-                    }`}
-                >
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                        reviewType === "A"
-                            ? "bg-amber-500 text-white"
-                            : "bg-slate-100 dark:bg-slate-900 text-slate-400 group-hover:bg-amber-500/10 group-hover:text-amber-500"
-                    }`}>
-                        <BookOpen className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <div className="text-[10px] font-black uppercase tracking-wider text-amber-550 dark:text-amber-400">Form A Audit</div>
-                        <h4 className="text-sm font-extrabold mt-1 text-slate-900 dark:text-white">Instructional Materials</h4>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug font-medium">Syllabus outlines, textbook relevance, notes audit.</p>
-                    </div>
-                </button>
+            {/* Notification alert banner */}
+            {msg && (
+                <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 text-xs font-semibold flex items-center gap-2 animate-in slide-in-from-top-2">
+                    <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
+                    <span>{msg}</span>
+                </div>
+            )}
 
-                {/* Card 2: Form B */}
-                <button
-                    type="button"
-                    onClick={() => setReviewType("B")}
-                    className={`text-left p-5 rounded-[24px] border-2 transition-all duration-200 cursor-pointer flex gap-4 items-center group relative overflow-hidden ${
-                        reviewType === "B"
-                            ? "bg-blue-500/5 dark:bg-blue-500/10 border-blue-500 shadow-md"
-                            : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-850 hover:border-blue-500/40"
-                    }`}
-                >
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                        reviewType === "B"
-                            ? "bg-blue-500 text-white"
-                            : "bg-slate-100 dark:bg-slate-900 text-slate-400 group-hover:bg-blue-500/10 group-hover:text-blue-500"
-                    }`}>
-                        <Video className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <div className="text-[10px] font-black uppercase tracking-wider text-blue-550 dark:text-blue-400">Form B Review</div>
-                        <h4 className="text-sm font-extrabold mt-1 text-slate-900 dark:text-white">Teaching Observation</h4>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug font-medium">Classroom pacing, slides structure, student dialogue.</p>
-                    </div>
-                </button>
-
-                {/* Card 3: Form C */}
-                <button
-                    type="button"
-                    onClick={() => setReviewType("C")}
-                    className={`text-left p-5 rounded-[24px] border-2 transition-all duration-200 cursor-pointer flex gap-4 items-center group relative overflow-hidden ${
-                        reviewType === "C"
-                            ? "bg-purple-500/5 dark:bg-purple-500/10 border-purple-500 shadow-md"
-                            : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-850 hover:border-purple-500/40"
-                    }`}
-                >
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                        reviewType === "C"
-                            ? "bg-purple-500 text-white"
-                            : "bg-slate-100 dark:bg-slate-900 text-slate-450 dark:text-slate-400 group-hover:bg-purple-500/10 group-hover:text-purple-500"
-                    }`}>
-                        <ShieldCheck className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <div className="text-[10px] font-black uppercase tracking-wider text-purple-550 dark:text-purple-400">Form C Moderation</div>
-                        <h4 className="text-sm font-extrabold mt-1 text-slate-900 dark:text-white">Exam Moderation</h4>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug font-medium">Marking rubrics, Bloom taxonomy, question feasibility.</p>
-                    </div>
-                </button>
-            </div>
-                   <div className="space-y-6">
-                {/* Form Creation Column */}
-                <div className="rounded-3xl p-6 shadow-sm border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
-                    <h3 className="font-semibold mb-6 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-                        <Plus className="w-5 h-5 text-blue-500" /> Dispatch Review
-                    </h3>
-                    
-                    {msg && (
-                        <div className={`mb-6 p-3 rounded-xl text-sm border`} style={{ 
-                            backgroundColor: msg.startsWith("✅") ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)", 
-                            borderColor: msg.startsWith("✅") ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)", 
-                            color: msg.startsWith("✅") ? "#10b981" : "#ef4444" 
-                        }}>
-                            {msg}
-                        </div>
-                    )}
-                    
-                    <form onSubmit={assign} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                        <div>
-                            <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>Course Code</label>
-                            <SearchableSelect
-                                value={form.courseCode}
-                                onChange={(val) => setForm(p => ({ ...p, courseCode: String(val) }))}
-                                options={courses.map(c => ({ label: `${c.code} - ${c.title}`, value: c.code }))}
-                                placeholder="Search Course..."
-                            />
-                        </div>
-
-                        <div className="relative">
-                            <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>{reviewType === "C" ? "Internal Examiner" : "Lecturer to Observe"}</label>
-                            <SearchableSelect
-                                value={form.lecturerId}
-                                onChange={(val) => setForm(p => ({ ...p, lecturerId: String(val) }))}
-                                options={
-                                    form.courseCode
-                                        ? selectedCourseObj && selectedCourseObj.sections.some((s: any) => s.lecturerId)
-                                            ? lecturers
-                                                .filter(l => selectedCourseObj.sections.some((s: any) => s.lecturerId === l.id))
-                                                .map(l => ({ label: `${l.name} (${l.email})`, value: String(l.id) }))
-                                            : lecturers.map(l => ({ label: `${l.name} (${l.email})`, value: String(l.id) }))
-                                        : []
-                                }
-                                placeholder={form.courseCode ? "Select target..." : "Select Course first..."}
-                                disabled={!form.courseCode}
-                            />
-                            {form.courseCode && selectedCourseObj && !selectedCourseObj.sections.some((s: any) => s.lecturerId) && (
-                                <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-1.5 absolute top-full left-0 w-max">
-                                    ⚠️ No lecturers officially assigned to this course yet.
-                                </p>
-                            )}
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>{partnerLabel}</label>
-                            <SearchableSelect
-                                value={form.observerId}
-                                onChange={(val) => setForm(p => ({ ...p, observerId: String(val) }))}
-                                options={lecturers.map(l => ({ label: `${l.name} (${l.email})`, value: String(l.id) }))}
-                                placeholder={`Select ${reviewType === "C" ? "Moderator" : "Observer"}...`}
-                                disabledValues={form.lecturerId ? [form.lecturerId] : []}
-                            />
-                        </div>
-
-                        <button 
-                            type="submit" 
-                            disabled={isSubmitting || !form.courseCode || !form.lecturerId || !form.observerId} 
-                            className="w-full py-3 rounded-xl text-white font-bold text-sm transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex justify-center items-center gap-2 h-[42px]" 
-                            style={{ backgroundColor: "var(--primary)", boxShadow: "0 8px 16px -4px var(--primary-muted)" }}
+            {/* TAB 1: PEER REVIEWS & OVERDUE NUDGES */}
+            {mainTab === "reviews" && (
+                <div className="space-y-8 animate-in fade-in duration-300">
+                    {/* 3 Clickable Horizontal Dispatch Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        {/* Card 1: Form A */}
+                        <button
+                            type="button"
+                            onClick={() => setReviewType("A")}
+                            className={`text-left p-5 rounded-[24px] border-2 transition-all duration-200 cursor-pointer flex gap-4 items-center group relative overflow-hidden ${
+                                reviewType === "A"
+                                    ? "bg-amber-500/5 dark:bg-amber-500/10 border-amber-500 shadow-md"
+                                    : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-850 hover:border-amber-500/40"
+                            }`}
                         >
-                            {isSubmitting ? <span className="animate-pulse">Dispatching...</span> : <span>Assign {reviewType === "A" ? "Form A" : reviewType === "B" ? "Form B" : "Form C"}</span>}
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                                reviewType === "A"
+                                    ? "bg-amber-500 text-white"
+                                    : "bg-slate-100 dark:bg-slate-900 text-slate-400 group-hover:bg-amber-500/10 group-hover:text-amber-500"
+                            }`}>
+                                <BookOpen className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <div className="text-[10px] font-black uppercase tracking-wider text-amber-550 dark:text-amber-400">Form A Audit</div>
+                                <h4 className="text-sm font-extrabold mt-1 text-slate-900 dark:text-white">Instructional Materials</h4>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug font-medium">Syllabus outlines, textbook relevance, notes audit.</p>
+                            </div>
                         </button>
-                    </form>
-                </div>
 
-                {/* Registry Column */}
-                <div className="rounded-3xl p-6 shadow-sm border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 pb-4 border-b" style={{ borderColor: "var(--bg-border)" }}>
-                        <h3 className="font-semibold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-                            <ClipboardList className="w-5 h-5 text-blue-500" /> Assignments Registry
-                        </h3>
+                        {/* Card 2: Form B */}
+                        <button
+                            type="button"
+                            onClick={() => setReviewType("B")}
+                            className={`text-left p-5 rounded-[24px] border-2 transition-all duration-200 cursor-pointer flex gap-4 items-center group relative overflow-hidden ${
+                                reviewType === "B"
+                                    ? "bg-blue-500/5 dark:bg-blue-500/10 border-blue-500 shadow-md"
+                                    : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-850 hover:border-blue-500/40"
+                            }`}
+                        >
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                                reviewType === "B"
+                                    ? "bg-blue-500 text-white"
+                                    : "bg-slate-100 dark:bg-slate-900 text-slate-400 group-hover:bg-blue-500/10 group-hover:text-blue-500"
+                            }`}>
+                                <Video className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <div className="text-[10px] font-black uppercase tracking-wider text-blue-550 dark:text-blue-400">Form B Review</div>
+                                <h4 className="text-sm font-extrabold mt-1 text-slate-900 dark:text-white">Teaching Observation</h4>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug font-medium">Classroom pacing, slides structure, student dialogue.</p>
+                            </div>
+                        </button>
 
-                        {/* Tabs for Form Types */}
-                        <div className="flex flex-wrap gap-1 p-1 rounded-2xl bg-slate-100/80 dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50">
-                            {[
-                                { id: "ALL", label: "All", icon: null, color: "text-blue-600 dark:text-blue-450", bgActive: "bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white", count: assignments.length },
-                                { id: "A", label: "Instructional Materials", icon: BookOpen, color: "text-amber-600 dark:text-amber-450", bgActive: "bg-white dark:bg-slate-800 shadow-sm text-amber-600 dark:text-amber-400", count: assignments.filter(o => o.formType === "A").length },
-                                { id: "B", label: "Teaching Observation", icon: Video, color: "text-blue-600 dark:text-blue-450", bgActive: "bg-white dark:bg-slate-800 shadow-sm text-blue-600 dark:text-blue-400", count: assignments.filter(o => o.formType === "B").length },
-                                { id: "C", label: "Exam Moderation", icon: ShieldCheck, color: "text-purple-600 dark:text-purple-450", bgActive: "bg-white dark:bg-slate-800 shadow-sm text-purple-600 dark:text-purple-400", count: assignments.filter(o => o.formType === "C").length },
-                            ].map((t) => {
-                                const Icon = t.icon;
-                                const isActive = activeTab === t.id;
-                                return (
-                                    <button
-                                        key={t.id}
-                                        type="button"
-                                        onClick={() => setActiveTab(t.id as any)}
-                                        className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
-                                            isActive
-                                                ? t.bgActive
-                                                : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
-                                        }`}
-                                    >
-                                        {Icon && <Icon className="w-3.5 h-3.5" />}
-                                        <span>{t.label}</span>
-                                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
-                                            isActive 
-                                                ? "bg-slate-100 dark:bg-slate-700/50 text-slate-700 dark:text-slate-300" 
-                                                : "bg-slate-200/80 dark:bg-slate-800 text-slate-500"
-                                        }`}>{t.count}</span>
-                                    </button>
-                                );
-                            })}
+                        {/* Card 3: Form C */}
+                        <button
+                            type="button"
+                            onClick={() => setReviewType("C")}
+                            className={`text-left p-5 rounded-[24px] border-2 transition-all duration-200 cursor-pointer flex gap-4 items-center group relative overflow-hidden ${
+                                reviewType === "C"
+                                    ? "bg-purple-500/5 dark:bg-purple-500/10 border-purple-500 shadow-md"
+                                    : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-850 hover:border-purple-500/40"
+                            }`}
+                        >
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                                reviewType === "C"
+                                    ? "bg-purple-500 text-white"
+                                    : "bg-slate-100 dark:bg-slate-900 text-slate-450 dark:text-slate-400 group-hover:bg-purple-500/10 group-hover:text-purple-500"
+                            }`}>
+                                <ShieldCheck className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <div className="text-[10px] font-black uppercase tracking-wider text-purple-550 dark:text-purple-400">Form C Moderation</div>
+                                <h4 className="text-sm font-extrabold mt-1 text-slate-900 dark:text-white">Exam Moderation</h4>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug font-medium">Marking rubrics, Bloom taxonomy, question feasibility.</p>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div className="space-y-6">
+                        {/* Dispatch Form */}
+                        <div className="rounded-3xl p-6 shadow-sm border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
+                            <h3 className="font-semibold mb-6 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+                                <Plus className="w-5 h-5 text-blue-500" /> Dispatch Review
+                            </h3>
+                            
+                            <form onSubmit={assign} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>Course Code</label>
+                                    <SearchableSelect
+                                        value={form.courseCode}
+                                        onChange={(val) => setForm(p => ({ ...p, courseCode: String(val) }))}
+                                        options={courses.map(c => ({ label: `${c.code} - ${c.title}`, value: c.code }))}
+                                        placeholder="Search Course..."
+                                    />
+                                </div>
+
+                                <div className="relative">
+                                    <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>{reviewType === "C" ? "Internal Examiner" : "Lecturer to Observe"}</label>
+                                    <SearchableSelect
+                                        value={form.lecturerId}
+                                        onChange={(val) => setForm(p => ({ ...p, lecturerId: String(val) }))}
+                                        options={
+                                            form.courseCode
+                                                ? selectedCourseObj && selectedCourseObj.sections.some((s: any) => s.lecturerId)
+                                                    ? lecturers
+                                                        .filter(l => selectedCourseObj.sections.some((s: any) => s.lecturerId === l.id))
+                                                        .map(l => ({ label: `${l.name} (${l.email})`, value: String(l.id) }))
+                                                    : lecturers.map(l => ({ label: `${l.name} (${l.email})`, value: String(l.id) }))
+                                                : []
+                                        }
+                                        placeholder={form.courseCode ? "Select target..." : "Select Course first..."}
+                                        disabled={!form.courseCode}
+                                    />
+                                    {form.courseCode && selectedCourseObj && !selectedCourseObj.sections.some((s: any) => s.lecturerId) && (
+                                        <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-1.5 absolute top-full left-0 w-max">
+                                            ⚠️ No lecturers officially assigned to this course yet.
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>{partnerLabel}</label>
+                                    <SearchableSelect
+                                        value={form.observerId}
+                                        onChange={(val) => setForm(p => ({ ...p, observerId: String(val) }))}
+                                        options={lecturers.map(l => ({ label: `${l.name} (${l.email})`, value: String(l.id) }))}
+                                        placeholder={`Select ${reviewType === "C" ? "Moderator" : "Observer"}...`}
+                                        disabledValues={form.lecturerId ? [form.lecturerId] : []}
+                                    />
+                                </div>
+
+                                <button 
+                                    type="submit" 
+                                    disabled={isSubmitting || !form.courseCode || !form.lecturerId || !form.observerId} 
+                                    className="w-full py-3 rounded-xl text-white font-bold text-sm transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex justify-center items-center gap-2 h-[42px]" 
+                                    style={{ backgroundColor: "var(--primary)", boxShadow: "0 8px 16px -4px var(--primary-muted)" }}
+                                >
+                                    {isSubmitting ? <span className="animate-pulse">Dispatching...</span> : <span>Assign {reviewType === "A" ? "Form A" : reviewType === "B" ? "Form B" : "Form C"}</span>}
+                                </button>
+                            </form>
+                        </div>
+
+                        {/* Registry Column */}
+                        <div className="rounded-3xl p-6 shadow-sm border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
+                            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 pb-4 border-b" style={{ borderColor: "var(--bg-border)" }}>
+                                <div className="flex items-center gap-3">
+                                    <h3 className="font-semibold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+                                        <ClipboardList className="w-5 h-5 text-blue-500" /> Assignments Registry
+                                    </h3>
+                                    {overdueAssignments.length > 0 && (
+                                        <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1">
+                                            <AlertTriangle className="w-3 h-3" />
+                                            {overdueAssignments.length} Overdue (&gt;5 days)
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center flex-wrap gap-2.5">
+                                    {/* Bulk Nudge Action */}
+                                    {pendingAssignments.length > 0 && !isArchiveMode && (
+                                        <button
+                                            onClick={handleNudgeAllOverdue}
+                                            disabled={isNudgingAll}
+                                            className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5"
+                                        >
+                                            <BellRing className="w-3.5 h-3.5" />
+                                            {isNudgingAll ? "Dispatching Alerts..." : `Nudge All Reviewers (${pendingAssignments.length})`}
+                                        </button>
+                                    )}
+
+                                    {/* Tabs for Form Types */}
+                                    <div className="flex flex-wrap gap-1 p-1 rounded-2xl bg-slate-100/80 dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50">
+                                        {[
+                                            { id: "ALL", label: "All", icon: null, count: assignments.length },
+                                            { id: "A", label: "Form A", icon: BookOpen, count: assignments.filter(o => o.formType === "A").length },
+                                            { id: "B", label: "Form B", icon: Video, count: assignments.filter(o => o.formType === "B").length },
+                                            { id: "C", label: "Form C", icon: ShieldCheck, count: assignments.filter(o => o.formType === "C").length },
+                                        ].map((t) => {
+                                            const Icon = t.icon;
+                                            const isActive = activeTab === t.id;
+                                            return (
+                                                <button
+                                                    key={t.id}
+                                                    type="button"
+                                                    onClick={() => setActiveTab(t.id as any)}
+                                                    className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                                                        isActive
+                                                            ? "bg-white dark:bg-slate-800 shadow-sm text-slate-900 dark:text-white"
+                                                            : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
+                                                    }`}
+                                                >
+                                                    {Icon && <Icon className="w-3 h-3" />}
+                                                    <span>{t.label}</span>
+                                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
+                                                        isActive 
+                                                            ? "bg-slate-100 dark:bg-slate-700/50 text-slate-700 dark:text-slate-300" 
+                                                            : "bg-slate-200/80 dark:bg-slate-800 text-slate-500"
+                                                    }`}>{t.count}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {loading ? (
+                                <RegistrySkeleton />
+                            ) : assignments.length === 0 ? (
+                                <div className="text-center py-20" style={{ color: "var(--text-muted)" }}>
+                                    <div className="flex justify-center mb-4"><Inbox className="w-10 h-10 text-gray-400" /></div>
+                                    <p>No reviews assigned yet.</p>
+                                </div>
+                            ) : assignments.filter(o => activeTab === "ALL" || o.formType === activeTab).length === 0 ? (
+                                <div className="text-center py-20" style={{ color: "var(--text-muted)" }}>
+                                    <div className="flex justify-center mb-4"><Inbox className="w-10 h-10 text-gray-400" /></div>
+                                    <p>No {activeTab === "A" ? "Instructional Materials" : activeTab === "B" ? "Teaching Observation" : "Exam Moderation"} reviews assigned yet.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {assignments
+                                        .filter(o => activeTab === "ALL" || o.formType === activeTab)
+                                        .map(o => {
+                                            const days = getDaysElapsed(o.createdAt);
+                                            const isPending = o.status === "PENDING";
+                                            const isNudging = nudgingId === `${o.formType}-${o.id}`;
+
+                                            return (
+                                                <div key={`${o.formType}-${o.id}`} className="group p-4 rounded-2xl transition-all hover:shadow-md border" style={{ backgroundColor: "var(--bg-hover)", borderColor: "var(--bg-border)" }}>
+                                                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                                                        <div className="flex items-start gap-4">
+                                                            {/* Colored Icon box based on Form Type */}
+                                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${
+                                                                o.formType === "A" ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400" :
+                                                                o.formType === "B" ? "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400" :
+                                                                "bg-purple-500/10 border-purple-500/20 text-purple-600 dark:text-purple-400"
+                                                            }`}>
+                                                                {o.formType === "A" && <BookOpen className="w-5 h-5" />}
+                                                                {o.formType === "B" && <Video className="w-5 h-5" />}
+                                                                {o.formType === "C" && <ShieldCheck className="w-5 h-5" />}
+                                                            </div>
+                                                            
+                                                            <div>
+                                                                {/* Form Name & Type */}
+                                                                <div className="flex items-center flex-wrap gap-2">
+                                                                    <span className="font-extrabold text-sm text-slate-900 dark:text-white">
+                                                                        {o.typeName}
+                                                                    </span>
+                                                                    <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
+                                                                        o.formType === "A" ? "bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400" :
+                                                                        o.formType === "B" ? "bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400" :
+                                                                        "bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400"
+                                                                    }`}>
+                                                                        Form {o.formType}
+                                                                    </span>
+
+                                                                    {isPending && days >= 5 && (
+                                                                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                                                                            ⚠️ {days}d overdue
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* Course & Status */}
+                                                                <div className="font-bold text-base mt-1 flex items-center gap-3.5" style={{ color: "var(--text-primary)" }}>
+                                                                    {o.courseCode}
+                                                                    <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${statusColors[o.status]}`}>
+                                                                        {o.status}
+                                                                    </span>
+                                                                </div>
+
+                                                                {/* Target & Assigned Partners */}
+                                                                <div className="flex flex-col sm:flex-row sm:items-center gap-x-3 gap-y-0.5 mt-2 text-xs">
+                                                                    <div style={{ color: "var(--text-secondary)" }}>
+                                                                        Target: <span className="font-bold text-slate-900 dark:text-white">{o.lecturer?.name}</span>
+                                                                    </div>
+                                                                    <span className="hidden sm:inline text-slate-300 dark:text-slate-700">|</span>
+                                                                    <div style={{ color: "var(--text-muted)" }}>
+                                                                        Assigned: <span className="font-semibold text-slate-700 dark:text-slate-300">{o.formType === "C" ? o.moderator?.name : o.observer?.name}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Actions */}
+                                                        <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                                                            {isPending && !isArchiveMode && (
+                                                                <button
+                                                                    onClick={() => handleNudgeReviewer(o.formType, o.id)}
+                                                                    disabled={isNudging}
+                                                                    className="px-3 py-2 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+                                                                    title="Send notification nudge to the assigned reviewer"
+                                                                >
+                                                                    <BellRing className="w-3.5 h-3.5" />
+                                                                    {isNudging ? "Nudging..." : "Send Nudge"}
+                                                                </button>
+                                                            )}
+
+                                                            <button 
+                                                                onClick={() => router.push(getRoute(o.formType, o.id))}
+                                                                className="px-4 py-2 rounded-xl text-xs font-bold transition-all border"
+                                                                style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)", color: "var(--text-primary)" }}
+                                                            >
+                                                                View Details →
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                </div>
+                            )}
+
                         </div>
                     </div>
-                    
-                    {loading ? (
-                        <RegistrySkeleton />
-                    ) : assignments.length === 0 ? (
-                        <div className="text-center py-20" style={{ color: "var(--text-muted)" }}>
-                            <div className="flex justify-center mb-4"><Inbox className="w-10 h-10 text-gray-400" /></div>
-                            <p>No reviews assigned yet.</p>
-                        </div>
-                    ) : assignments.filter(o => activeTab === "ALL" || o.formType === activeTab).length === 0 ? (
-                        <div className="text-center py-20" style={{ color: "var(--text-muted)" }}>
-                            <div className="flex justify-center mb-4"><Inbox className="w-10 h-10 text-gray-400" /></div>
-                            <p>No {activeTab === "A" ? "Instructional Materials" : activeTab === "B" ? "Teaching Observation" : "Exam Moderation"} reviews assigned yet.</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-3">
-                            {assignments
-                                .filter(o => activeTab === "ALL" || o.formType === activeTab)
-                                .map(o => (
-                                    <div key={`${o.formType}-${o.id}`} className="group p-4 rounded-2xl transition-all hover:shadow-md border" style={{ backgroundColor: "var(--bg-hover)", borderColor: "var(--bg-border)" }}>
-                                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                                            <div className="flex items-start gap-4">
-                                                {/* Colored Icon box based on Form Type */}
-                                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${
-                                                    o.formType === "A" ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400" :
-                                                    o.formType === "B" ? "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400" :
-                                                    "bg-purple-500/10 border-purple-500/20 text-purple-600 dark:text-purple-400"
-                                                }`}>
-                                                    {o.formType === "A" && <BookOpen className="w-5 h-5" />}
-                                                    {o.formType === "B" && <Video className="w-5 h-5" />}
-                                                    {o.formType === "C" && <ShieldCheck className="w-5 h-5" />}
-                                                </div>
-                                                
-                                                <div>
-                                                    {/* Form Name & Type - Important First */}
-                                                    <div className="flex items-center flex-wrap gap-2">
-                                                        <span className="font-extrabold text-sm text-slate-900 dark:text-white">
-                                                            {o.typeName}
-                                                        </span>
-                                                        <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
-                                                            o.formType === "A" ? "bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400" :
-                                                            o.formType === "B" ? "bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400" :
-                                                            "bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400"
-                                                        }`}>
-                                                            Form {o.formType}
-                                                        </span>
-                                                    </div>
-
-                                                    {/* Course & Status - Secondary Important */}
-                                                    <div className="font-bold text-base mt-1 flex items-center gap-3.5" style={{ color: "var(--text-primary)" }}>
-                                                        {o.courseCode}
-                                                        <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${statusColors[o.status]}`}>
-                                                            {o.status}
-                                                        </span>
-                                                    </div>
-
-                                                    {/* Target & Assigned Partners - Details */}
-                                                    <div className="flex flex-col sm:flex-row sm:items-center gap-x-3 gap-y-0.5 mt-2 text-xs">
-                                                        <div style={{ color: "var(--text-secondary)" }}>
-                                                            Target: <span className="font-bold text-slate-900 dark:text-white">{o.lecturer?.name}</span>
-                                                        </div>
-                                                        <span className="hidden sm:inline text-slate-300 dark:text-slate-700">|</span>
-                                                        <div style={{ color: "var(--text-muted)" }}>
-                                                            Assigned: <span className="font-semibold text-slate-700 dark:text-slate-300">{o.formType === "C" ? o.moderator?.name : o.observer?.name}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
-                                                <div className="text-right hidden sm:block mr-2">
-                                                    <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Dispatched</div>
-                                                    <div className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>{new Date(o.createdAt).toLocaleDateString()}</div>
-                                                </div>
-                                                <button 
-                                                    onClick={() => router.push(getRoute(o.formType, o.id))}
-                                                    className="px-4 py-2 rounded-xl text-xs font-bold transition-all border opacity-0 group-hover:opacity-100 focus:opacity-100"
-                                                    style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)", color: "var(--text-primary)" }}
-                                                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--primary)"; e.currentTarget.style.color = "white"; e.currentTarget.style.borderColor = "var(--primary)"; }}
-                                                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "var(--bg-surface)"; e.currentTarget.style.color = "var(--text-primary)"; e.currentTarget.style.borderColor = "var(--bg-border)"; }}
-                                                >
-                                                    View Details →
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                        </div>
-                    )}
-
                 </div>
-            </div>
+            )}
+
+            {/* TAB 2: EXAM INVIGILATION & HALL ALLOCATION MATRIX */}
+            {mainTab === "invigilation" && (
+                <div className="animate-in fade-in duration-300">
+                    <InvigilationMatrixTab
+                        courses={courses}
+                        lecturers={lecturers}
+                        onOpenHallsModal={() => setHallsModalOpen(true)}
+                    />
+                </div>
+            )}
+
+            {/* Examination Halls Modal */}
+            <HallsManagementModal
+                isOpen={hallsModalOpen}
+                onClose={() => setHallsModalOpen(false)}
+                disabled={isArchiveMode}
+            />
         </div>
     );
 }

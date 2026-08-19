@@ -50,10 +50,10 @@ export async function GET(req: Request) {
             }
         }
 
-        // Admins see all courses, HODs/Lecturers see their own department's courses
-        const whereClause = ["ADMIN", "SUPER_ADMIN"].includes(user.role)
+        // Admins and DEOs see all courses, HODs/Lecturers see their own department's courses
+        const whereClause = (["ADMIN", "SUPER_ADMIN", "DEO"].includes(user.role) || !user.departmentId)
             ? {}
-            : { departmentId: user.departmentId! };
+            : { departmentId: user.departmentId };
 
         const courses = await prisma.course.findMany({
             where: whereClause,

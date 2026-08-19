@@ -10,12 +10,17 @@ import SWRProvider from "@/lib/swr-config";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "LAMAS — Lecturer Academic Management System",
-  description: "Academic accountability and monitoring platform for higher education",
+  title: "HTU LAMAS — Academic & Lecture Management System",
+  description: "Ho Technical University academic accountability and monitoring platform",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/htu-logo.png",
+    shortcut: "/htu-logo.png",
+    apple: "/htu-logo.png",
+  },
   appleWebApp: {
     capable: true,
-    title: "LAMAS",
+    title: "HTU LAMAS",
     statusBarStyle: "black-translucent",
   },
 };

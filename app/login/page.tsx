@@ -2,13 +2,27 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { Lock, ArrowRight, ShieldAlert, ChevronDown, ChevronUp } from "lucide-react";
+import {
+    Lock,
+    ArrowRight,
+    ShieldAlert,
+    ChevronDown,
+    ChevronUp,
+    FileText,
+    Users,
+    BarChart3,
+    Mail,
+    KeyRound,
+    Eye,
+    EyeOff
+} from "lucide-react";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [showDemoAccounts, setShowDemoAccounts] = useState(false);
 
     async function handleSubmit(e: React.FormEvent) {
@@ -25,196 +39,227 @@ export default function LoginPage() {
         setLoading(false);
 
         if (result?.error) {
-            setError("Invalid email or password. Please try again.");
+            setError("Invalid email or password. Please verify your credentials.");
         } else {
             window.location.href = "/";
         }
     }
 
     return (
-        <div 
-            suppressHydrationWarning 
-            className="min-h-screen flex flex-col md:flex-row bg-slate-50 font-sans antialiased text-slate-800"
-            style={{
-                backgroundColor: "#F8FAFC",
-                color: "#0F172A",
-                // Override CSS variable tokens in this element sub-tree to light mode values
-                "--bg-base": "#F8FAFC",
-                "--bg-surface": "#FFFFFF",
-                "--bg-border": "#E2E8F0",
-                "--bg-hover": "#F1F5F9",
-                "--bg-sidebar": "#FFFFFF",
-                "--text-primary": "#0F172A",
-                "--text-secondary": "#475569",
-                "--text-muted": "#94A3B8",
-                "--primary": "#2563EB",
-                "--primary-hover": "#1D4ED8",
-            } as any}
-        >
-            {/* Left Column - Brand/Watermark Panel (Academic Blue) */}
-            <div className="relative flex flex-col justify-between p-8 md:p-12 text-white overflow-hidden bg-[#1E3A8A] w-full md:w-[38%] min-h-[300px] md:min-h-screen md:h-screen shrink-0 select-none">
-                {/* Subtle brand gradients */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(96,165,250,0.25),transparent_60%)] pointer-events-none" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(30,58,138,0.5),transparent_70%)] pointer-events-none" />
+        <div className="min-h-screen w-full flex flex-col md:flex-row bg-white font-sans antialiased text-slate-900 selection:bg-blue-600 selection:text-white">
+            {/* Left Side - University Visual Hero Panel */}
+            <div className="relative flex flex-col justify-between p-8 sm:p-12 md:p-14 lg:p-16 text-white w-full md:w-1/2 lg:w-[52%] min-h-[480px] md:min-h-screen overflow-hidden shrink-0 select-none">
+                {/* Background Image (HTU Official Image) */}
+                <div
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
+                    style={{
+                        backgroundImage: "url('/login-bg.jpg')",
+                    }}
+                />
 
-                {/* Header Logo */}
-                <div className="relative z-10 flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 14l9-5-9-5-9 5 9 5z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <span className="font-extrabold tracking-widest text-base">LAMAS</span>
-                        <span className="text-[9px] block opacity-60 font-semibold tracking-wider uppercase leading-none">University Portal</span>
+                {/* Dark Gradient Overlay for Pristine Readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-900/60" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(37,99,235,0.3),transparent_70%)] pointer-events-none" />
+
+                {/* Top Badge: HTU LAMAS Emblem */}
+                <div className="relative z-10">
+                    <div className="inline-flex items-center gap-3 bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl shadow-xl border border-white/40">
+                        <div className="w-9 h-9 rounded-xl bg-white p-0.5 flex items-center justify-center shadow-xs">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src="/htu-logo.png" alt="HTU Official Crest" className="w-full h-full object-contain" />
+                        </div>
+                        <div className="flex flex-col leading-none">
+                            <span className="font-black text-blue-950 text-sm tracking-wider">HTU</span>
+                            <span className="font-extrabold text-blue-800 text-[11px] tracking-widest uppercase">LAMAS</span>
+                        </div>
                     </div>
                 </div>
 
-                {/* Large Watermark Shield Crest */}
-                <div className="absolute inset-0 flex items-center justify-center p-8 pointer-events-none opacity-[0.09]">
-                    <svg className="w-full max-w-[280px] aspect-square text-white" viewBox="0 0 100 120" fill="none" stroke="currentColor" strokeWidth="1.2">
-                        {/* Outer Shield Outline */}
-                        <path d="M10 10 C10 10 35 15 50 15 C65 15 90 10 90 10 C90 10 92 65 90 80 C88 95 65 112 50 115 C35 112 12 95 10 80 C8 65 10 10 10 10 Z" strokeWidth="2" />
-                        {/* Division lines */}
-                        <path d="M10 40 L90 40" strokeWidth="1.2" />
-                        <path d="M50 40 L50 115" strokeWidth="1.2" />
-                        {/* Sun in top chief */}
-                        <circle cx="50" cy="25" r="5" fill="currentColor" />
-                        <path d="M50 13 V16 M50 34 V37 M38 25 H41 M59 25 H62 M41 16 L43 18 M59 34 L57 32 M41 34 L43 32 M59 16 L57 18" strokeWidth="1" />
-                        {/* Maple Leaf in bottom-left */}
-                        <path d="M25 78 C25 73 27 71 29 68 L31 70 C32 68 34 68 33 71 L36 70 C35 74 33 76 34 79 L31 78 C30 80 28 81 27 83 L27 79 Z" fill="currentColor" />
-                        {/* Lion in bottom-right */}
-                        <path d="M68 65 C68 63 70 61 72 61 C74 61 74 63 74 65 C74 67 72 68 70 69 H75 L73 73 L75 77 H68 L68 73 Z" fill="currentColor" />
-                        {/* Book in center */}
-                        <rect x="42" y="33" width="16" height="12" rx="1" fill="#1E3A8A" stroke="currentColor" strokeWidth="1" />
-                        <line x1="50" y1="33" x2="50" y2="45" stroke="currentColor" strokeWidth="0.8" />
-                    </svg>
+                {/* Middle & Bottom Content Area */}
+                <div className="relative z-10 space-y-7 my-auto pt-10 pb-6 max-w-xl">
+                    {/* Main Headline */}
+                    <div className="space-y-3">
+                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-[1.12] drop-shadow-sm">
+                            Championing <br />
+                            Academic Excellence <br />
+                            <span className="text-blue-200">&amp; Integrity</span>
+                        </h1>
+                        <p className="text-sm sm:text-base text-slate-200/90 font-normal leading-relaxed max-w-lg">
+                            Ho Technical University&apos;s premier lecture &amp; academic audit portal — empowering faculty,
+                            heads of department, and exam officers with real-time quality assurance.
+                        </p>
+                    </div>
+
+                    {/* 3 Pill Features */}
+                    <div className="space-y-3 pt-2">
+                        <div className="flex items-center gap-3.5 text-slate-100/95 group">
+                            <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shrink-0 group-hover:bg-white/20 transition">
+                                <FileText className="w-5 h-5 text-blue-300" />
+                            </div>
+                            <span className="text-xs sm:text-sm font-medium">
+                                Track syllabus submissions & peer reviews end-to-end
+                            </span>
+                        </div>
+
+                        <div className="flex items-center gap-3.5 text-slate-100/95 group">
+                            <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shrink-0 group-hover:bg-white/20 transition">
+                                <Users className="w-5 h-5 text-emerald-300" />
+                            </div>
+                            <span className="text-xs sm:text-sm font-medium">
+                                Coordinate teaching observations & invigilation rosters
+                            </span>
+                        </div>
+
+                        <div className="flex items-center gap-3.5 text-slate-100/95 group">
+                            <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shrink-0 group-hover:bg-white/20 transition">
+                                <BarChart3 className="w-5 h-5 text-purple-300" />
+                            </div>
+                            <span className="text-xs sm:text-sm font-medium">
+                                Real-time attendance & quality grading insights
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
-
+                {/* Footer Copyright */}
+                <div className="relative z-10 text-[11px] text-slate-400 font-medium pt-4">
+                    © {new Date().getFullYear()} Ho Technical University. All rights reserved.
+                </div>
             </div>
 
-            {/* Right Column - Login Form Panel */}
-            <div className="flex-1 flex flex-col justify-center p-6 sm:p-12 md:p-20 bg-white min-h-[480px]">
-                <div className="w-full max-w-[420px] mx-auto flex flex-col gap-6">
+            {/* Right Side - Plain, Clean Login Form */}
+            <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-12 md:p-14 lg:p-20 bg-white min-h-[500px]">
+                <div className="w-full max-w-[420px] space-y-7">
                     {/* Header */}
-                    <div>
-                        <h2 className="text-3xl font-light text-slate-400 tracking-tight leading-tight">
-                            Login to your <br />
-                            <span className="text-slate-800 font-normal">academic dashboard</span>
+                    <div className="space-y-1.5 text-left">
+                        <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">
+                            Sign in
                         </h2>
+                        <p className="text-sm text-slate-500">
+                            Enter your university credentials to access your dashboard
+                        </p>
                     </div>
 
-                    {/* Alert Errors */}
+                    {/* Error Alert */}
                     {error && (
-                        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-100 text-rose-700 text-xs font-semibold flex items-start gap-2.5 shadow-sm">
+                        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-start gap-2.5">
                             <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
                             <span>{error}</span>
                         </div>
                     )}
 
-                    {/* Login Form */}
-                    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                        <div className="flex flex-col">
-                            <label htmlFor="login-email" className="sr-only">User ID / Email</label>
-                            <input
-                                id="login-email"
-                                name="email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                placeholder="USER ID"
-                                className="w-full px-4 py-3 bg-white border text-slate-800 placeholder-slate-400 text-xs font-bold tracking-widest border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] transition"
-                            />
-                        </div>
-                        <div className="flex flex-col">
-                            <label htmlFor="login-password" className="sr-only">Password</label>
-                            <input
-                                id="login-password"
-                                name="password"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                placeholder="PASSWORD"
-                                className="w-full px-4 py-3 bg-white border text-slate-800 placeholder-slate-400 text-xs font-bold tracking-widest border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] transition"
-                            />
+                    {/* Direct Plain Form */}
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        {/* Email / User ID Input */}
+                        <div className="space-y-1.5">
+                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                Email / User ID
+                            </label>
+                            <div className="relative">
+                                <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <input
+                                    type="email"
+                                    required
+                                    value={email}
+                                    onChange={e => setEmail(e.target.value)}
+                                    placeholder="e.g. slyyhaw@gmail.com"
+                                    className="w-full pl-10 pr-4 py-3 text-sm bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 font-medium text-slate-800 transition"
+                                />
+                            </div>
                         </div>
 
-                        {/* Submit Row */}
-                        <div className="flex items-center gap-4 mt-2">
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="px-8 py-2.5 bg-[#1E3A8A] hover:bg-[#1e40af] text-white text-xs font-bold tracking-widest rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
-                            >
-                                {loading ? (
-                                    <>
-                                        <svg className="animate-spin h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                        </svg>
-                                        <span>SIGNING IN...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <span>LOGIN</span>
-                                        <ArrowRight className="w-3.5 h-3.5" />
-                                    </>
-                                )}
-                            </button>
-
-                            <a href="/reset-password/request" className="text-xs font-semibold text-[#1E3A8A] hover:underline transition-colors duration-150">
-                                Forgot your User ID or Password?
-                            </a>
+                        {/* Password Input */}
+                        <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                    Password
+                                </label>
+                                <a
+                                    href="/reset-password/request"
+                                    className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                                >
+                                    Forgot password?
+                                </a>
+                            </div>
+                            <div className="relative">
+                                <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    required
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                    placeholder="Enter your password"
+                                    className="w-full pl-10 pr-10 py-3 text-sm bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 font-medium text-slate-800 transition"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                                >
+                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
                         </div>
+
+                        {/* Submit Button */}
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-bold rounded-xl shadow-md shadow-blue-600/25 transition flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                        >
+                            {loading ? (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    <span>Signing in...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span>Sign in to Dashboard</span>
+                                    <ArrowRight className="w-4 h-4" />
+                                </>
+                            )}
+                        </button>
                     </form>
 
-
-
-                    {/* Collapsible Demo Credentials Panel */}
-                    <div className="border border-slate-100 rounded-2xl bg-slate-50/50 overflow-hidden mt-4">
+                    {/* Quick Demo Switcher */}
+                    <div className="border border-slate-200 rounded-2xl bg-slate-50/70 overflow-hidden">
                         <button
                             type="button"
                             onClick={() => setShowDemoAccounts(!showDemoAccounts)}
-                            className="w-full px-4 py-3 flex items-center justify-between text-xs font-black tracking-wider text-slate-500 uppercase select-none hover:bg-slate-100/50 transition-colors"
+                            className="w-full px-4 py-3 flex items-center justify-between text-xs font-bold text-slate-600 hover:bg-slate-100/70 transition"
                         >
                             <span className="flex items-center gap-2">
-                                <Lock className="w-3.5 h-3.5" />
-                                Quick Login Accounts
+                                <Lock className="w-3.5 h-3.5 text-blue-600" />
+                                1-Click Demo Accounts (Lecturer, HOD, DEO, Admin)
                             </span>
-                            {showDemoAccounts ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                            {showDemoAccounts ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
                         </button>
 
                         {showDemoAccounts && (
-                            <div className="p-3 pt-0 grid grid-cols-1 sm:grid-cols-2 gap-2 border-t border-slate-100 bg-white/50">
+                            <div className="p-3 border-t border-slate-200 grid grid-cols-2 gap-2 bg-white">
                                 {[
-                                    { label: "Lecturer Workspace", desc: "Assigned Courses & Schedules", email: "slyyhaw@gmail.com" },
-                                    { label: "Head of Dept (CS)", desc: "Department Curriculum & Staff", email: "ahmad@lamas.edu" },
-                                    { label: "Dept Exam Officer", desc: "Moderation Observ. Auditing", email: "deo@lamas.edu" },
-                                    { label: "Super Admin Control", desc: "Full Academic Configuration", email: "superadmin@lamas.edu" }
-                                ].map((acc) => (
+                                    { label: "Lecturer", email: "slyyhaw@gmail.com" },
+                                    { label: "Head of Dept", email: "ahmad@lamas.edu" },
+                                    { label: "Exam Officer", email: "deo@lamas.edu" },
+                                    { label: "Super Admin", email: "superadmin@lamas.edu" }
+                                ].map(acc => (
                                     <button
                                         key={acc.email}
                                         type="button"
-                                        onClick={() => { setEmail(acc.email); setPassword("password123"); }}
-                                        className="text-left p-3 rounded-xl bg-white hover:bg-[#1E3A8A]/5 hover:border-[#1E3A8A]/30 border border-slate-100 transition cursor-pointer group flex flex-col justify-between"
+                                        onClick={() => {
+                                            setEmail(acc.email);
+                                            setPassword("password123");
+                                        }}
+                                        className="text-left p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 transition group cursor-pointer"
                                     >
-                                        <div>
-                                            <div className="text-[10px] font-black uppercase text-slate-800 group-hover:text-[#1E3A8A] transition-colors">{acc.label}</div>
-                                            <div className="text-[9px] text-slate-400 mt-0.5 leading-snug">{acc.desc}</div>
-                                        </div>
-                                        <div className="text-[10px] text-slate-500 mt-2 truncate font-mono bg-slate-50 p-1 px-1.5 rounded-lg border border-slate-100 w-fit">{acc.email}</div>
+                                        <div className="text-xs font-bold text-slate-800 group-hover:text-blue-600">{acc.label}</div>
+                                        <div className="text-[10px] text-slate-500 font-mono truncate mt-0.5">{acc.email}</div>
                                     </button>
                                 ))}
                             </div>
                         )}
                     </div>
                 </div>
-
-
             </div>
         </div>
     );

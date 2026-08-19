@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
     Folder, 
     FileText, 
@@ -85,23 +85,24 @@ export default function HODResourcesPage() {
     const [rejectingId, setRejectingId] = useState<number | null>(null);
     const [feedback, setFeedback] = useState("");
 
-    useEffect(() => {
-        const fetchResources = async () => {
-            setLoading(true);
-            try {
-                const url = selectedTermId ? `/api/hod/resources?termId=${selectedTermId}` : "/api/hod/resources";
-                const res = await fetch(url);
-                if (res.ok) {
-                    const data = await res.json();
-                    setResources(data);
-                }
-            } catch (e) {
-                console.error(e);
+    const fetchResources = useCallback(async () => {
+        setLoading(true);
+        try {
+            const url = selectedTermId ? `/api/hod/resources?termId=${selectedTermId}` : "/api/hod/resources";
+            const res = await fetch(url);
+            if (res.ok) {
+                const data = await res.json();
+                setResources(data);
             }
-            setLoading(false);
-        };
-        fetchResources();
+        } catch (e) {
+            console.error(e);
+        }
+        setLoading(false);
     }, [selectedTermId]);
+
+    useEffect(() => {
+        fetchResources();
+    }, [fetchResources]);
 
     const updateStatus = async (id: number, status: string, providedFeedback?: string) => {
         if (isArchiveMode) {
