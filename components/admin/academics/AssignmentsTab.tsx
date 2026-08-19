@@ -3,6 +3,7 @@ import { BookOpen, AlertCircle, CheckCircle, AlertTriangle, BarChart, ListPlus }
 import KPICard from "@/components/ui/KPICard";
 
 import { useEffect, useState } from "react";
+import { useTerm } from "@/context/TermContext";
 
 const AssignmentsSkeleton = () => (
     <div className="max-w-5xl mx-auto space-y-8 animate-pulse">
@@ -45,6 +46,7 @@ const AssignmentsSkeleton = () => (
 );
 
 export default function AssignmentsTab() {
+    const { selectedTermId, isArchiveMode } = useTerm();
     const [courses, setCourses] = useState<any[]>([]);
     const [lecturers, setLecturers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -63,17 +65,23 @@ export default function AssignmentsTab() {
     const showAlert = (title: string, message: string) => setCustomModal({ isOpen: true, type: "alert", title, message });
 
     useEffect(() => {
+        setLoading(true);
+        const coursesUrl = selectedTermId ? `/api/courses?termId=${selectedTermId}` : "/api/courses";
         Promise.all([
-            fetch("/api/courses").then(r => r.ok ? r.json() : []),
+            fetch(coursesUrl).then(r => r.ok ? r.json() : []),
             fetch("/api/lecturers").then(r => r.ok ? r.json() : [])
         ]).then(([coursesData, lecturersData]) => {
             setCourses(Array.isArray(coursesData) ? coursesData : []);
             setLecturers(Array.isArray(lecturersData) ? lecturersData : []);
             setLoading(false);
         }).catch(() => setLoading(false));
-    }, []);
+    }, [selectedTermId]);
 
     const handleAssignLecturer = async (courseId: number, sectionId: number, lecturerId: number | null) => {
+        if (isArchiveMode) {
+            showAlert("Action Disabled", "You are viewing a read-only historical archive.");
+            return;
+        }
         const res = await fetch("/api/courses/assignments", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -97,6 +105,10 @@ export default function AssignmentsTab() {
     };
 
     const handleCreateClass = async (courseId: number) => {
+        if (isArchiveMode) {
+            showAlert("Action Disabled", "You are viewing a read-only historical archive.");
+            return;
+        }
         if (!newClassName.trim()) return;
         setIsSavingClass(true);
         try {
@@ -106,7 +118,8 @@ export default function AssignmentsTab() {
                 body: JSON.stringify({
                     courseId,
                     name: newClassName.trim(),
-                    session: newClassSession
+                    session: newClassSession,
+                    termId: selectedTermId
                 })
             });
 

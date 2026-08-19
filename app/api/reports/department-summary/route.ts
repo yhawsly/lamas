@@ -35,6 +35,14 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "No department assigned to your account" }, { status: 400 });
         }
 
+        const url = new URL(req.url);
+        const termIdParam = url.searchParams.get("termId");
+        const { checkAndGetActiveTerm } = await import("@/lib/active-term");
+        const activeTerm = await checkAndGetActiveTerm();
+        const termId = termIdParam ? parseInt(termIdParam) : activeTerm?.id;
+
+        const termFilter = termId ? { termId } : {};
+
         // Fetch department lecturers and their observation stats
         const lecturers = await prisma.user.findMany({
             where: {
@@ -48,12 +56,15 @@ export async function GET(req: NextRequest) {
                 name: true,
                 email: true,
                 observedBy: {
+                    where: termFilter,
                     select: { status: true }
                 },
                 teachingObserved: {
+                    where: termFilter,
                     select: { status: true }
                 },
                 moderationsAsInternal: {
+                    where: termFilter,
                     select: { status: true }
                 }
             }

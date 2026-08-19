@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Eye, Calendar, User, ChevronRight } from "lucide-react";
-
+import { useTerm } from "@/context/TermContext";
 
 const ObservationsSkeleton = () => (
     <div className="divide-y divide-slate-100 dark:divide-slate-800/60 animate-pulse">
@@ -31,18 +31,21 @@ const ObservationsSkeleton = () => (
 );
 
 export default function ObservationsTab() {
+    const { selectedTermId } = useTerm();
     const [observations, setObservations] = useState<any[]>([]);
-
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch("/api/observations").then(r => r.json()).then(d => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLoading(true);
+        const url = selectedTermId ? `/api/observations?termId=${selectedTermId}` : "/api/observations";
+        fetch(url).then(r => r.json()).then(d => {
             // API returns { data: [...], meta: {...} } — not a plain array
             const list = Array.isArray(d) ? d : (Array.isArray(d?.data) ? d.data : []);
             setObservations(list);
             setLoading(false);
         }).catch(() => setLoading(false));
-    }, []);
+    }, [selectedTermId]);
 
     const statusColors: Record<string, string> = { 
         PENDING: "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20", 

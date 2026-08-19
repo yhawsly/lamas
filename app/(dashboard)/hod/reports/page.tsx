@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FileText, Download, Table2, Users, AlertCircle } from "lucide-react";
+import { useTerm } from "@/context/TermContext";
 
 const ReportsSkeleton = () => (
     <div className="max-w-7xl mx-auto space-y-8 animate-pulse">
@@ -57,12 +58,15 @@ const ReportsSkeleton = () => (
 );
 
 export default function HODReportsPage() {
+    const { selectedTermId } = useTerm();
     const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [exporting, setExporting] = useState(false);
 
     useEffect(() => {
-        fetch("/api/reports/department-summary")
+        setLoading(true);
+        const url = selectedTermId ? `/api/reports/department-summary?termId=${selectedTermId}` : "/api/reports/department-summary";
+        fetch(url)
             .then(res => res.json())
             .then(res => {
                 if (res.data) setData(res.data);
@@ -72,7 +76,7 @@ export default function HODReportsPage() {
                 console.error(err);
                 setLoading(false);
             });
-    }, []);
+    }, [selectedTermId]);
 
     const exportPDF = () => {
         window.print();

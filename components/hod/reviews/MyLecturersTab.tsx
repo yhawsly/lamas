@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Users, AlertCircle } from "lucide-react";
+import { useTerm } from "@/context/TermContext";
 
 const MyLecturersSkeleton = () => (
     <div className="divide-y divide-slate-100 dark:divide-slate-800/60 animate-pulse">
@@ -32,14 +33,17 @@ const MyLecturersSkeleton = () => (
 );
 
 export default function MyLecturersTab() {
+    const { selectedTermId } = useTerm();
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         async function load() {
+            setLoading(true);
             try {
-                const r = await fetch("/api/admin/analytics");
+                const url = selectedTermId ? `/api/admin/analytics?termId=${selectedTermId}` : "/api/admin/analytics";
+                const r = await fetch(url);
                 if (!r.ok) {
                     const err = await r.json().catch(() => ({}));
                     throw new Error(err.error || `Server error: ${r.status}`);
@@ -54,7 +58,7 @@ export default function MyLecturersTab() {
             }
         }
         load();
-    }, []);
+    }, [selectedTermId]);
 
     const scores = data?.scores ?? [];
     const deptName = scores.length > 0 ? scores[0].department : "Department";

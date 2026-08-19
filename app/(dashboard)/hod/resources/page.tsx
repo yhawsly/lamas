@@ -85,21 +85,21 @@ export default function HODResourcesPage() {
     const [rejectingId, setRejectingId] = useState<number | null>(null);
     const [feedback, setFeedback] = useState("");
 
-    const fetchResources = async () => {
-        setLoading(true);
-        try {
-            const res = await fetch("/api/hod/resources");
-            if (res.ok) {
-                const data = await res.json();
-                setResources(data);
-            }
-        } catch (e) {
-            console.error(e);
-        }
-        setLoading(false);
-    };
-
     useEffect(() => {
+        const fetchResources = async () => {
+            setLoading(true);
+            try {
+                const url = selectedTermId ? `/api/hod/resources?termId=${selectedTermId}` : "/api/hod/resources";
+                const res = await fetch(url);
+                if (res.ok) {
+                    const data = await res.json();
+                    setResources(data);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+            setLoading(false);
+        };
         fetchResources();
     }, [selectedTermId]);
 

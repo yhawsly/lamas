@@ -1,5 +1,5 @@
 "use client";
-import { Home, Megaphone, ClipboardList, Eye, Library, FileText, Bell, Map, Users, CheckCircle, BarChart2 } from "lucide-react";
+import { Home, Megaphone, ClipboardList, Eye, Library, FileText, Bell, Map, Users, BarChart2 } from "lucide-react";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -23,9 +23,8 @@ const navByRole: Record<string, { label: string; href: string; icon: React.React
     HOD: [
         { label: "Dashboard", href: "/hod", icon: <Home className="w-5 h-5" /> },
         { label: "Staff & Reviews", href: "/hod/staff", icon: <Users className="w-5 h-5" /> },
-        { label: "Resource Approvals", href: "/hod/resources", icon: <CheckCircle className="w-5 h-5" /> },
+        { label: "Resources", href: "/hod/resources", icon: <Library className="w-5 h-5" /> },
         { label: "Academics", href: "/hod/curriculum", icon: <Map className="w-5 h-5" /> },
-        { label: "Resources", href: "/lecturer/resources", icon: <Library className="w-5 h-5" /> },
         { label: "Reports", href: "/hod/reports", icon: <FileText className="w-5 h-5" /> },
         { label: "Notifications", href: "/notifications", icon: <Bell className="w-5 h-5" /> },
     ],

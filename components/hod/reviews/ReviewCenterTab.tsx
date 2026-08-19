@@ -4,6 +4,7 @@ import { Inbox, Folder } from "lucide-react";
 import { useEffect, useState } from "react";
 import Pagination from "@/components/ui/Pagination";
 import Modal from "@/components/ui/Modal";
+import { useTerm } from "@/context/TermContext";
 
 interface Submission {
     id: number;
@@ -69,6 +70,7 @@ const ReviewCenterSkeleton = () => (
 );
 
 export default function ReviewCenterTab() {
+    const { selectedTermId, isArchiveMode } = useTerm();
     const [submissions, setSubmissions] = useState<Submission[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
@@ -83,13 +85,15 @@ export default function ReviewCenterTab() {
     useEffect(() => {
         fetchSubmissions();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [page, tab]);
+    }, [page, tab, selectedTermId]);
 
     const fetchSubmissions = async () => {
         setLoading(true);
         try {
             const statusFilter = tab === "pending" ? "SUBMITTED,LATE" : "APPROVED,REJECTED,REVIEWED";
-            const res = await fetch(`/api/submissions?page=${page}&limit=10&status=${statusFilter}`);
+            let url = `/api/submissions?page=${page}&limit=10&status=${statusFilter}`;
+            if (selectedTermId) url += `&termId=${selectedTermId}`;
+            const res = await fetch(url);
             const d = await res.json();
             setSubmissions(d.data || []);
             setTotalPages(d.meta?.totalPages || 1);
@@ -101,6 +105,10 @@ export default function ReviewCenterTab() {
     };
 
     const handleReview = async (status: "APPROVED" | "REJECTED") => {
+        if (isArchiveMode) {
+            alert("Action Disabled: You are viewing a read-only historical archive.");
+            return;
+        }
         if (!selectedSub) return;
         setIsUpdating(true);
         try {
