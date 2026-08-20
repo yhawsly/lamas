@@ -29,7 +29,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const session = await auth();
 
   return (
-    <html lang="en">
+    <html lang="en" className="light">
       <head>
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
@@ -37,8 +37,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               var savedTheme = localStorage.getItem('lamas-theme');
               if (savedTheme === 'dark') {
                 document.documentElement.classList.add('dark');
+                document.documentElement.classList.remove('light');
               } else {
                 document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
               }
             } catch(e) {}
             if (typeof window !== 'undefined' && window.performance && window.performance.measure) {

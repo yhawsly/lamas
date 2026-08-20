@@ -27,6 +27,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setTheme(initialTheme);
         document.documentElement.classList.toggle("dark", initialTheme === "dark");
+        document.documentElement.classList.toggle("light", initialTheme !== "dark");
         setMounted(true);
     }, []);
 
@@ -35,6 +36,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         setTheme(newTheme);
         localStorage.setItem("lamas-theme", newTheme);
         document.documentElement.classList.toggle("dark", newTheme === "dark");
+        document.documentElement.classList.toggle("light", newTheme !== "dark");
     };
 
     // Prevent hydration flash before client mount

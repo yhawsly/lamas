@@ -13,7 +13,8 @@ import {
     Search,
     CheckCircle2,
     ShieldAlert,
-    X
+    X,
+    Download
 } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 
@@ -290,6 +291,37 @@ export default function InvigilationMatrixTab({
         window.print();
     };
 
+    const exportToExcel = () => {
+        if (slots.length === 0) {
+            alert("No schedule data available to export.");
+            return;
+        }
+
+        const headers = [
+            "Date", "Time Slot", "Course Code", "Course Title", "Target Class", "Hall/Venue", "Chief Invigilator", "Assistant Invigilators", "Notes"
+        ];
+
+        const rows = filteredSlots.map(s => {
+            const dateStr = new Date(s.examDate).toLocaleDateString("en-US", { weekday: "short", year: "numeric", month: "short", day: "numeric" });
+            const assistants = s.assistantInvigilators?.map(a => a.name).join("; ") || "None";
+            return [
+                `"${dateStr}"`, `"${s.timeSlot}"`, `"${s.courseCode}"`, `"${s.courseTitle || ""}"`,
+                `"${s.targetClass || ""}"`, `"${s.hall.name}"`, `"${s.chiefInvigilator?.name || "Unassigned"}"`,
+                `"${assistants}"`, `"${(s.notes || "").replace(/"/g, '""')}"`
+            ].join(",");
+        });
+
+        const csvContent = [headers.join(","), ...rows].join("\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `LAMAS_Invigilation_Schedule.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     // Filter slots
     const filteredSlots = slots.filter(s => {
         const matchesSearch = s.courseCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -349,6 +381,14 @@ export default function InvigilationMatrixTab({
                     >
                         <Building2 className="w-4 h-4 text-emerald-500" />
                         Manage Halls ({halls.length})
+                    </button>
+
+                    <button
+                        onClick={exportToExcel}
+                        className="px-4 py-2 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-sm"
+                    >
+                        <Download className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        Export Excel
                     </button>
 
                     <button
