@@ -1,11 +1,10 @@
-const CACHE_NAME = "lamas-cache-v2";
+const CACHE_NAME = "lamas-cache-v3";
 const STATIC_ASSETS = [
   "/",
   "/login",
   "/manifest.json",
   "/icon.svg",
-  "/icon-192.png",
-  "/icon-512.png",
+  "/htu-logo.png",
   "/favicon.ico"
 ];
 

@@ -145,17 +145,52 @@ export async function GET() {
                 .map(s => ({ name: s.lecturerName, score: s.score }));
         }
 
+        // 7. Expanded Lecturer Specific Metrics for Dossier
+        let courseCount = 0;
+        let invigilationCount = 0;
+        let moderationCount = 0;
+
+        if (role === "LECTURER") {
+            courseCount = await prisma.courseSection.count({
+                where: { lecturerId: userId, ...(termId ? { termId } : {}) }
+            });
+
+            invigilationCount = await prisma.examSessionInvigilation.count({
+                where: {
+                    ...(termId ? { termId } : {}),
+                    OR: [
+                        { chiefInvigilatorId: userId },
+                        { assistantInvigilatorIds: { has: userId } }
+                    ]
+                }
+            });
+
+            moderationCount = await prisma.examModeration.count({
+                where: {
+                    ...(termId ? { termId } : {}),
+                    OR: [
+                        { moderatorId: userId },
+                        { lecturerId: userId }
+                    ]
+                }
+            });
+        }
+
         const metrics = {
             outlines: weeklySubmissions.length, // approximation
             observations: observations.length,
-            alerts: auditHistory.length
+            alerts: auditHistory.length,
+            coursesTaught: courseCount,
+            invigilations: invigilationCount,
+            moderations: moderationCount,
+            userProfile: session.user // To display Name, Email, Role on the Dossier Header
         };
 
         return NextResponse.json({
             stats: {
                 compliance: complianceScore,
                 activeTerm: activeTerm?.name ?? "No Active Term",
-                institution: "HO University of Technology",
+                institution: "HO Technical University",
             },
             radarData,
             velocity,
