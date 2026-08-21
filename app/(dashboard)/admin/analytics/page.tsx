@@ -3,44 +3,18 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import AuditLogTab from "@/components/admin/analytics/AuditLogTab";
 
-const AnalyticsSkeleton = () => (
-    <div className="space-y-8 animate-pulse">
-        {/* Row 1: Two charts side-by-side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="rounded-2xl p-6 h-96 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800/60">
-                <div className="h-6 w-48 bg-slate-200 dark:bg-slate-800 rounded mb-6" />
-                <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-            </div>
-            <div className="rounded-2xl p-6 h-96 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800/60">
-                <div className="h-6 w-52 bg-slate-200 dark:bg-slate-800 rounded mb-6" />
-                <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-            </div>
-        </div>
-
-        {/* Row 2: Heatmap and Trend */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="rounded-2xl p-6 h-80 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800/60">
-                <div className="h-6 w-36 bg-slate-200 dark:bg-slate-800 rounded mb-6" />
-                <div className="h-48 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-            </div>
-            <div className="rounded-2xl p-6 h-80 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800/60">
-                <div className="h-6 w-44 bg-slate-200 dark:bg-slate-800 rounded mb-6" />
-                <div className="h-48 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-            </div>
-        </div>
-    </div>
-);
+import { LiveAnalyticsSkeleton } from "@/components/admin/analytics/AnalyticsTab";
 
 const AnalyticsTab = dynamic(() => import("@/components/admin/analytics/AnalyticsTab"), {
     ssr: false,
-    loading: () => <AnalyticsSkeleton />
+    loading: () => <LiveAnalyticsSkeleton />
 });
 
 export default function AdminSystemInsightsPage() {
     const [activeTab, setActiveTab] = useState("analytics");
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+        <div className="w-full space-y-8 animate-in fade-in duration-500">
             {/* Custom Tab Header */}
             <div className="pt-4">
                 <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: "var(--text-primary)" }}>

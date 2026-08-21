@@ -8,7 +8,7 @@ export default function AdminAcademicsPage() {
     const [activeTab, setActiveTab] = useState("courses");
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+        <div className="w-full space-y-8 animate-in fade-in duration-500">
             {/* Custom Tab Header */}
             <div className="pt-4">
                 <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: "var(--text-primary)" }}>

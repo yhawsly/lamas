@@ -162,7 +162,7 @@ export default function LoginPage() {
                                     required
                                     value={email}
                                     onChange={e => setEmail(e.target.value)}
-                                    placeholder="e.g. slyyhaw@gmail.com"
+                                    placeholder="e.g. admin@lamas.edu.gh or slyyhaw@gmail.com"
                                     className="w-full pl-10 pr-4 py-3 text-sm bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 font-medium text-slate-800 transition"
                                 />
                             </div>
@@ -246,7 +246,7 @@ export default function LoginPage() {
                         Sign in with Google
                     </button>
 
-                    {/* Quick Demo Switcher */}
+                    {/* Quick Role Switcher */}
                     <div className="border border-slate-200 rounded-2xl bg-slate-50/70 overflow-hidden">
                         <button
                             type="button"
@@ -255,7 +255,7 @@ export default function LoginPage() {
                         >
                             <span className="flex items-center gap-2">
                                 <Lock className="w-3.5 h-3.5 text-blue-600" />
-                                1-Click Demo Accounts (Lecturer, HOD, DEO, Admin)
+                                1-Click Role Access (Admin, HOD, DEO, Lecturers)
                             </span>
                             {showDemoAccounts ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
                         </button>
@@ -263,10 +263,12 @@ export default function LoginPage() {
                         {showDemoAccounts && (
                             <div className="p-3 border-t border-slate-200 grid grid-cols-2 gap-2 bg-white">
                                 {[
-                                    { label: "Lecturer", email: "slyyhaw@gmail.com" },
-                                    { label: "Head of Dept", email: "ahmad@lamas.edu" },
-                                    { label: "Exam Officer", email: "deo@lamas.edu" },
-                                    { label: "Super Admin", email: "superadmin@lamas.edu" }
+                                    { label: "Admin", email: "admin@lamas.edu.gh" },
+                                    { label: "Head of Dept", email: "maformaley@gmail.com" },
+                                    { label: "Exam Officer", email: "edziaemmanuel1@gmail.com" },
+                                    { label: "Lecturer (Sylvester Yhaw)", email: "slyyhaw@gmail.com" },
+                                    { label: "Lecturer (Dr. Redeemer)", email: "dherlharlhi20@gmail.com" },
+                                    { label: "Lecturer (Dr. Sarah)", email: "slycrypto1@gmail.com" }
                                 ].map(acc => (
                                     <button
                                         key={acc.email}

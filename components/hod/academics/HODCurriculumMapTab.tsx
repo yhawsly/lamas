@@ -55,6 +55,96 @@ type Lecturer = {
     email: string;
 };
 
+const ALL_UNIVERSITY_CLASSES = [
+    {
+        group: "🎓 B.Tech Computer Science",
+        options: [
+            { name: "B.Tech Computer Science LVL 100 (Regular)", session: "REGULAR" as const },
+            { name: "B.Tech Computer Science LVL 100 (Weekend)", session: "WEEKEND" as const },
+            { name: "B.Tech Computer Science LVL 200 (Regular)", session: "REGULAR" as const },
+            { name: "B.Tech Computer Science LVL 200 (Weekend)", session: "WEEKEND" as const },
+            { name: "B.Tech Computer Science LVL 300 (Regular)", session: "REGULAR" as const },
+            { name: "B.Tech Computer Science LVL 300 (Weekend)", session: "WEEKEND" as const },
+            { name: "B.Tech Computer Science LVL 400 (Regular)", session: "REGULAR" as const },
+            { name: "B.Tech Computer Science LVL 400 (Weekend)", session: "WEEKEND" as const },
+        ]
+    },
+    {
+        group: "💻 B.Tech Information and Communication Tech (ICT)",
+        options: [
+            { name: "B.Tech ICT LVL 100 (Regular)", session: "REGULAR" as const },
+            { name: "B.Tech ICT LVL 100 (Weekend)", session: "WEEKEND" as const },
+            { name: "B.Tech ICT LVL 200 (Regular)", session: "REGULAR" as const },
+            { name: "B.Tech ICT LVL 200 (Weekend)", session: "WEEKEND" as const },
+            { name: "B.Tech ICT LVL 300 (Regular)", session: "REGULAR" as const },
+            { name: "B.Tech ICT LVL 300 (Weekend)", session: "WEEKEND" as const },
+            { name: "B.Tech ICT LVL 400 (Regular)", session: "REGULAR" as const },
+            { name: "B.Tech ICT LVL 400 (Weekend)", session: "WEEKEND" as const },
+        ]
+    },
+    {
+        group: "📜 HND Computer Science (LVL 100 - 300)",
+        options: [
+            { name: "HND Computer Science LVL 100 (Regular)", session: "REGULAR" as const },
+            { name: "HND Computer Science LVL 100 (Weekend)", session: "WEEKEND" as const },
+            { name: "HND Computer Science LVL 200 (Regular)", session: "REGULAR" as const },
+            { name: "HND Computer Science LVL 200 (Weekend)", session: "WEEKEND" as const },
+            { name: "HND Computer Science LVL 300 (Regular)", session: "REGULAR" as const },
+            { name: "HND Computer Science LVL 300 (Weekend)", session: "WEEKEND" as const },
+        ]
+    },
+    {
+        group: "📜 HND Information & Communication Tech (ICT)",
+        options: [
+            { name: "HND ICT LVL 100 (Regular)", session: "REGULAR" as const },
+            { name: "HND ICT LVL 100 (Weekend)", session: "WEEKEND" as const },
+            { name: "HND ICT LVL 200 (Regular)", session: "REGULAR" as const },
+            { name: "HND ICT LVL 200 (Weekend)", session: "WEEKEND" as const },
+            { name: "HND ICT LVL 300 (Regular)", session: "REGULAR" as const },
+            { name: "HND ICT LVL 300 (Weekend)", session: "WEEKEND" as const },
+        ]
+    },
+    {
+        group: "🚀 B.Tech Top-Up (Weekend ONLY, LVL 300 - 400)",
+        options: [
+            { name: "B.Tech Computer Science Top-Up LVL 300 (Weekend)", session: "WEEKEND" as const },
+            { name: "B.Tech Computer Science Top-Up LVL 400 (Weekend)", session: "WEEKEND" as const },
+            { name: "B.Tech ICT Top-Up LVL 300 (Weekend)", session: "WEEKEND" as const },
+            { name: "B.Tech ICT Top-Up LVL 400 (Weekend)", session: "WEEKEND" as const },
+        ]
+    },
+    {
+        group: "⚡ Faculty of Engineering",
+        options: [
+            { name: "BEng Electrical LVL 100 (Regular)", session: "REGULAR" as const },
+            { name: "BEng Electrical LVL 200 (Regular)", session: "REGULAR" as const },
+            { name: "BEng Electrical LVL 300 (Regular)", session: "REGULAR" as const },
+            { name: "BEng Electrical LVL 400 (Regular)", session: "REGULAR" as const },
+            { name: "BEng Mechanical LVL 100 (Regular)", session: "REGULAR" as const },
+            { name: "BEng Mechanical LVL 200 (Regular)", session: "REGULAR" as const },
+            { name: "BEng Mechanical LVL 300 (Regular)", session: "REGULAR" as const },
+            { name: "BEng Mechanical LVL 400 (Regular)", session: "REGULAR" as const },
+            { name: "BEng Electrical LVL 300 (Weekend)", session: "WEEKEND" as const },
+            { name: "BEng Mechanical LVL 300 (Weekend)", session: "WEEKEND" as const },
+        ]
+    },
+    {
+        group: "📊 Faculty of Business & Management",
+        options: [
+            { name: "BBA Accounting LVL 100 (Regular)", session: "REGULAR" as const },
+            { name: "BBA Accounting LVL 200 (Regular)", session: "REGULAR" as const },
+            { name: "BBA Accounting LVL 300 (Regular)", session: "REGULAR" as const },
+            { name: "BBA Accounting LVL 400 (Regular)", session: "REGULAR" as const },
+            { name: "BBA Marketing LVL 100 (Regular)", session: "REGULAR" as const },
+            { name: "BBA Marketing LVL 200 (Regular)", session: "REGULAR" as const },
+            { name: "BBA Marketing LVL 300 (Regular)", session: "REGULAR" as const },
+            { name: "BBA Marketing LVL 400 (Regular)", session: "REGULAR" as const },
+            { name: "BBA Accounting LVL 300 (Weekend)", session: "WEEKEND" as const },
+            { name: "BBA Marketing LVL 300 (Weekend)", session: "WEEKEND" as const },
+        ]
+    }
+];
+
 export default function HODCurriculumMapTab() {
     const { data: session } = useSession();
     const userDeptId = (session?.user as any)?.departmentId;
@@ -70,6 +160,7 @@ export default function HODCurriculumMapTab() {
 
     // Inline section creator state
     const [showAddSection, setShowAddSection] = useState(false);
+    const [selectedSectionDropdown, setSelectedSectionDropdown] = useState("");
     const [newSectionName, setNewSectionName] = useState("");
     const [newSectionSession, setNewSectionSession] = useState<"REGULAR" | "WEEKEND">("REGULAR");
     const [isSavingSection, setIsSavingSection] = useState(false);
@@ -456,32 +547,97 @@ export default function HODCurriculumMapTab() {
 
                                 {/* Add Class Form */}
                                 {showAddSection && activeCourse.departmentId === userDeptId && (
-                                    <div className="p-4 rounded-xl border space-y-3" style={{ backgroundColor: "var(--bg-hover)", borderColor: "var(--bg-border)" }}>
-                                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Create New Class</div>
-                                        <input
-                                            type="text"
-                                            placeholder="e.g. Regular A"
-                                            value={newSectionName}
-                                            onChange={(e) => setNewSectionName(e.target.value)}
-                                            className="w-full bg-white dark:bg-slate-800 border rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-blue-500/30 transition"
+                                    <div className="p-4 rounded-xl border space-y-3 shadow-inner animate-in slide-in-from-top-2 duration-300" style={{ backgroundColor: "var(--bg-hover)", borderColor: "var(--bg-border)" }}>
+                                        <div className="flex items-center justify-between">
+                                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">New Section Configuration</div>
+                                            <span className="text-[10px] text-slate-400">Pick class stream</span>
+                                        </div>
+
+                                        {/* Class Dropdown */}
+                                        <select
+                                            value={selectedSectionDropdown}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                setSelectedSectionDropdown(val);
+                                                if (val === "CUSTOM") {
+                                                    setNewSectionName("");
+                                                } else if (val) {
+                                                    setNewSectionName(val);
+                                                    if (val.includes("(Weekend)")) {
+                                                        setNewSectionSession("WEEKEND");
+                                                    } else {
+                                                        setNewSectionSession("REGULAR");
+                                                    }
+                                                }
+                                            }}
+                                            className="w-full bg-white dark:bg-slate-800 border rounded-lg px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-blue-500/30 transition cursor-pointer"
                                             style={{ borderColor: "var(--bg-border)" }}
                                             autoFocus
-                                        />
+                                        >
+                                            <option value="">— Select a class from the list —</option>
+                                            
+                                            {/* Course Level Matching Suggestions */}
+                                            {(() => {
+                                                const courseLevel = activeCourse.code.match(/\d/)?.[0] ? parseInt(activeCourse.code.match(/\d/)![0]) * 100 : null;
+                                                if (!courseLevel) return null;
+                                                const matching = ALL_UNIVERSITY_CLASSES.flatMap(g => g.options).filter(o => o.name.includes(`LVL ${courseLevel}`));
+                                                if (matching.length === 0) return null;
+                                                return (
+                                                    <optgroup label={`⭐ Recommended for Level ${courseLevel}`}>
+                                                        {matching.map(opt => (
+                                                            <option key={`rec-hod-${opt.name}`} value={opt.name}>
+                                                                {opt.name}
+                                                            </option>
+                                                        ))}
+                                                    </optgroup>
+                                                );
+                                            })()}
+
+                                            {ALL_UNIVERSITY_CLASSES.map(group => (
+                                                <optgroup key={group.group} label={group.group}>
+                                                    {group.options.map(opt => (
+                                                        <option key={opt.name} value={opt.name}>
+                                                            {opt.name}
+                                                        </option>
+                                                    ))}
+                                                </optgroup>
+                                            ))}
+
+                                            <optgroup label="✏️ Other / Custom">
+                                                <option value="CUSTOM">+ Enter Custom Class Name...</option>
+                                            </optgroup>
+                                        </select>
+
+                                        {/* Custom input */}
+                                        {selectedSectionDropdown === "CUSTOM" && (
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. Group A (Morning) or Special Section"
+                                                value={newSectionName}
+                                                onChange={(e) => setNewSectionName(e.target.value)}
+                                                className="w-full bg-white dark:bg-slate-800 border rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-blue-500/30 transition animate-in fade-in"
+                                                style={{ borderColor: "var(--bg-border)" }}
+                                                autoFocus
+                                            />
+                                        )}
+
+                                        {/* Session selector */}
                                         <select
                                             value={newSectionSession}
                                             onChange={(e) => setNewSectionSession(e.target.value as "REGULAR" | "WEEKEND")}
-                                            className="w-full bg-white dark:bg-slate-800 border rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-blue-500/30 transition"
+                                            className="w-full bg-white dark:bg-slate-800 border rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-blue-500/30 transition cursor-pointer"
                                             style={{ borderColor: "var(--bg-border)" }}
                                         >
                                             <option value="REGULAR">Regular Session</option>
                                             <option value="WEEKEND">Weekend Session</option>
                                         </select>
+
                                         <button
                                             onClick={() => handleCreateSection(activeCourse.id)}
                                             disabled={isSavingSection || !newSectionName.trim()}
-                                            className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition disabled:opacity-50"
+                                            className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition disabled:opacity-50 shadow-md shadow-blue-500/20 cursor-pointer"
                                         >
-                                            {isSavingSection ? "Saving Class..." : "Save Class"}
+                                            {isSavingSection ? "Saving Class..." : "Save Class Section"}
                                         </button>
                                     </div>
                                 )}

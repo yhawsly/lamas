@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useTerm } from "@/context/TermContext";
 
 const AssignmentsSkeleton = () => (
-    <div className="max-w-5xl mx-auto space-y-8 animate-pulse">
+    <div className="w-full space-y-8 animate-pulse">
         {/* Title skeleton */}
         <div className="space-y-2">
             <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
@@ -45,6 +45,96 @@ const AssignmentsSkeleton = () => (
     </div>
 );
 
+const ALL_UNIVERSITY_CLASSES = [
+    {
+        group: "🎓 B.Tech Computer Science",
+        options: [
+            { name: "B.Tech Computer Science LVL 100 (Regular)", session: "REGULAR" as const },
+            { name: "B.Tech Computer Science LVL 100 (Weekend)", session: "WEEKEND" as const },
+            { name: "B.Tech Computer Science LVL 200 (Regular)", session: "REGULAR" as const },
+            { name: "B.Tech Computer Science LVL 200 (Weekend)", session: "WEEKEND" as const },
+            { name: "B.Tech Computer Science LVL 300 (Regular)", session: "REGULAR" as const },
+            { name: "B.Tech Computer Science LVL 300 (Weekend)", session: "WEEKEND" as const },
+            { name: "B.Tech Computer Science LVL 400 (Regular)", session: "REGULAR" as const },
+            { name: "B.Tech Computer Science LVL 400 (Weekend)", session: "WEEKEND" as const },
+        ]
+    },
+    {
+        group: "💻 B.Tech Information and Communication Tech (ICT)",
+        options: [
+            { name: "B.Tech ICT LVL 100 (Regular)", session: "REGULAR" as const },
+            { name: "B.Tech ICT LVL 100 (Weekend)", session: "WEEKEND" as const },
+            { name: "B.Tech ICT LVL 200 (Regular)", session: "REGULAR" as const },
+            { name: "B.Tech ICT LVL 200 (Weekend)", session: "WEEKEND" as const },
+            { name: "B.Tech ICT LVL 300 (Regular)", session: "REGULAR" as const },
+            { name: "B.Tech ICT LVL 300 (Weekend)", session: "WEEKEND" as const },
+            { name: "B.Tech ICT LVL 400 (Regular)", session: "REGULAR" as const },
+            { name: "B.Tech ICT LVL 400 (Weekend)", session: "WEEKEND" as const },
+        ]
+    },
+    {
+        group: "📜 HND Computer Science (LVL 100 - 300)",
+        options: [
+            { name: "HND Computer Science LVL 100 (Regular)", session: "REGULAR" as const },
+            { name: "HND Computer Science LVL 100 (Weekend)", session: "WEEKEND" as const },
+            { name: "HND Computer Science LVL 200 (Regular)", session: "REGULAR" as const },
+            { name: "HND Computer Science LVL 200 (Weekend)", session: "WEEKEND" as const },
+            { name: "HND Computer Science LVL 300 (Regular)", session: "REGULAR" as const },
+            { name: "HND Computer Science LVL 300 (Weekend)", session: "WEEKEND" as const },
+        ]
+    },
+    {
+        group: "📜 HND Information & Communication Tech (ICT)",
+        options: [
+            { name: "HND ICT LVL 100 (Regular)", session: "REGULAR" as const },
+            { name: "HND ICT LVL 100 (Weekend)", session: "WEEKEND" as const },
+            { name: "HND ICT LVL 200 (Regular)", session: "REGULAR" as const },
+            { name: "HND ICT LVL 200 (Weekend)", session: "WEEKEND" as const },
+            { name: "HND ICT LVL 300 (Regular)", session: "REGULAR" as const },
+            { name: "HND ICT LVL 300 (Weekend)", session: "WEEKEND" as const },
+        ]
+    },
+    {
+        group: "🚀 B.Tech Top-Up (Weekend ONLY, LVL 300 - 400)",
+        options: [
+            { name: "B.Tech Computer Science Top-Up LVL 300 (Weekend)", session: "WEEKEND" as const },
+            { name: "B.Tech Computer Science Top-Up LVL 400 (Weekend)", session: "WEEKEND" as const },
+            { name: "B.Tech ICT Top-Up LVL 300 (Weekend)", session: "WEEKEND" as const },
+            { name: "B.Tech ICT Top-Up LVL 400 (Weekend)", session: "WEEKEND" as const },
+        ]
+    },
+    {
+        group: "⚡ Faculty of Engineering",
+        options: [
+            { name: "BEng Electrical LVL 100 (Regular)", session: "REGULAR" as const },
+            { name: "BEng Electrical LVL 200 (Regular)", session: "REGULAR" as const },
+            { name: "BEng Electrical LVL 300 (Regular)", session: "REGULAR" as const },
+            { name: "BEng Electrical LVL 400 (Regular)", session: "REGULAR" as const },
+            { name: "BEng Mechanical LVL 100 (Regular)", session: "REGULAR" as const },
+            { name: "BEng Mechanical LVL 200 (Regular)", session: "REGULAR" as const },
+            { name: "BEng Mechanical LVL 300 (Regular)", session: "REGULAR" as const },
+            { name: "BEng Mechanical LVL 400 (Regular)", session: "REGULAR" as const },
+            { name: "BEng Electrical LVL 300 (Weekend)", session: "WEEKEND" as const },
+            { name: "BEng Mechanical LVL 300 (Weekend)", session: "WEEKEND" as const },
+        ]
+    },
+    {
+        group: "📊 Faculty of Business & Management",
+        options: [
+            { name: "BBA Accounting LVL 100 (Regular)", session: "REGULAR" as const },
+            { name: "BBA Accounting LVL 200 (Regular)", session: "REGULAR" as const },
+            { name: "BBA Accounting LVL 300 (Regular)", session: "REGULAR" as const },
+            { name: "BBA Accounting LVL 400 (Regular)", session: "REGULAR" as const },
+            { name: "BBA Marketing LVL 100 (Regular)", session: "REGULAR" as const },
+            { name: "BBA Marketing LVL 200 (Regular)", session: "REGULAR" as const },
+            { name: "BBA Marketing LVL 300 (Regular)", session: "REGULAR" as const },
+            { name: "BBA Marketing LVL 400 (Regular)", session: "REGULAR" as const },
+            { name: "BBA Accounting LVL 300 (Weekend)", session: "WEEKEND" as const },
+            { name: "BBA Marketing LVL 300 (Weekend)", session: "WEEKEND" as const },
+        ]
+    }
+];
+
 export default function AssignmentsTab() {
     const { selectedTermId, isArchiveMode } = useTerm();
     const [courses, setCourses] = useState<any[]>([]);
@@ -56,6 +146,7 @@ export default function AssignmentsTab() {
     const [levelFilter, setLevelFilter] = useState<string>("All");
 
     const [activeAddClassCourseId, setActiveAddClassCourseId] = useState<number | null>(null);
+    const [selectedClassDropdown, setSelectedClassDropdown] = useState("");
     const [newClassName, setNewClassName] = useState("");
     const [newClassSession, setNewClassSession] = useState<"REGULAR" | "WEEKEND">("REGULAR");
     const [isSavingClass, setIsSavingClass] = useState(false);
@@ -156,7 +247,7 @@ export default function AssignmentsTab() {
     const coverage = totalClasses > 0 ? Math.round((assignedClasses / totalClasses) * 100) : 0;
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
+        <div className="w-full space-y-8 animate-in fade-in duration-500">
             <div>
                 <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ color: "var(--text-primary)" }}>Course Assignments</h1>
                 <p className="text-sm" style={{ color: "var(--text-muted)" }}>Manage department curriculum distribution and assign academic staff to specific class sections.</p>
@@ -309,6 +400,7 @@ export default function AssignmentsTab() {
                                     <button
                                         onClick={() => {
                                             setActiveAddClassCourseId(prev => prev === course.id ? null : course.id);
+                                            setSelectedClassDropdown("");
                                             setNewClassName("");
                                             setNewClassSession("REGULAR");
                                         }}
@@ -327,37 +419,112 @@ export default function AssignmentsTab() {
                                 {/* Add Class Form */}
                                 {activeAddClassCourseId === course.id && (
                                     <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800/60 shadow-inner animate-in slide-in-from-top-2 duration-300" style={{ backgroundColor: "var(--bg-surface)" }}>
-                                        <div className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: "var(--text-muted)" }}>New Section Configuration</div>
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="text-[10px] font-black uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                                                New Section Configuration
+                                            </div>
+                                            <span className="text-[11px] font-medium text-slate-400">
+                                                Select the class stream taking this course
+                                            </span>
+                                        </div>
                                         <div className="flex flex-col sm:flex-row gap-3">
-                                            <input 
-                                                type="text"
-                                                placeholder="e.g. Group A (Morning)"
-                                                value={newClassName}
-                                                onChange={(e) => setNewClassName(e.target.value)}
-                                                className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/60 rounded-lg px-4 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm"
-                                                style={{ color: "var(--text-primary)" }}
-                                                autoFocus
-                                            />
+                                            {/* Dropdown of all classes */}
+                                            <div className="flex-1 flex flex-col gap-2">
+                                                <select
+                                                    value={selectedClassDropdown}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        setSelectedClassDropdown(val);
+                                                        if (val === "CUSTOM") {
+                                                            setNewClassName("");
+                                                        } else if (val) {
+                                                            setNewClassName(val);
+                                                            if (val.includes("(Weekend)")) {
+                                                                setNewClassSession("WEEKEND");
+                                                            } else {
+                                                                setNewClassSession("REGULAR");
+                                                            }
+                                                        }
+                                                    }}
+                                                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/60 rounded-lg px-3.5 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm cursor-pointer"
+                                                    style={{ color: "var(--text-primary)" }}
+                                                    autoFocus
+                                                >
+                                                    <option value="">— Select a class from the list —</option>
+                                                    
+                                                    {/* Course Level Matching Suggestions */}
+                                                    {(() => {
+                                                        const courseLevel = course.curriculumMaps?.[0]?.level || (course.code.match(/\d/)?.[0] ? parseInt(course.code.match(/\d/)![0]) * 100 : null);
+                                                        if (!courseLevel) return null;
+                                                        const matching = ALL_UNIVERSITY_CLASSES.flatMap(g => g.options).filter(o => o.name.includes(`LVL ${courseLevel}`));
+                                                        if (matching.length === 0) return null;
+                                                        return (
+                                                            <optgroup label={`⭐ Recommended for Level ${courseLevel}`}>
+                                                                {matching.map(opt => (
+                                                                    <option key={`rec-${opt.name}`} value={opt.name}>
+                                                                        {opt.name}
+                                                                    </option>
+                                                                ))}
+                                                            </optgroup>
+                                                        );
+                                                    })()}
+
+                                                    {ALL_UNIVERSITY_CLASSES.map(group => (
+                                                        <optgroup key={group.group} label={group.group}>
+                                                            {group.options.map(opt => (
+                                                                <option key={opt.name} value={opt.name}>
+                                                                    {opt.name}
+                                                                </option>
+                                                            ))}
+                                                        </optgroup>
+                                                    ))}
+
+                                                    <optgroup label="✏️ Other / Custom">
+                                                        <option value="CUSTOM">+ Enter Custom Class Name...</option>
+                                                    </optgroup>
+                                                </select>
+
+                                                {/* Custom Class Name Text Input (Shown when CUSTOM is chosen) */}
+                                                {selectedClassDropdown === "CUSTOM" && (
+                                                    <input 
+                                                        type="text"
+                                                        placeholder="e.g. Group A (Morning) or Special Section"
+                                                        value={newClassName}
+                                                        onChange={(e) => setNewClassName(e.target.value)}
+                                                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/60 rounded-lg px-3.5 py-2 text-xs font-semibold outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm animate-in fade-in"
+                                                        style={{ color: "var(--text-primary)" }}
+                                                        autoFocus
+                                                    />
+                                                )}
+                                            </div>
+
+                                            {/* Session Dropdown */}
                                             <select
                                                 value={newClassSession}
                                                 onChange={(e) => setNewClassSession(e.target.value as "REGULAR" | "WEEKEND")}
-                                                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/60 rounded-lg px-4 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm"
+                                                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/60 rounded-lg px-3.5 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm h-[42px] cursor-pointer"
                                                 style={{ color: "var(--text-primary)" }}
                                             >
                                                 <option value="REGULAR">Regular Session</option>
                                                 <option value="WEEKEND">Weekend Session</option>
                                             </select>
-                                            <div className="flex gap-2">
+
+                                            {/* Action Buttons */}
+                                            <div className="flex gap-2 h-[42px]">
                                                 <button
                                                     onClick={() => handleCreateClass(course.id)}
                                                     disabled={isSavingClass || !newClassName.trim()}
-                                                    className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold transition disabled:opacity-50 shadow-md shadow-blue-500/20"
+                                                    className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition disabled:opacity-50 shadow-md shadow-blue-500/20 cursor-pointer"
                                                 >
                                                     {isSavingClass ? "..." : "Save"}
                                                 </button>
                                                 <button
-                                                    onClick={() => setActiveAddClassCourseId(null)}
-                                                    className="px-4 py-2 border border-slate-200 dark:border-slate-800/60 rounded-lg text-sm font-bold transition hover:bg-slate-100 dark:hover:bg-slate-800"
+                                                    onClick={() => {
+                                                        setActiveAddClassCourseId(null);
+                                                        setSelectedClassDropdown("");
+                                                        setNewClassName("");
+                                                    }}
+                                                    className="px-4 py-2 border border-slate-200 dark:border-slate-800/60 rounded-lg text-xs font-bold transition hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                                                     style={{ color: "var(--text-primary)" }}
                                                 >
                                                     Cancel

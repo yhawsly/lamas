@@ -141,6 +141,22 @@ export async function POST(req: NextRequest) {
             data: notificationsToCreate
         });
 
+        // Dispatch Email Alerts asynchronously
+        const { sendNotificationEmail } = await import("@/lib/email");
+        const uniqueUserIds = Array.from(new Set(notificationsToCreate.map(n => n.userId)));
+        const usersToEmail = await prisma.user.findMany({
+            where: { id: { in: uniqueUserIds } },
+            select: { id: true, email: true }
+        });
+        const userEmailMap = new Map(usersToEmail.map(u => [u.id, u.email]));
+
+        for (const item of notificationsToCreate) {
+            const email = userEmailMap.get(item.userId);
+            if (email) {
+                sendNotificationEmail(email, "Urgent: Academic Review Reminder", item.message).catch(console.error);
+            }
+        }
+
         return NextResponse.json({
             success: true,
             count: notificationsToCreate.length,

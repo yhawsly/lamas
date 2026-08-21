@@ -49,8 +49,11 @@ export default function TermSwitcher() {
         );
     }
 
-    const liveTerms = allTerms.filter((t) => t.isActive || t.id === activeTerm?.id);
-    const archiveTerms = allTerms.filter((t) => !t.isActive && t.id !== activeTerm?.id);
+    // Strictly 1 single live active semester
+    const liveTerm = activeTerm || allTerms.find((t) => t.isActive) || (allTerms.length > 0 ? allTerms[0] : null);
+    
+    // All other terms are strictly archived (read-only snapshots)
+    const archiveTerms = allTerms.filter((t) => t.id !== liveTerm?.id);
 
     const filteredArchive = archiveTerms.filter((t) =>
         t.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -59,7 +62,7 @@ export default function TermSwitcher() {
     const formatDate = (dateInput: string | Date) => {
         if (!dateInput) return "";
         const d = new Date(dateInput);
-        return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+        return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
     };
 
     return (
@@ -75,8 +78,8 @@ export default function TermSwitcher() {
                 }`}
                 title={
                     isArchiveMode
-                        ? `Viewing Read-Only Archive: ${selectedTerm?.name}`
-                        : `Viewing Live Workspace: ${selectedTerm?.name}`
+                        ? `Viewing Read-Only Archive: ${selectedTerm?.name} (Commenced: ${formatDate(selectedTerm?.startDate || "")})`
+                        : `Viewing Live Workspace: ${selectedTerm?.name} (Commenced: ${formatDate(selectedTerm?.startDate || "")})`
                 }
             >
                 {/* Indicator Icon */}
@@ -91,12 +94,19 @@ export default function TermSwitcher() {
                     </span>
                 )}
 
-                {/* Term Name Label */}
-                <div className="flex items-center gap-1.5 max-w-[170px] sm:max-w-[220px] truncate">
-                    <span className="text-[10px] uppercase tracking-wider font-extrabold opacity-70">
-                        {isArchiveMode ? "ARCHIVE:" : "LIVE:"}
-                    </span>
-                    <span className="truncate">{selectedTerm?.name || "Select Workspace"}</span>
+                {/* Term Name Label & Date of Commencement */}
+                <div className="flex flex-col text-left max-w-[190px] sm:max-w-[270px] truncate">
+                    <div className="flex items-center gap-1.5 truncate">
+                        <span className="text-[10px] uppercase tracking-wider font-extrabold opacity-70">
+                            {isArchiveMode ? "ARCHIVE:" : "LIVE:"}
+                        </span>
+                        <span className="truncate font-bold">{selectedTerm?.name || liveTerm?.name || "Select Workspace"}</span>
+                    </div>
+                    {(selectedTerm?.startDate || liveTerm?.startDate) && (
+                        <div className="text-[10px] opacity-90 truncate font-semibold flex items-center gap-1 text-emerald-700 dark:text-emerald-300">
+                            <span>Commenced: {formatDate((selectedTerm?.startDate || liveTerm?.startDate)!)}</span>
+                        </div>
+                    )}
                 </div>
 
                 <ChevronDown
@@ -124,23 +134,23 @@ export default function TermSwitcher() {
 
                     {/* Content Scroll Area */}
                     <div className="max-h-[360px] overflow-y-auto p-2 space-y-3">
-                        {/* Live Workspace Section */}
+                        {/* Live Workspace Section (Strictly 1 Live Term) */}
                         <div>
                             <div className="px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                                 <Sparkles className="w-3 h-3" /> Live Workspace
                             </div>
                             <div className="mt-1 space-y-1">
-                                {liveTerms.length === 0 ? (
+                                {!liveTerm ? (
                                     <div className="p-2 text-xs text-slate-400 italic">No active term configured</div>
                                 ) : (
-                                    liveTerms.map((term) => {
-                                        const isSelected = selectedTermId === term.id;
+                                    (() => {
+                                        const isSelected = selectedTermId === liveTerm.id || (!selectedTermId && !isArchiveMode);
                                         return (
                                             <button
-                                                key={term.id}
+                                                key={liveTerm.id}
                                                 type="button"
                                                 onClick={() => {
-                                                    setSelectedTermId(term.id);
+                                                    setSelectedTermId(liveTerm.id);
                                                     setIsOpen(false);
                                                 }}
                                                 className={`w-full text-left p-2.5 rounded-xl transition-all duration-150 flex items-center justify-between border ${
@@ -156,20 +166,25 @@ export default function TermSwitcher() {
                                                     </span>
                                                     <div>
                                                         <div className="text-xs font-bold flex items-center gap-1.5">
-                                                            {term.name}
+                                                            {liveTerm.name}
                                                             <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-semibold">
                                                                 Active
                                                             </span>
                                                         </div>
-                                                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
-                                                            {formatDate(term.startDate)} — {formatDate(term.endDate)}
+                                                        <div className="text-[10px] text-slate-600 dark:text-slate-300 mt-1 flex flex-col gap-0.5">
+                                                            <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+                                                                📅 Date of Commencement: {formatDate(liveTerm.startDate)}
+                                                            </span>
+                                                            <span className="text-slate-400 dark:text-slate-500">
+                                                                Semester Conclusion: {formatDate(liveTerm.endDate)}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 {isSelected && <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />}
                                             </button>
                                         );
-                                    })
+                                    })()
                                 )}
                             </div>
                         </div>
@@ -228,18 +243,18 @@ export default function TermSwitcher() {
                                                 }`}
                                             >
                                                 <div className="flex items-center gap-2.5">
-                                                    <span className="p-1 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
-                                                        <Lock className="w-3 h-3" />
-                                                    </span>
+                                                    <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                                                     <div>
-                                                        <div className="text-xs font-bold flex items-center gap-1.5">
+                                                        <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
                                                             {term.name}
-                                                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-200/50 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200">
-                                                                Archived
-                                                            </span>
                                                         </div>
-                                                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
-                                                            {formatDate(term.startDate)} — {formatDate(term.endDate)}
+                                                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 flex flex-col gap-0.5">
+                                                            <span>
+                                                                Commenced: {formatDate(term.startDate)}
+                                                            </span>
+                                                            <span>
+                                                                Concluded: {formatDate(term.endDate)}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </div>

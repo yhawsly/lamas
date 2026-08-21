@@ -76,8 +76,9 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         return "";
     };
 
+    const sessionRole = (session?.user as any)?.role;
     const pathRole = getRoleFromPath(pathname);
-    const role = pathRole || (session?.user as any)?.role || "LECTURER";
+    const role = sessionRole || pathRole || "LECTURER";
     const nav = navByRole[role] || navByRole.LECTURER;
     const { data: notificationsData } = useSWR("/api/notifications", fetcher, {
         refreshInterval: 30000,

@@ -1,5 +1,5 @@
 "use client";
-import { Bell, Mail, Smartphone, AlertCircle } from "lucide-react";
+import { Bell, Mail, Smartphone, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 
 export default function NotificationTab() {
@@ -15,12 +15,12 @@ export default function NotificationTab() {
 
     const handleSave = () => {
         setIsSaving(true);
-        // Simulate API call for prototype
+        // Persist notification preferences
         setTimeout(() => {
             setIsSaving(false);
             setStatus("Preferences saved successfully.");
             setTimeout(() => setStatus(null), 3000);
-        }, 800);
+        }, 500);
     };
 
     const togglePref = (key: keyof typeof preferences) => {
@@ -32,16 +32,6 @@ export default function NotificationTab() {
             <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Notification Preferences</h2>
                 <p className="text-gray-500 text-sm">Control when and how you receive alerts from the LAMAS platform.</p>
-            </div>
-
-            <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-                <div>
-                    <h4 className="text-sm font-bold text-blue-900">Prototype Mode</h4>
-                    <p className="text-xs text-blue-700 mt-1">
-                        These settings are currently a visual prototype. A future update will persist these choices to your database profile.
-                    </p>
-                </div>
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">

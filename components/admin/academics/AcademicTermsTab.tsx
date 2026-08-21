@@ -140,8 +140,8 @@ export default function AcademicTermsTab() {
                 <div className="border border-slate-200 dark:border-slate-800/60 rounded-2xl overflow-hidden shadow-sm flex flex-col" style={{ backgroundColor: "var(--bg-surface)" }}>
                     <div className="hidden sm:grid grid-cols-12 gap-4 p-4 border-b border-slate-200 dark:border-slate-800/60 text-[10px] font-black uppercase tracking-widest" style={{ backgroundColor: "var(--bg-hover)", color: "var(--text-muted)" }}>
                         <div className="col-span-4">Term Name</div>
-                        <div className="col-span-4">Period</div>
-                        <div className="col-span-2 text-center">Weeks</div>
+                        <div className="col-span-5">Date of Commencement & End</div>
+                        <div className="col-span-1 text-center">Weeks</div>
                         <div className="col-span-2 text-right">Status</div>
                     </div>
 
@@ -159,6 +159,7 @@ export default function AcademicTermsTab() {
                         ) : (
                             terms.map(t => {
                                 const weeks = computeWeeks(t.startDate, t.endDate);
+                                const fmt = (d: string) => d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—";
                                 return (
                                     <div key={t.id} className="group flex flex-col transition-colors hover:bg-[var(--bg-hover)]" style={{ backgroundColor: "var(--bg-base)" }}>
                                         <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 sm:p-5 items-center">
@@ -167,21 +168,23 @@ export default function AcademicTermsTab() {
                                                 <div className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>{t.name}</div>
                                             </div>
 
-                                            {/* Period */}
-                                            <div className="col-span-1 sm:col-span-4">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="px-2 py-1 rounded border text-xs font-bold border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" style={{ color: "var(--text-secondary)" }}>
-                                                        {new Date(t.startDate).toLocaleDateString()}
+                                            {/* Period / Commencement */}
+                                            <div className="col-span-1 sm:col-span-5">
+                                                <div className="flex flex-wrap items-center gap-1.5">
+                                                    <div className="px-2.5 py-1 rounded-lg border text-xs font-bold border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300">
+                                                        <span className="text-[9px] font-black uppercase tracking-wider block text-emerald-600 dark:text-emerald-400">Commencement</span>
+                                                        {fmt(t.startDate)}
                                                     </div>
                                                     <span className="text-slate-400 text-xs">→</span>
-                                                    <div className="px-2 py-1 rounded border text-xs font-bold border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" style={{ color: "var(--text-secondary)" }}>
-                                                        {new Date(t.endDate).toLocaleDateString()}
+                                                    <div className="px-2.5 py-1 rounded-lg border text-xs font-bold border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                                                        <span className="text-[9px] font-black uppercase tracking-wider block text-slate-400">Conclusion</span>
+                                                        {fmt(t.endDate)}
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {/* Weeks */}
-                                            <div className="col-span-1 sm:col-span-2 flex justify-center">
+                                            <div className="col-span-1 sm:col-span-1 flex justify-center">
                                                 <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-600 border border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20">
                                                     <Calendar className="w-3.5 h-3.5" />
                                                     {weeks ?? "—"}

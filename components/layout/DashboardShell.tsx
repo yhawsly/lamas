@@ -34,8 +34,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         return "";
     };
 
+    const sessionRole = (session?.user as any)?.role;
     const pathRole = getRoleFromPath(pathname);
-    const role = pathRole || (session?.user as any)?.role || "LECTURER";
+    const role = sessionRole || pathRole || "LECTURER";
     
     // determine initials
     const name = session?.user?.name || "User";
@@ -127,7 +128,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                                     style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)", zIndex: 100 }}>
                                     
                                     <Link
-                                        href={profileHref}
+                                        href="/profile"
                                         onClick={() => setDropdownOpen(false)}
                                         className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                                         style={{ color: "var(--text-primary)" }}
@@ -137,7 +138,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                                     </Link>
                                     
                                     <Link
-                                        href="#"
+                                        href="/settings"
                                         onClick={() => setDropdownOpen(false)}
                                         className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                                         style={{ color: "var(--text-primary)" }}
@@ -165,7 +166,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 <ArchiveModeBanner />
 
                 <main className="flex-1 overflow-x-hidden overflow-y-auto">
-                    <div className="px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8 max-w-[1400px] w-full">{children}</div>
+                    <div className="px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8 w-full">{children}</div>
                 </main>
             </div>
         </div>

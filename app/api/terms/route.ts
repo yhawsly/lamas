@@ -18,6 +18,10 @@ export async function GET() {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        // Reconcile and synchronize term activation based on current date
+        const { checkAndGetActiveTerm } = await import("@/lib/active-term");
+        await checkAndGetActiveTerm();
+
         const terms = await prisma.academicTerm.findMany({
             orderBy: { startDate: "desc" },
             select: {

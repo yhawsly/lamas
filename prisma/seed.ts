@@ -58,13 +58,33 @@ async function main() {
     console.log("   ➤ Syncing academic programs...");
     const btechCS = await prisma.program.upsert({
         where: { code: "BTECH_CS" },
-        update: {},
-        create: { name: "BTech Computer Science", code: "BTECH_CS", description: "BTech in Computer Science" }
+        update: { name: "B.Tech Computer Science" },
+        create: { name: "B.Tech Computer Science", code: "BTECH_CS", description: "B.Tech in Computer Science (Levels 100-400, Regular & Weekend)" }
     });
-    const btechIT = await prisma.program.upsert({
-        where: { code: "BTECH_IT" },
-        update: {},
-        create: { name: "BTech Information Technology", code: "BTECH_IT", description: "BTech in Information Technology" }
+    const btechICT = await prisma.program.upsert({
+        where: { code: "BTECH_ICT" },
+        update: { name: "B.Tech Information and Communication Technology (ICT)" },
+        create: { name: "B.Tech Information and Communication Technology (ICT)", code: "BTECH_ICT", description: "B.Tech in Information and Communication Technology (Levels 100-400, Regular & Weekend)" }
+    });
+    const hndCS = await prisma.program.upsert({
+        where: { code: "HND_CS" },
+        update: { name: "HND Computer Science" },
+        create: { name: "HND Computer Science", code: "HND_CS", description: "Higher National Diploma in Computer Science (Levels 100-300, Regular & Weekend)" }
+    });
+    const hndICT = await prisma.program.upsert({
+        where: { code: "HND_ICT" },
+        update: { name: "HND Information and Communication Technology" },
+        create: { name: "HND Information and Communication Technology", code: "HND_ICT", description: "Higher National Diploma in Information and Communication Technology (Levels 100-300, Regular & Weekend)" }
+    });
+    const btechCSTopUp = await prisma.program.upsert({
+        where: { code: "BTECH_CS_TOPUP" },
+        update: { name: "B.Tech Computer Science (Top-Up)" },
+        create: { name: "B.Tech Computer Science (Top-Up)", code: "BTECH_CS_TOPUP", description: "B.Tech Computer Science Top-Up (Levels 300-400, Weekend Only)" }
+    });
+    const btechICTTopUp = await prisma.program.upsert({
+        where: { code: "BTECH_ICT_TOPUP" },
+        update: { name: "B.Tech ICT (Top-Up)" },
+        create: { name: "B.Tech ICT (Top-Up)", code: "BTECH_ICT_TOPUP", description: "B.Tech ICT Top-Up (Levels 300-400, Weekend Only)" }
     });
     const bengEE = await prisma.program.upsert({
         where: { code: "BENG_EE" },
@@ -94,17 +114,48 @@ async function main() {
         if (!dbCourse) continue;
 
         if (c.code.startsWith("CS")) {
+            // 1. BTech Computer Science (Levels 100-400)
             await prisma.curriculumMap.upsert({
                 where: { programId_courseId: { programId: btechCS.id, courseId: dbCourse.id } },
                 update: { level: c.level, semester: c.semester },
                 create: { programId: btechCS.id, courseId: dbCourse.id, level: c.level, semester: c.semester }
             });
-            
-            if (["CS101", "CS102", "CS301", "CS302"].includes(c.code)) {
+
+            // 2. BTech ICT (Levels 100-400)
+            await prisma.curriculumMap.upsert({
+                where: { programId_courseId: { programId: btechICT.id, courseId: dbCourse.id } },
+                update: { level: c.level, semester: c.semester },
+                create: { programId: btechICT.id, courseId: dbCourse.id, level: c.level, semester: c.semester }
+            });
+
+            // 3. HND CS (Levels 100-300 only)
+            if (c.level <= 300) {
                 await prisma.curriculumMap.upsert({
-                    where: { programId_courseId: { programId: btechIT.id, courseId: dbCourse.id } },
+                    where: { programId_courseId: { programId: hndCS.id, courseId: dbCourse.id } },
                     update: { level: c.level, semester: c.semester },
-                    create: { programId: btechIT.id, courseId: dbCourse.id, level: c.level, semester: c.semester }
+                    create: { programId: hndCS.id, courseId: dbCourse.id, level: c.level, semester: c.semester }
+                });
+
+                // 4. HND ICT (Levels 100-300 only)
+                await prisma.curriculumMap.upsert({
+                    where: { programId_courseId: { programId: hndICT.id, courseId: dbCourse.id } },
+                    update: { level: c.level, semester: c.semester },
+                    create: { programId: hndICT.id, courseId: dbCourse.id, level: c.level, semester: c.semester }
+                });
+            }
+
+            // 5. BTech Top-Up (Levels 300-400 only, Weekend Only)
+            if (c.level >= 300) {
+                await prisma.curriculumMap.upsert({
+                    where: { programId_courseId: { programId: btechCSTopUp.id, courseId: dbCourse.id } },
+                    update: { level: c.level, semester: c.semester },
+                    create: { programId: btechCSTopUp.id, courseId: dbCourse.id, level: c.level, semester: c.semester }
+                });
+
+                await prisma.curriculumMap.upsert({
+                    where: { programId_courseId: { programId: btechICTTopUp.id, courseId: dbCourse.id } },
+                    update: { level: c.level, semester: c.semester },
+                    create: { programId: btechICTTopUp.id, courseId: dbCourse.id, level: c.level, semester: c.semester }
                 });
             }
         } else if (c.code.startsWith("ENG")) {
@@ -125,39 +176,88 @@ async function main() {
     const hash = await hashPassword("password123");
 
     // 3. Admin & Users
-    console.log("   ➤ Provisioning system users...");
+    console.log("   ➤ Provisioning system users with official emails...");
+    // Official Super Admin (@lamas.edu.gh)
     await prisma.user.upsert({
-        where: { email: "superadmin@lamas.edu" },
-        update: {},
+        where: { email: "superadmin@lamas.edu.gh" },
+        update: { name: "Super Administrator", role: "SUPER_ADMIN", departmentId: cs.id, isActive: true, passwordHash: hash },
         create: {
             name: "Super Administrator",
-            email: "superadmin@lamas.edu",
+            email: "superadmin@lamas.edu.gh",
             passwordHash: hash,
             role: "SUPER_ADMIN",
+            departmentId: cs.id,
+            isActive: true,
         },
     });
 
+    // Official System Admin (@lamas.edu.gh)
     await prisma.user.upsert({
-        where: { email: "admin@lamas.edu" },
-        update: {},
+        where: { email: "admin@lamas.edu.gh" },
+        update: { name: "System Administrator", role: "ADMIN", departmentId: cs.id, isActive: true, passwordHash: hash },
         create: {
             name: "System Administrator",
-            email: "admin@lamas.edu",
+            email: "admin@lamas.edu.gh",
             passwordHash: hash,
             role: "ADMIN",
+            departmentId: cs.id,
+            isActive: true,
         },
     });
 
-    const hod = await prisma.user.upsert({
-        where: { email: "ghtrial41922@gmail.com" },
-        update: {},
+    // Sylvester Yhaw (Lecturer, CS Faculty)
+    await prisma.user.upsert({
+        where: { email: "slyyhaw@gmail.com" },
+        update: { name: "Sylvester Yhaw", role: "LECTURER", departmentId: cs.id, isActive: true, passwordHash: hash },
         create: {
-            name: "Dr. Ahmad Razif",
-            email: "ghtrial41922@gmail.com",
+            name: "Sylvester Yhaw",
+            email: "slyyhaw@gmail.com",
+            passwordHash: hash,
+            role: "LECTURER",
+            departmentId: cs.id,
+            isActive: true,
+        },
+    });
+
+    // Dr. Redeemer (Lecturer, CS Faculty)
+    await prisma.user.upsert({
+        where: { email: "dherlharlhi20@gmail.com" },
+        update: { name: "Dr. Redeemer", role: "LECTURER", departmentId: cs.id, isActive: true, passwordHash: hash },
+        create: {
+            name: "Dr. Redeemer",
+            email: "dherlharlhi20@gmail.com",
+            passwordHash: hash,
+            role: "LECTURER",
+            departmentId: cs.id,
+            isActive: true,
+        },
+    });
+
+    // Dr. Sarah Lim (Lecturer, CS Faculty)
+    await prisma.user.upsert({
+        where: { email: "slycrypto1@gmail.com" },
+        update: { name: "Dr. Sarah Lim", role: "LECTURER", departmentId: cs.id, isActive: true, passwordHash: hash },
+        create: {
+            name: "Dr. Sarah Lim",
+            email: "slycrypto1@gmail.com",
+            passwordHash: hash,
+            role: "LECTURER",
+            departmentId: cs.id,
+            isActive: true,
+        },
+    });
+
+    // Mr. Manuel (Head of Department, CS)
+    const hod = await prisma.user.upsert({
+        where: { email: "maformaley@gmail.com" },
+        update: { name: "Mr. Manuel", role: "HOD", departmentId: cs.id, isActive: true, passwordHash: hash },
+        create: {
+            name: "Mr. Manuel",
+            email: "maformaley@gmail.com",
             passwordHash: hash,
             role: "HOD",
             departmentId: cs.id,
-            requirePasswordReset: true,
+            isActive: true,
         },
     });
 
@@ -166,138 +266,488 @@ async function main() {
         data: { hodId: hod.id },
     });
 
-    const lecturer1 = await prisma.user.upsert({
-        where: { email: "lecturer1@lamas.edu" },
-        update: {},
-        create: {
-            name: "Dr. Sarah Lim",
-            email: "lecturer1@lamas.edu",
-            passwordHash: hash,
-            role: "LECTURER",
-            departmentId: cs.id,
-            requirePasswordReset: true,
-        },
-    });
-
+    // Mr. Emmanuel Edzia (Department Exam Officer, CS)
     await prisma.user.upsert({
-        where: { email: "slyyhaw@gmail.com" },
-        update: { role: "LECTURER", departmentId: cs.id },
+        where: { email: "edziaemmanuel1@gmail.com" },
+        update: { name: "Mr. Emmanuel Edzia", role: "DEO", departmentId: cs.id, isActive: true, passwordHash: hash },
         create: {
-            name: "Dr. Sarah Lim (Slyyhaw)",
-            email: "slyyhaw@gmail.com",
-            passwordHash: hash,
-            role: "LECTURER",
-            departmentId: cs.id,
-            requirePasswordReset: false,
-        },
-    });
-
-    await prisma.user.upsert({
-        where: { email: "lecturer2@lamas.edu" },
-        update: {},
-        create: {
-            name: "Mr. Hafiz Rahman",
-            email: "lecturer2@lamas.edu",
-            passwordHash: hash,
-            role: "LECTURER",
-            departmentId: eng.id,
-            requirePasswordReset: true,
-        },
-    });
-
-    await prisma.user.upsert({
-        where: { email: "deo@lamas.edu" },
-        update: {},
-        create: {
-            name: "Department Exam Officer",
-            email: "deo@lamas.edu",
+            name: "Mr. Emmanuel Edzia",
+            email: "edziaemmanuel1@gmail.com",
             passwordHash: hash,
             role: "DEO",
             departmentId: cs.id,
-            requirePasswordReset: true,
+            isActive: true,
         },
     });
 
-    // 4. Academic Term
-    console.log("   ➤ Setting up active semester...");
-    const term = await prisma.academicTerm.upsert({
+    // Purge any accounts that are not in our official roster
+    const validEmails = [
+        "superadmin@lamas.edu.gh",
+        "admin@lamas.edu.gh",
+        "maformaley@gmail.com",
+        "edziaemmanuel1@gmail.com",
+        "slyyhaw@gmail.com",
+        "dherlharlhi20@gmail.com",
+        "slycrypto1@gmail.com",
+    ];
+
+    const superAdminUser = await prisma.user.findUnique({ where: { email: "superadmin@lamas.edu.gh" } });
+    if (superAdminUser) {
+        await prisma.academicTerm.updateMany({ data: { createdBy: superAdminUser.id } }).catch(() => {});
+        await prisma.deadline.updateMany({ data: { createdBy: superAdminUser.id } }).catch(() => {});
+    }
+
+    const oldUsers = await prisma.user.findMany({
+        where: { email: { notIn: validEmails } },
+        select: { id: true, email: true }
+    });
+    const oldIds = oldUsers.map(u => u.id);
+    if (oldIds.length > 0) {
+        console.log(`   ➤ Purging ${oldIds.length} obsolete users and cleaning related records...`);
+        const oldSubmissions = await prisma.submission.findMany({ where: { lecturerId: { in: oldIds } }, select: { id: true } });
+        const oldSubIds = oldSubmissions.map(s => s.id);
+        if (oldSubIds.length > 0) {
+            await prisma.submissionVersion.deleteMany({ where: { submissionId: { in: oldSubIds } } }).catch(() => {});
+        }
+        await prisma.submission.deleteMany({ where: { lecturerId: { in: oldIds } } }).catch(() => {});
+        await prisma.notification.deleteMany({ where: { userId: { in: oldIds } } }).catch(() => {});
+        await prisma.activityLog.deleteMany({ where: { userId: { in: oldIds } } }).catch(() => {});
+        await prisma.passwordReset.deleteMany({ where: { userId: { in: oldIds } } }).catch(() => {});
+        await prisma.resource.deleteMany({ where: { lecturerId: { in: oldIds } } }).catch(() => {});
+        await prisma.observation.deleteMany({ where: { OR: [{ lecturerId: { in: oldIds } }, { observerId: { in: oldIds } }] } }).catch(() => {});
+        await prisma.teachingObservation.deleteMany({ where: { OR: [{ lecturerId: { in: oldIds } }, { observerId: { in: oldIds } }, { deoId: { in: oldIds } }] } }).catch(() => {});
+        await prisma.examModeration.deleteMany({ where: { OR: [{ lecturerId: { in: oldIds } }, { moderatorId: { in: oldIds } }, { deoId: { in: oldIds } }] } }).catch(() => {});
+        await prisma.examSessionInvigilation.deleteMany({ where: { chiefInvigilatorId: { in: oldIds } } }).catch(() => {});
+        await prisma.courseSection.updateMany({ where: { lecturerId: { in: oldIds } }, data: { lecturerId: null } }).catch(() => {});
+        await prisma.department.updateMany({ where: { hodId: { in: oldIds } }, data: { hodId: null } }).catch(() => {});
+        await prisma.user.deleteMany({ where: { id: { in: oldIds } } }).catch(() => {});
+    }
+
+    // 4. Academic Terms (Semester 1 Past Archive & Semester 2 Active for August)
+    console.log("   ➤ Setting up Semester 1 (Archived) and Semester 2 (Active for August 2026)...");
+    await prisma.academicTerm.updateMany({ data: { isActive: false } });
+
+    // Past Semester 1 (Archived)
+    const term1 = await prisma.academicTerm.upsert({
         where: { name: "Semester 1 2025/2026" },
-        update: { isActive: true },
+        update: { 
+            startDate: new Date("2026-01-12"),
+            endDate: new Date("2026-06-30"),
+            isActive: false 
+        },
         create: {
             name: "Semester 1 2025/2026",
-            startDate: new Date("2026-03-01"),
-            endDate: new Date("2026-07-31"),
+            startDate: new Date("2026-01-12"),
+            endDate: new Date("2026-06-30"),
+            isActive: false,
+            createdBy: superAdminUser ? superAdminUser.id : 1,
+        }
+    });
+
+    // Current Semester 2 (Live Active for August 2026)
+    const term = await prisma.academicTerm.upsert({
+        where: { name: "Semester 2 2025/2026" },
+        update: { 
+            startDate: new Date("2026-08-06"),
+            endDate: new Date("2026-11-30"),
+            isActive: true 
+        },
+        create: {
+            name: "Semester 2 2025/2026",
+            startDate: new Date("2026-08-06"),
+            endDate: new Date("2026-11-30"),
             isActive: true,
-            createdBy: 1, 
+            createdBy: superAdminUser ? superAdminUser.id : 1,
         }
     });
 
     // 4b. Course Sections
-    console.log("   ➤ Seeding default course sections with schedules...");
+    console.log("   ➤ Seeding comprehensive course sections (B.Tech 100-400, HND 100-300, Top-Up 300-400 Weekend Only)...");
     await prisma.courseSection.deleteMany(); // Reset sections to populate new columns
 
-    const dbLecturer = await prisma.user.findFirst({ where: { email: "lecturer1@lamas.edu" } });
-    const dbSlyyhaw = await prisma.user.findFirst({ where: { email: "slyyhaw@gmail.com" } });
-    
-    const lecturerId = dbLecturer ? dbLecturer.id : null;
-    const slyyhawId = dbSlyyhaw ? dbSlyyhaw.id : null;
+    const dbSlyYhaw = await prisma.user.findFirst({ where: { email: "slyyhaw@gmail.com" } });
+    const dbDherlharlhi = await prisma.user.findFirst({ where: { email: "dherlharlhi20@gmail.com" } });
+    const dbSlycrypto = await prisma.user.findFirst({ where: { email: "slycrypto1@gmail.com" } });
+
+    const slyYhawId = dbSlyYhaw ? dbSlyYhaw.id : null;
+    const dherId = dbDherlharlhi ? dbDherlharlhi.id : null;
+    const slyId = dbSlycrypto ? dbSlycrypto.id : null;
 
     const allCourses = await prisma.course.findMany({
         include: { curriculumMaps: true }
     });
+
+    const daysRegular = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+    const venuesRegular = ["Computer Lab 1", "Computer Lab 2", "Science Block Rm 102", "Lecture Theatre 2", "Software Engineering Lab"];
+    const venuesWeekend = ["Main Hall A", "CS Lab 1", "Computer Lab 3", "Auditorium Annex"];
+
     for (const course of allCourses) {
         const mapLevel = course.curriculumMaps[0]?.level || 100;
-        let regularName = "";
-        let weekendName = "";
+        const sectionsToCreate: any[] = [];
 
-        if (course.code.startsWith("CS")) {
-            regularName = `BTECH COMPUTER SCIENCE LVL ${mapLevel}`;
-            weekendName = `BTECH ICT LVL ${mapLevel}`;
-        } else if (course.code.startsWith("ENG")) {
-            regularName = `BENG ELECTRICAL LVL ${mapLevel}`;
-            weekendName = `BENG MECHANICAL LVL ${mapLevel}`;
-        } else if (course.code.startsWith("BIZ")) {
-            regularName = `BBA ACCOUNTING LVL ${mapLevel}`;
-            weekendName = `BBA MARKETING LVL ${mapLevel}`;
-        } else {
-            regularName = `GENERAL LEVEL ${mapLevel}`;
-            weekendName = `GENERAL WEEKEND LEVEL ${mapLevel}`;
-        }
-
-        // Assign some sections to slyyhaw and some to lecturer1
-        let assignedLecturerId = null;
-        if (["CS101", "CS102", "CS201", "CS301"].includes(course.code)) {
-            assignedLecturerId = slyyhawId || lecturerId;
-        } else if (["CS202", "CS302", "CS401"].includes(course.code)) {
-            assignedLecturerId = lecturerId;
-        }
-
-        await prisma.courseSection.createMany({
-            data: [
+        if (course.code === "CS101") {
+            sectionsToCreate.push(
                 {
                     courseId: course.id,
                     termId: term.id,
-                    name: regularName,
+                    name: "B.Tech Computer Science LVL 100 (Regular)",
                     session: "REGULAR",
-                    lecturerId: assignedLecturerId,
-                    dayOfWeek: ["Monday", "Wednesday", "Friday"][course.id % 3],
-                    startTime: ["08:30 AM", "11:00 AM", "02:30 PM"][course.id % 3],
-                    endTime: ["10:30 AM", "01:00 PM", "04:30 PM"][course.id % 3],
-                    venue: ["Lecture Theatre 1", "Computer Lab 2", "Science Block Room 102"][course.id % 3],
+                    lecturerId: slyYhawId,
+                    dayOfWeek: "Tuesday",
+                    startTime: "08:30 AM",
+                    endTime: "10:30 AM",
+                    venue: "Computer Lab 1",
                 },
                 {
                     courseId: course.id,
                     termId: term.id,
-                    name: weekendName,
+                    name: "B.Tech ICT LVL 100 (Weekend)",
+                    session: "WEEKEND",
+                    lecturerId: slyYhawId,
+                    dayOfWeek: "Saturday",
+                    startTime: "08:30 AM",
+                    endTime: "11:30 AM",
+                    venue: "CS Lab 1",
+                },
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "HND Computer Science LVL 100 (Regular)",
+                    session: "REGULAR",
+                    lecturerId: dherId,
+                    dayOfWeek: "Thursday",
+                    startTime: "10:45 AM",
+                    endTime: "12:45 PM",
+                    venue: "Computer Lab 2",
+                }
+            );
+        } else if (course.code === "CS102") {
+            sectionsToCreate.push(
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech Computer Science LVL 100 (Regular)",
+                    session: "REGULAR",
+                    lecturerId: dherId,
+                    dayOfWeek: "Monday",
+                    startTime: "10:45 AM",
+                    endTime: "12:45 PM",
+                    venue: "Computer Lab 1",
+                },
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech ICT LVL 100 (Regular)",
+                    session: "REGULAR",
+                    lecturerId: dherId,
+                    dayOfWeek: "Wednesday",
+                    startTime: "01:30 PM",
+                    endTime: "03:30 PM",
+                    venue: "Science Block Rm 102",
+                },
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "HND ICT LVL 100 (Weekend)",
+                    session: "WEEKEND",
+                    lecturerId: dherId,
+                    dayOfWeek: "Saturday",
+                    startTime: "12:00 PM",
+                    endTime: "03:00 PM",
+                    venue: "Main Hall A",
+                }
+            );
+        } else if (course.code === "CS201") {
+            sectionsToCreate.push(
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech Computer Science LVL 200 (Regular)",
+                    session: "REGULAR",
+                    lecturerId: dherId,
+                    dayOfWeek: "Wednesday",
+                    startTime: "08:30 AM",
+                    endTime: "10:30 AM",
+                    venue: "Computer Lab 2",
+                },
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech ICT LVL 200 (Weekend)",
+                    session: "WEEKEND",
+                    lecturerId: dherId,
+                    dayOfWeek: "Sunday",
+                    startTime: "08:30 AM",
+                    endTime: "11:30 AM",
+                    venue: "CS Lab 1",
+                }
+            );
+        } else if (course.code === "CS202") {
+            sectionsToCreate.push(
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech Computer Science LVL 200 (Regular)",
+                    session: "REGULAR",
+                    lecturerId: slyId,
+                    dayOfWeek: "Tuesday",
+                    startTime: "01:30 PM",
+                    endTime: "03:30 PM",
+                    venue: "Computer Lab 1",
+                },
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech ICT LVL 200 (Regular)",
+                    session: "REGULAR",
+                    lecturerId: slyId,
+                    dayOfWeek: "Thursday",
+                    startTime: "08:30 AM",
+                    endTime: "10:30 AM",
+                    venue: "Lecture Theatre 2",
+                },
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "HND Computer Science LVL 200 (Weekend)",
+                    session: "WEEKEND",
+                    lecturerId: slyId,
+                    dayOfWeek: "Saturday",
+                    startTime: "08:30 AM",
+                    endTime: "11:30 AM",
+                    venue: "Computer Lab 3",
+                }
+            );
+        } else if (course.code === "CS203") {
+            sectionsToCreate.push(
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech Computer Science LVL 200 (Regular)",
+                    session: "REGULAR",
+                    lecturerId: dherId,
+                    dayOfWeek: "Friday",
+                    startTime: "08:30 AM",
+                    endTime: "10:30 AM",
+                    venue: "Science Block Rm 102",
+                },
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "HND ICT LVL 200 (Regular)",
+                    session: "REGULAR",
+                    lecturerId: dherId,
+                    dayOfWeek: "Friday",
+                    startTime: "11:00 AM",
+                    endTime: "01:00 PM",
+                    venue: "Computer Lab 2",
+                }
+            );
+        } else if (course.code === "CS301") {
+            sectionsToCreate.push(
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech Computer Science LVL 300 (Regular)",
+                    session: "REGULAR",
+                    lecturerId: slyYhawId,
+                    dayOfWeek: "Monday",
+                    startTime: "01:30 PM",
+                    endTime: "03:30 PM",
+                    venue: "Software Engineering Lab",
+                },
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech Computer Science Top-Up LVL 300 (Weekend)",
+                    session: "WEEKEND",
+                    lecturerId: slyYhawId,
+                    dayOfWeek: "Saturday",
+                    startTime: "03:30 PM",
+                    endTime: "06:30 PM",
+                    venue: "CS Lab 1",
+                }
+            );
+        } else if (course.code === "CS302") {
+            sectionsToCreate.push(
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech Computer Science LVL 300 (Regular)",
+                    session: "REGULAR",
+                    lecturerId: slyId,
+                    dayOfWeek: "Tuesday",
+                    startTime: "10:45 AM",
+                    endTime: "12:45 PM",
+                    venue: "Computer Lab 2",
+                },
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech ICT Top-Up LVL 300 (Weekend)",
+                    session: "WEEKEND",
+                    lecturerId: slyId,
+                    dayOfWeek: "Sunday",
+                    startTime: "03:30 PM",
+                    endTime: "06:30 PM",
+                    venue: "CS Lab 2",
+                }
+            );
+        } else if (course.code === "CS303") {
+            sectionsToCreate.push(
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech Computer Science LVL 300 (Regular)",
+                    session: "REGULAR",
+                    lecturerId: dherId,
+                    dayOfWeek: "Wednesday",
+                    startTime: "10:45 AM",
+                    endTime: "12:45 PM",
+                    venue: "Science Block Rm 102",
+                },
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech ICT LVL 300 (Weekend)",
+                    session: "WEEKEND",
+                    lecturerId: dherId,
+                    dayOfWeek: "Sunday",
+                    startTime: "12:00 PM",
+                    endTime: "03:00 PM",
+                    venue: "Auditorium Annex",
+                }
+            );
+        } else if (course.code === "CS401") {
+            sectionsToCreate.push(
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech Computer Science LVL 400 (Regular)",
+                    session: "REGULAR",
+                    lecturerId: slyYhawId,
+                    dayOfWeek: "Thursday",
+                    startTime: "01:30 PM",
+                    endTime: "03:30 PM",
+                    venue: "Computer Lab 1",
+                },
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech Computer Science Top-Up LVL 400 (Weekend)",
+                    session: "WEEKEND",
+                    lecturerId: slyYhawId,
+                    dayOfWeek: "Saturday",
+                    startTime: "03:30 PM",
+                    endTime: "06:30 PM",
+                    venue: "Main Hall A",
+                }
+            );
+        } else if (course.code === "CS402") {
+            sectionsToCreate.push(
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech Computer Science LVL 400 (Regular)",
+                    session: "REGULAR",
+                    lecturerId: slyId,
+                    dayOfWeek: "Friday",
+                    startTime: "01:30 PM",
+                    endTime: "03:30 PM",
+                    venue: "Software Engineering Lab",
+                },
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech ICT Top-Up LVL 400 (Weekend)",
+                    session: "WEEKEND",
+                    lecturerId: slyId,
+                    dayOfWeek: "Sunday",
+                    startTime: "03:30 PM",
+                    endTime: "06:30 PM",
+                    venue: "Computer Lab 3",
+                }
+            );
+        } else if (course.code === "CS403") {
+            sectionsToCreate.push(
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech ICT LVL 400 (Regular)",
+                    session: "REGULAR",
+                    lecturerId: slyId,
+                    dayOfWeek: "Monday",
+                    startTime: "08:30 AM",
+                    endTime: "10:30 AM",
+                    venue: "Lecture Theatre 2",
+                },
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: "B.Tech Computer Science LVL 400 (Weekend)",
+                    session: "WEEKEND",
+                    lecturerId: slyId,
+                    dayOfWeek: "Saturday",
+                    startTime: "12:00 PM",
+                    endTime: "03:00 PM",
+                    venue: "CS Lab 1",
+                }
+            );
+        } else if (course.code.startsWith("ENG")) {
+            sectionsToCreate.push(
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: `BEng Electrical LVL ${mapLevel} (Regular)`,
+                    session: "REGULAR",
+                    lecturerId: null,
+                    dayOfWeek: "Tuesday",
+                    startTime: "09:00 AM",
+                    endTime: "11:00 AM",
+                    venue: "Engineering Hall 1",
+                },
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: `BEng Mechanical LVL ${mapLevel} (Weekend)`,
                     session: "WEEKEND",
                     lecturerId: null,
                     dayOfWeek: "Saturday",
                     startTime: "09:00 AM",
                     endTime: "12:00 PM",
-                    venue: "Main Hall A",
+                    venue: "Engineering Hall 2",
                 }
-            ]
-        });
+            );
+        } else if (course.code.startsWith("BIZ")) {
+            sectionsToCreate.push(
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: `BBA Accounting LVL ${mapLevel} (Regular)`,
+                    session: "REGULAR",
+                    lecturerId: null,
+                    dayOfWeek: "Wednesday",
+                    startTime: "10:00 AM",
+                    endTime: "12:00 PM",
+                    venue: "Business Block Rm 4",
+                },
+                {
+                    courseId: course.id,
+                    termId: term.id,
+                    name: `BBA Marketing LVL ${mapLevel} (Weekend)`,
+                    session: "WEEKEND",
+                    lecturerId: null,
+                    dayOfWeek: "Saturday",
+                    startTime: "01:00 PM",
+                    endTime: "04:00 PM",
+                    venue: "Business Block Rm 5",
+                }
+            );
+        }
+
+        if (sectionsToCreate.length > 0) {
+            await prisma.courseSection.createMany({ data: sectionsToCreate });
+        }
     }
 
     // 5. Deadlines
@@ -334,14 +784,14 @@ async function main() {
     // 6. Sample Submission
     console.log("   ➤ Populating sample activity...");
     const dl = await prisma.deadline.findFirst({ where: { type: "SEMESTER_CALENDAR" } });
-    if (dl) {
+    if (dl && dherId) {
         const subExists = await prisma.submission.findFirst({
-            where: { lecturerId: lecturer1.id, deadlineId: dl.id }
+            where: { lecturerId: dherId, deadlineId: dl.id }
         });
         if (!subExists) {
             await prisma.submission.create({
                 data: {
-                    lecturerId: lecturer1.id,
+                    lecturerId: dherId,
                     type: "SEMESTER_CALENDAR",
                     title: "CS101 - Semester Calendar 2025/2026",
                     content: { weeks: [], note: "Seeded initial data" },

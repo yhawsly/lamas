@@ -33,13 +33,13 @@ export function TermProvider({ children }: { children: React.ReactNode }) {
     const { data: activeTermData, isLoading: activeLoading, mutate: mutateActive } = useSWR<AcademicTerm>(
         "/api/active-term",
         fetcher,
-        { revalidateOnFocus: false, dedupingInterval: 30000 }
+        { revalidateOnFocus: true, dedupingInterval: 5000 }
     );
 
     const { data: allTermsData, isLoading: termsLoading, mutate: mutateAll } = useSWR<AcademicTerm[]>(
         "/api/terms",
         fetcher,
-        { revalidateOnFocus: false, dedupingInterval: 30000 }
+        { revalidateOnFocus: true, dedupingInterval: 5000 }
     );
 
     const activeTerm = useMemo(() => {

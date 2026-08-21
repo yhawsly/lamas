@@ -81,13 +81,23 @@ export async function PATCH(
             details: `Reviewed submission ${submissionId}: ${status}. Feedback: ${feedback?.substring(0, 50) || 'None'}`,
         });
 
-        // 4. Notify Lecturer (optional but recommended)
+        // 4. Notify Lecturer (In-App Notification & Email Delivery)
+        const notifyMsg = `Your submission "${submission.title}" has been ${status.toLowerCase()} by your HOD.${feedback ? ` Feedback: ${feedback}` : ''}`;
         await prisma.notification.create({
             data: {
                 userId: submission.lecturerId,
-                message: `Your submission "${submission.title}" has been ${status.toLowerCase()} by your HOD.`,
+                message: notifyMsg,
             }
         });
+
+        const lecUser = await prisma.user.findUnique({
+            where: { id: submission.lecturerId },
+            select: { email: true }
+        });
+        if (lecUser?.email) {
+            const { sendNotificationEmail } = await import("@/lib/email");
+            sendNotificationEmail(lecUser.email, `Course Outline Submission ${status}`, notifyMsg).catch(console.error);
+        }
 
         return NextResponse.json(updatedSubmission);
     } catch (error) {
