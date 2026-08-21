@@ -1,5 +1,5 @@
 "use client";
-import { Users, BarChart2, AlertTriangle, ClipboardList, BookOpen, CheckCircle, Palmtree, Megaphone, Rocket } from "lucide-react";
+import { Users, BarChart2, AlertTriangle, ClipboardList, BookOpen, CheckCircle, Palmtree, Megaphone, Rocket, AlertCircle, Send } from "lucide-react";
 
 import { useState } from "react";
 import KPICard from "@/components/ui/KPICard";
@@ -144,7 +144,7 @@ export default function HoDDashboard() {
 
                         <div>
                             <h3 className="font-bold text-lg mb-6 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-                                <BarChart2 className="w-6 h-6 text-blue-500" /> Lecturer Compliance Rankings
+                                <BarChart2 className="w-6 h-6 text-blue-500" /> Portfolio Compliance Rankings
                             </h3>
                             <div className="space-y-4">
                                 {scores.sort((a, b) => b.score - a.score).map((s, i) => (
@@ -183,38 +183,93 @@ export default function HoDDashboard() {
 
 
                 {/* Department Broadcast */}
+                {/* Department Broadcast */}
                 {tab === "notify" && (
-                    <div className="max-w-7xl mx-auto">
-                        <div className="text-center mb-8">
-                            <h3 className="font-bold text-xl mb-2 flex justify-center items-center gap-2" style={{ color: "var(--text-primary)" }}><Megaphone className="w-6 h-6 text-blue-500" /> Departmental Broadcast</h3>
-                            <p className="text-sm" style={{ color: "var(--text-muted)" }}>Send a priority alert to all lecturers in your department.</p>
-                        </div>
-
+                    <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500 mt-4">
                         {notify.sent ? (
-                            <div className="p-8 rounded-3xl border text-center animate-in zoom-in duration-300" style={{ backgroundColor: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.3)" }}>
-                                <div className="flex justify-center mb-4"><Rocket className="w-10 h-10 text-green-500" /></div>
-                                <h4 className="font-bold mb-1" style={{ color: "#10b981" }}>Broadcast Sent!</h4>
-                                <p className="text-xs" style={{ color: "var(--text-muted)" }}>All colleagues have been notified via their dashboards.</p>
+                            <div className="max-w-3xl mx-auto p-12 rounded-3xl border text-center relative overflow-hidden bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-xl shadow-emerald-500/10">
+                                <div className="absolute top-0 left-0 w-full h-2 bg-emerald-500" />
+                                <div className="flex justify-center mb-6">
+                                    <div className="w-24 h-24 bg-emerald-50 dark:bg-emerald-500/10 rounded-full flex items-center justify-center">
+                                        <Rocket className="w-12 h-12 text-emerald-500" />
+                                    </div>
+                                </div>
+                                <h4 className="font-black text-4xl mb-4 text-slate-900 dark:text-white tracking-tight">Broadcast Delivered!</h4>
+                                <p className="text-slate-500 dark:text-slate-400 text-base max-w-lg mx-auto mb-10">
+                                    Your priority alert has been successfully dispatched to all lecturers in your department. They will see it immediately on their dashboards.
+                                </p>
+                                <button 
+                                    onClick={() => setNotify({ message: "", sent: false })}
+                                    className="px-8 py-3.5 rounded-xl font-bold text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white transition-colors"
+                                >
+                                    Send Another Broadcast
+                                </button>
                             </div>
                         ) : (
-                            <div className="space-y-6">
-                                <div className="relative">
-                                    <textarea
-                                        value={notify.message}
-                                        onChange={e => setNotify(n => ({ ...n, message: e.target.value }))}
-                                        placeholder="Write your announcement here..."
-                                        rows={6}
-                                        className="w-full px-6 py-5 rounded-3xl text-sm focus:outline-none focus:ring-2 resize-none" style={{ backgroundColor: "var(--bg-hover)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }} />
-                                    <div className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-tighter" style={{ color: "var(--text-muted)" }}>Department Alert</div>
+                            <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-2xl shadow-blue-500/5 overflow-hidden flex flex-col lg:flex-row">
+                                {/* Left Side: Context & Guidelines */}
+                                <div className="lg:w-1/2 bg-slate-50 dark:bg-slate-800/50 p-8 md:p-10 border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-700/50 flex flex-col justify-between">
+                                    <div>
+                                        <div className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center mb-6 shadow-inner">
+                                            <Megaphone className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                                        </div>
+                                        <h3 className="font-black text-3xl tracking-tight text-slate-900 dark:text-white mb-3">
+                                            Departmental Broadcast
+                                        </h3>
+                                        <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-8">
+                                            Send a priority push notification to all academic staff in your department. This will appear immediately in their notification center.
+                                        </p>
+                                    </div>
+                                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-100 dark:border-blue-800/50">
+                                        <h4 className="font-bold text-xs uppercase tracking-wider text-blue-800 dark:text-blue-300 mb-2">Best Practices</h4>
+                                        <ul className="text-xs text-blue-700/80 dark:text-blue-200/80 space-y-2 font-medium">
+                                            <li>• Keep messages clear and concise.</li>
+                                            <li>• Include specific dates and times.</li>
+                                            <li>• Do not use for confidential information.</li>
+                                        </ul>
+                                    </div>
                                 </div>
-                                <button
-                                    onClick={sendBroadcast}
-                                    disabled={!notify.message}
-                                    className="w-full py-4 rounded-xl text-white font-bold text-sm transition-all shadow-xl disabled:opacity-50 active:scale-[0.98]"
-                                    style={{ backgroundColor: "var(--primary)" }}>
-                                    Push Notification to Department
-                                </button>
-                                <p className="text-[10px] text-center" style={{ color: "var(--text-muted)" }}>Note: This action is permanent and logged in the audit trail.</p>
+
+                                {/* Right Side: The Form */}
+                                <div className="lg:w-1/2 p-8 md:p-10 flex flex-col justify-center">
+                                    <div className="space-y-6 max-w-2xl">
+                                        <div className="relative group">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl blur opacity-0 group-focus-within:opacity-10 transition-opacity duration-500" />
+                                            <div className="relative bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-700 focus-within:border-blue-500 dark:focus-within:border-blue-400 transition-colors p-1 shadow-sm">
+                                                <div className="flex items-center justify-between px-5 pt-4 pb-2 border-b border-slate-100 dark:border-slate-800">
+                                                    <span className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">
+                                                        Announcement Message
+                                                    </span>
+                                                    <span className="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">
+                                                        {notify.message.length} chars
+                                                    </span>
+                                                </div>
+                                                <textarea
+                                                    value={notify.message}
+                                                    onChange={e => setNotify(n => ({ ...n, message: e.target.value }))}
+                                                    placeholder="Type your alert here... (e.g., 'Emergency departmental meeting at 2 PM')"
+                                                    rows={6}
+                                                    className="w-full px-5 py-4 bg-transparent text-base text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none resize-none leading-relaxed"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-4">
+                                            <p className="text-xs text-slate-500 font-medium flex items-center gap-2 order-2 sm:order-1">
+                                                <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                                                This action is logged for audit purposes.
+                                            </p>
+                                            <button
+                                                onClick={sendBroadcast}
+                                                disabled={!notify.message}
+                                                className="w-full sm:w-auto px-8 py-4 rounded-xl text-white font-black text-sm bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all shadow-xl shadow-blue-500/30 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2 order-1 sm:order-2 shrink-0"
+                                            >
+                                                <Send className="w-4 h-4" />
+                                                Push Notification
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>

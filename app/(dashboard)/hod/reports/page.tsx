@@ -153,10 +153,10 @@ export default function HODReportsPage() {
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
-                        <FileText className="w-8 h-8 text-emerald-500" /> Department Compliance Report
+                        <FileText className="w-8 h-8 text-emerald-500" /> Department Observation Report
                     </h1>
                     <p className="text-sm print:hidden" style={{ color: "var(--text-muted)" }}>
-                        Review and export appraisal completion rates across your department.
+                        Review and export observation completion rates across your department.
                     </p>
                 </div>
                 <div className="flex items-center gap-3 print:hidden">
@@ -184,7 +184,7 @@ export default function HODReportsPage() {
                                 <th className="px-6 py-4">Peer Obs (Form A)</th>
                                 <th className="px-6 py-4">Teaching Obs (Form B)</th>
                                 <th className="px-6 py-4">Moderation (Form C)</th>
-                                <th className="px-6 py-4 text-right">Compliance Score</th>
+                                <th className="px-6 py-4 text-right">Observation Score</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[var(--bg-border)]">
