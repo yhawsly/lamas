@@ -47,16 +47,16 @@ export default function NotificationsPage() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6">
-            <div className="flex items-center justify-between">
+        <div className="w-full space-y-6 animate-in fade-in duration-500">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Notification Center</h1>
-                    <p className="text-gray-500 text-sm mt-1">View your latest alerts and department messages.</p>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Notification Center</h1>
+                    <p className="text-slate-500 text-xs sm:text-sm mt-1">View your latest alerts, appraisal requests, and department messages.</p>
                 </div>
                 {notifications.some((n: Notification) => !n.read) && (
                     <button
                         onClick={markAllAsRead}
-                        className="px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-sm font-medium transition-colors"
+                        className="px-4 py-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-xl text-xs font-bold transition-colors border border-blue-200 dark:border-blue-800 self-start sm:self-auto cursor-pointer"
                     >
                         Mark all as read
                     </button>

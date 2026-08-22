@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import { BookOpen, CheckCircle2, AlertTriangle, BarChart2 } from "lucide-react";
 
 type Module = { id: number, week: number, title: string, description: string, lesson_plan: string, completed?: boolean };
 type Class = { id: string, name: string, students: number, modules: Module[] };
@@ -231,15 +232,15 @@ export default function CourseOutlinePrototype() {
         </header>
 
         {/* Department Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
           {[
-            { label: "Total Courses", value: totalCourses, icon: "📚", color: "text-blue-600 bg-blue-50 border-blue-100" },
-            { label: "Assigned Workload", value: assignedCourses, icon: "✅", color: "text-green-600 bg-green-50 border-green-100" },
-            { label: "Pending Assignment", value: unassignedCourses, icon: "⚠️", color: "text-amber-600 bg-amber-50 border-amber-100" },
-            { label: "Staff Coverage", value: `${coverage}%`, icon: "📊", color: "text-purple-600 bg-purple-50 border-purple-100" },
+            { label: "Total Courses", value: totalCourses, icon: <BookOpen className="w-5 h-5" />, color: "text-blue-600 bg-blue-50 border-blue-100" },
+            { label: "Assigned Workload", value: assignedCourses, icon: <CheckCircle2 className="w-5 h-5" />, color: "text-green-600 bg-green-50 border-green-100" },
+            { label: "Pending Assignment", value: unassignedCourses, icon: <AlertTriangle className="w-5 h-5" />, color: "text-amber-600 bg-amber-50 border-amber-100" },
+            { label: "Staff Coverage", value: `${coverage}%`, icon: <BarChart2 className="w-5 h-5" />, color: "text-purple-600 bg-purple-50 border-purple-100" },
           ].map((stat, i) => (
             <div key={i} className="p-6 rounded-2xl border border-slate-200 bg-white shadow-sm flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold border ${stat.color.split(" ").slice(1).join(" ")}`}>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold border ${stat.color}`}>
                 {stat.icon}
               </div>
               <div>
@@ -337,7 +338,7 @@ export default function CourseOutlinePrototype() {
         {lecturerCourses.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-2xl p-16 text-center shadow-sm">
             <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 mx-auto mb-4 border border-slate-100">
-              📚
+              <BookOpen className="w-8 h-8 text-slate-400" />
             </div>
             <h3 className="text-xl font-bold text-slate-800">No Courses Assigned</h3>
             <p className="text-slate-500 max-w-sm mx-auto mt-2 text-sm">
@@ -351,7 +352,7 @@ export default function CourseOutlinePrototype() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
             {lecturerCourses.map(course => (
               <div 
                 key={course.id}

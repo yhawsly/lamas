@@ -207,11 +207,11 @@ export default function InvigilationMatrixTab({
         }
 
         if (termMinDate && formData.examDate < termMinDate) {
-            setFormError(`⚠️ Exam Date cannot be earlier than semester start (${termMinDate}).`);
+            setFormError(`Exam Date cannot be earlier than semester start (${termMinDate}).`);
             return;
         }
         if (termMaxDate && formData.examDate > termMaxDate) {
-            setFormError(`⚠️ Exam Date cannot exceed semester conclusion (${termMaxDate}).`);
+            setFormError(`Exam Date cannot exceed semester conclusion (${termMaxDate}).`);
             return;
         }
 
@@ -239,7 +239,7 @@ export default function InvigilationMatrixTab({
 
             const data = await res.json();
             if (res.ok) {
-                setSuccessMsg(`✅ Exam session for ${data.courseCode} scheduled successfully! Invigilators have been notified.`);
+                setSuccessMsg(`Exam session for ${data.courseCode} scheduled successfully! Invigilators have been notified.`);
                 setTimeout(() => setSuccessMsg(""), 5000);
                 setShowCreateDrawer(false);
                 setFormData({
@@ -493,9 +493,9 @@ export default function InvigilationMatrixTab({
                                 onChange={e => {
                                     const val = e.target.value;
                                     if (termMinDate && val < termMinDate) {
-                                        setFormError(`⚠️ Exam date must fall within semester timeline (${termMinDate} to ${termMaxDate}).`);
+                                        setFormError(`Exam date must fall within semester timeline (${termMinDate} to ${termMaxDate}).`);
                                     } else if (termMaxDate && val > termMaxDate) {
-                                        setFormError(`⚠️ Exam date cannot exceed semester end date (${termMaxDate}).`);
+                                        setFormError(`Exam date cannot exceed semester end date (${termMaxDate}).`);
                                     } else {
                                         setFormError("");
                                     }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Calendar, CheckCircle, HelpCircle, CalendarPlus } from "lucide-react";
+import { Calendar, CheckCircle, HelpCircle, CalendarPlus, AlertTriangle, AlertCircle, CheckCircle2 } from "lucide-react";
 
 function computeWeeks(start: string, end: string) {
     if (!start || !end) return null;
@@ -50,15 +50,15 @@ export default function AcademicTermsTab() {
                 body: JSON.stringify(form)
             });
             if (res.ok) {
-                setMsg("✅ Academic Term created successfully");
+                setMsg("Academic Term created successfully");
                 setForm({ name: "", startDate: "", endDate: "" });
                 fetchTerms();
             } else {
                 const data = await res.json();
-                setMsg("❌ Error: " + (data.error || "Failed to create term"));
+                setMsg("Error: " + (data.error || "Failed to create term"));
             }
         } catch (e: any) {
-            setMsg("❌ Error: " + e.message);
+            setMsg("Error: " + e.message);
         }
     };
 
@@ -69,13 +69,13 @@ export default function AcademicTermsTab() {
             try {
                 const res = await fetch(`/api/admin/terms/${id}`, { method: "PATCH" });
                 if (res.ok) {
-                    setMsg("✅ Term activated successfully.");
+                    setMsg("Term activated successfully.");
                     fetchTerms();
                 } else {
-                    setMsg("❌ Failed to activate term.");
+                    setMsg("Failed to activate term.");
                 }
             } catch (e: any) {
-                setMsg("❌ Error: " + e.message);
+                setMsg("Error: " + e.message);
             }
         });
     };
@@ -90,12 +90,17 @@ export default function AcademicTermsTab() {
             </div>
 
             {msg && (
-                <div className="p-4 rounded-xl text-sm border font-semibold" style={{
-                    backgroundColor: msg.startsWith("✅") ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
-                    borderColor: msg.startsWith("✅") ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)",
-                    color: msg.startsWith("✅") ? "#10b981" : "#ef4444"
-                }}>
-                    {msg}
+                <div className={`p-4 rounded-xl text-sm border font-semibold flex items-center gap-2.5 ${
+                    !msg.toLowerCase().includes("failed") && !msg.toLowerCase().includes("error")
+                        ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                        : "bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400"
+                }`}>
+                    {!msg.toLowerCase().includes("failed") && !msg.toLowerCase().includes("error") ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    ) : (
+                        <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                    )}
+                    <span>{msg.replace(/^Error:\s*/i, "")}</span>
                 </div>
             )}
 
@@ -130,8 +135,9 @@ export default function AcademicTermsTab() {
 
                     {/* Date validation warning */}
                     {previewWeeks === null && form.startDate && form.endDate ? (
-                        <div className="px-4 py-2 rounded-xl text-xs font-semibold mt-4 w-fit" style={{ backgroundColor: "rgba(239,68,68,0.08)", color: "#ef4444" }}>
-                            ⚠️ End date must be after start date
+                        <div className="px-4 py-2 rounded-xl text-xs font-semibold mt-4 w-fit flex items-center gap-1.5" style={{ backgroundColor: "rgba(239,68,68,0.08)", color: "#ef4444" }}>
+                            <AlertTriangle className="w-3.5 h-3.5" />
+                            <span>End date must be after start date</span>
                         </div>
                     ) : null}
                 </div>
@@ -184,15 +190,15 @@ export default function AcademicTermsTab() {
                                             </div>
 
                                             {/* Weeks */}
-                                            <div className="col-span-1 sm:col-span-1 flex justify-center">
-                                                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-600 border border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20">
+                                            <div className="col-span-1 sm:col-span-1 flex sm:justify-center">
+                                                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20">
                                                     <Calendar className="w-3.5 h-3.5" />
-                                                    {weeks ?? "—"}
+                                                    {weeks ?? "—"} wks
                                                 </span>
                                             </div>
 
                                             {/* Status & Action */}
-                                            <div className="col-span-1 sm:col-span-2 flex justify-end items-center gap-2">
+                                            <div className="col-span-1 sm:col-span-2 flex justify-start sm:justify-end items-center gap-2">
                                                 {t.isActive ? (
                                                     <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20">
                                                         <CheckCircle className="w-3 h-3" />
@@ -201,7 +207,7 @@ export default function AcademicTermsTab() {
                                                 ) : (
                                                     <button 
                                                         onClick={() => activateTerm(t.id)} 
-                                                        className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 transition-colors dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400"
+                                                        className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 border border-slate-200 transition-colors dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700 dark:hover:bg-blue-500/10 dark:hover:text-blue-400 cursor-pointer"
                                                     >
                                                         Activate
                                                     </button>

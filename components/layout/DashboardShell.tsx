@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
-import { User, Settings, LogOut, ChevronDown } from "lucide-react";
+import { User, Settings, LogOut, ChevronDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
+import MobileBottomNav from "@/components/layout/MobileBottomNav";
+import MobileActionDrawer from "@/components/layout/MobileActionDrawer";
 import NotificationBell from "@/components/ui/NotificationBell";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import TermSwitcher from "@/components/workspace/TermSwitcher";
@@ -13,10 +15,40 @@ import ArchiveModeBanner from "@/components/workspace/ArchiveModeBanner";
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
-    // Close on ESC key
+    // Read stored collapse preference
     useEffect(() => {
-        const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setSidebarOpen(false); };
+        try {
+            const saved = localStorage.getItem("sidebar_collapsed");
+            if (saved !== null) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
+                setIsCollapsed(saved === "true");
+            }
+        } catch {}
+    }, []);
+
+    const toggleCollapse = () => {
+        setIsCollapsed(prev => {
+            const next = !prev;
+            try { localStorage.setItem("sidebar_collapsed", String(next)); } catch {}
+            return next;
+        });
+    };
+
+    // Keyboard shortcuts: ESC to close drawers, Ctrl/Cmd+B to toggle sidebar
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => { 
+            if (e.key === "Escape") {
+                setSidebarOpen(false);
+                setMobileDrawerOpen(false);
+            }
+            if ((e.ctrlKey || e.metaKey) && (e.key === "b" || e.key === "B")) {
+                e.preventDefault();
+                toggleCollapse();
+            }
+        };
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
     }, []);
@@ -54,8 +86,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         return () => document.removeEventListener('click', handleClickOutside);
     }, []);
 
-    const profileHref = "/settings";
-
     return (
         <div className="flex min-h-screen" style={{ background: "var(--bg-base)" }}>
             {/* ── Mobile backdrop overlay ── */}
@@ -67,14 +97,20 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             )}
 
             {/* ── Sidebar (fixed on all screens) ── */}
-            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+            <Sidebar 
+                isOpen={sidebarOpen} 
+                onClose={() => setSidebarOpen(false)}
+                isCollapsed={isCollapsed}
+                onToggleCollapse={toggleCollapse}
+            />
 
             {/* ── Main content area (pushed right by fixed sidebar on desktop) ── */}
-            <div className="flex-1 flex flex-col min-w-0 lg:ml-64">
-                {/* Top bar (Visible on all screens, but hamburger is mobile-only) */}
+            <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isCollapsed ? "lg:ml-20" : "lg:ml-64"}`}>
+                {/* Top bar (Visible on all screens) */}
                 <header className="flex items-center justify-between px-4 lg:px-8 py-3 lg:py-4 border-b sticky top-0 z-30"
                     style={{ background: "var(--bg-base)", borderColor: "var(--bg-border)" }}>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
+                        {/* Mobile hamburger menu */}
                         <button
                             onClick={() => setSidebarOpen(true)}
                             className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center transition-all"
@@ -90,6 +126,20 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
                             </svg>
+                        </button>
+
+                        {/* Desktop sidebar collapse/expand toggle button in header */}
+                        <button
+                            onClick={toggleCollapse}
+                            className="hidden lg:flex w-9 h-9 rounded-xl items-center justify-center transition-all text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                            title={isCollapsed ? "Expand Sidebar (Ctrl+B)" : "Collapse Sidebar (Ctrl+B)"}
+                            aria-label={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+                        >
+                            {isCollapsed ? (
+                                <PanelLeftOpen className="w-5 h-5" />
+                            ) : (
+                                <PanelLeftClose className="w-5 h-5" />
+                            )}
                         </button>
 
                         {/* Brand on mobile */}
@@ -165,9 +215,18 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 {/* Sticky Archive Read-Only Warning Banner */}
                 <ArchiveModeBanner />
 
-                <main className="flex-1 overflow-x-hidden overflow-y-auto">
-                    <div className="px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8 w-full">{children}</div>
+                <main className="flex-1 overflow-x-hidden overflow-y-auto pb-28 lg:pb-8">
+                    <div className="px-3.5 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8 w-full">{children}</div>
                 </main>
+
+                {/* ── Native Mobile Bottom Navigation Bar ── */}
+                <MobileBottomNav onOpenDrawer={() => setMobileDrawerOpen(true)} />
+
+                {/* ── Native Mobile Slide-Up Quick Action Drawer ── */}
+                <MobileActionDrawer 
+                    isOpen={mobileDrawerOpen} 
+                    onClose={() => setMobileDrawerOpen(false)} 
+                />
             </div>
         </div>
     );

@@ -2,6 +2,7 @@
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { useEffect, useState } from "react";
+import { BarChart2 } from "lucide-react";
 
 const COLORS: Record<string, string> = {
     APPROVED: "#10b981",
@@ -15,7 +16,7 @@ const COLORS: Record<string, string> = {
 
 
 export default function ComplianceChart() {
-    const [data, setData] = useState<{ name: string; value: number }[]>([]);
+    const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -32,8 +33,8 @@ export default function ComplianceChart() {
 
     if (data.length === 0) return (
         <div className="h-64 flex flex-col items-center justify-center" style={{ color: "var(--text-muted)" }}>
-            <span className="text-3xl mb-2">📊</span>
-            <p>No compliance data available</p>
+            <BarChart2 className="w-8 h-8 mb-2 opacity-40 text-blue-500" />
+            <p className="text-xs font-semibold">No compliance data available</p>
         </div>
     );
 

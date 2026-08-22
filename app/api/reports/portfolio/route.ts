@@ -115,24 +115,24 @@ export async function GET() {
                 title: "Pre-Cycle Audit", 
                 desc: "Course Outline Verification", 
                 date: new Date(activeTerm.startDate).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }), 
-                icon: "🛡️" 
+                iconType: "SHIELD" 
             },
             { 
                 title: "Mid-Term Review", 
                 desc: "Observational Consistency", 
                 date: new Date(activeTerm.startDate.getTime() + (activeTerm.endDate.getTime() - activeTerm.startDate.getTime()) / 2).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }), 
-                icon: "👁️" 
+                iconType: "EYE" 
             },
             { 
                 title: "Final Compliance", 
                 desc: "Institutional Alignment", 
                 date: new Date(activeTerm.endDate).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }), 
-                icon: "✅" 
+                iconType: "CHECK" 
             }
         ] : [
-            { title: "Pre-Cycle Audit", desc: "No Active Term", date: "---", icon: "🛡️" },
-            { title: "Mid-Term Review", desc: "No Active Term", date: "---", icon: "👁️" },
-            { title: "Final Compliance", desc: "No Active Term", date: "---", icon: "✅" }
+            { title: "Pre-Cycle Audit", desc: "No Active Term", date: "---", iconType: "SHIELD" },
+            { title: "Mid-Term Review", desc: "No Active Term", date: "---", iconType: "EYE" },
+            { title: "Final Compliance", desc: "No Active Term", date: "---", iconType: "CHECK" }
         ];
 
         // 6. Leadership & Metrics (for Final Compliance)

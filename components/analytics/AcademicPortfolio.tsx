@@ -4,6 +4,7 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
     RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend,
 } from "recharts";
+import { Compass, BarChart2, Shield, Eye, CheckCircle2 } from "lucide-react";
 
 interface PortfolioData {
     stats: {
@@ -53,7 +54,7 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
 
     if (loading || !data) {
         return (
-            <div className="max-w-7xl mx-auto space-y-6">
+            <div className="w-full space-y-6 sm:space-y-8">
                 {/* Header Skeleton */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
                     <div className="space-y-3">
@@ -90,7 +91,7 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
     }
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-700">
+        <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in duration-500">
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
                 <div>
@@ -166,7 +167,7 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
                             </ResponsiveContainer>
                         ) : (
                             <div className="flex flex-col items-center justify-center h-[260px] gap-3 rounded-2xl border border-dashed" style={{ borderColor: 'var(--bg-border)' }}>
-                                <span className="text-4xl">🕸️</span>
+                                <Compass className="w-10 h-10 text-slate-400 opacity-60" />
                                 <p className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>No rated observations yet</p>
                                 <p className="text-xs text-center max-w-[220px]" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
                                     Ratings will appear here once observers submit scores for completed observations.
@@ -250,7 +251,7 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
                                 </ResponsiveContainer>
                             ) : (
                                 <div className="flex flex-col items-center justify-center h-[260px] gap-2">
-                                    <span className="text-3xl opacity-50">📊</span>
+                                    <BarChart2 className="w-8 h-8 opacity-40 text-blue-500" />
                                     <p className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>No Observations Yet</p>
                                 </div>
                             )}
@@ -308,24 +309,40 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {data.auditArtifacts.map((audit, i) => (
-                            <div key={i} className="p-6 rounded-2xl transition-all hover:bg-white/5 border border-dashed border-white/10 group" style={{ backgroundColor: "var(--bg-hover)" }}>
-                                <div className="text-3xl mb-4 group-hover:scale-110 transition-transform inline-block">{audit.icon}</div>
-                                <div className="flex justify-between items-start mb-1">
-                                    <h4 className="font-bold text-lg">{audit.title}</h4>
-                                    <span className="text-[10px] font-black opacity-40 uppercase tracking-tighter">{audit.date}</span>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
+                        {data.auditArtifacts.map((audit, i) => {
+                            const renderIcon = () => {
+                                if (audit.iconType === "SHIELD" || audit.title.includes("Pre-Cycle")) {
+                                    return <Shield className="w-5 sm:w-8 h-5 sm:h-8 text-blue-500" />;
+                                }
+                                if (audit.iconType === "EYE" || audit.title.includes("Mid-Term")) {
+                                    return <Eye className="w-5 sm:w-8 h-5 sm:h-8 text-amber-500" />;
+                                }
+                                return <CheckCircle2 className="w-5 sm:w-8 h-5 sm:h-8 text-emerald-500" />;
+                            };
+
+                            return (
+                                <div key={i} className={`p-3.5 sm:p-6 rounded-2xl transition-all hover:bg-white/5 border border-dashed border-white/10 group flex flex-col justify-between ${i === 2 ? "col-span-2 md:col-span-1" : ""}`} style={{ backgroundColor: "var(--bg-hover)" }}>
+                                    <div>
+                                        <div className="mb-3 sm:mb-4 group-hover:scale-110 transition-transform inline-block p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-slate-100 dark:bg-slate-800/80">
+                                            {renderIcon()}
+                                        </div>
+                                        <div className="flex justify-between items-start mb-1 gap-2">
+                                            <h4 className="font-bold text-sm sm:text-lg truncate">{audit.title}</h4>
+                                            <span className="text-[9px] sm:text-[10px] font-black opacity-40 uppercase tracking-tighter shrink-0">{audit.date}</span>
+                                        </div>
+                                        <p className="text-[11px] sm:text-xs opacity-60 mb-4 sm:mb-8 line-clamp-2">{audit.desc}</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => handleExport(audit.title)}
+                                        className="w-full py-2.5 sm:py-3 rounded-xl text-[10px] sm:text-xs font-black tracking-widest uppercase transition-all"
+                                        style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }}
+                                    >
+                                        EXPORT PDF
+                                    </button>
                                 </div>
-                                <p className="text-xs opacity-60 mb-8">{audit.desc}</p>
-                                <button 
-                                    onClick={() => handleExport(audit.title)}
-                                    className="w-full py-3 rounded-xl text-xs font-black tracking-widest uppercase transition-all"
-                                    style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)", color: "var(--text-primary)" }}
-                                >
-                                    EXPORT PDF
-                                </button>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             )}

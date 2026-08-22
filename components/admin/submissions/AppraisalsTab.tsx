@@ -75,7 +75,7 @@ export default function AppraisalsTab() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                 {[
                     { label: "Total Tracked", value: totalSubmissions, icon: <FileText className="w-6 h-6" />, color: "#3b82f6" },
                     { label: "On Time", value: submittedCount, icon: <CheckCircle className="w-6 h-6" />, color: "#10b981" },

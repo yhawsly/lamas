@@ -1,5 +1,5 @@
 "use client";
-import { BookOpen, HelpCircle, BookPlus } from "lucide-react";
+import { BookOpen, HelpCircle, BookPlus, CheckCircle2, AlertCircle } from "lucide-react";
 
 import { useState, useEffect } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
@@ -44,7 +44,7 @@ export default function CourseDirectoryTab() {
         setMsg("");
 
         if (!form.departmentId) {
-            setMsg("❌ Error: You must select a department."); return;
+            setMsg("Error: You must select a department."); return;
         }
 
         try {
@@ -54,15 +54,15 @@ export default function CourseDirectoryTab() {
                 body: JSON.stringify(form)
             });
             if (res.ok) {
-                setMsg("✅ Course created successfully");
+                setMsg("Course created successfully");
                 setForm({ code: "", title: "", credits: "3", departmentId: "" });
                 fetchCourses();
             } else {
                 const data = await res.json();
-                setMsg("❌ Error: " + (data.error || "Failed to create course"));
+                setMsg("Error: " + (data.error || "Failed to create course"));
             }
         } catch (e: any) {
-            setMsg("❌ Error: " + e.message);
+            setMsg("Error: " + e.message);
         }
     };
 
@@ -73,14 +73,14 @@ export default function CourseDirectoryTab() {
             try {
                 const res = await fetch(`/api/courses/${id}`, { method: "DELETE" });
                 if (res.ok) {
-                    setMsg("✅ Course deleted successfully");
+                    setMsg("Course deleted successfully");
                     fetchCourses();
                 } else {
                     const data = await res.json();
-                    setMsg("❌ Error: " + (data.error || "Failed to delete course"));
+                    setMsg("Error: " + (data.error || "Failed to delete course"));
                 }
             } catch (e: any) {
-                setMsg("❌ Error: " + e.message);
+                setMsg("Error: " + e.message);
             }
         });
     };
@@ -99,8 +99,13 @@ export default function CourseDirectoryTab() {
             </header>
 
             {msg && (
-                <div className={`p-4 rounded-xl text-sm border ${msg.startsWith("✅") ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" : "bg-rose-500/10 border-rose-500/30 text-rose-500"}`}>
-                    {msg}
+                <div className={`p-4 rounded-xl text-sm border flex items-center gap-2.5 font-semibold ${!msg.toLowerCase().includes("error") && !msg.toLowerCase().includes("failed") ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400" : "bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400"}`}>
+                    {!msg.toLowerCase().includes("error") && !msg.toLowerCase().includes("failed") ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    ) : (
+                        <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                    )}
+                    <span>{msg.replace(/^Error:\s*/i, "")}</span>
                 </div>
             )}
 

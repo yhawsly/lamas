@@ -84,7 +84,7 @@ export default function DepartmentsTab() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6">
                 {[
                     { label: "Total Departments", value: totalDepartments, icon: <Building className="w-6 h-6" />, color: "#3b82f6" },
                     { label: "Total Staff Assigned", value: totalStaff, icon: <Building className="w-6 h-6" />, color: "#f59e0b" },

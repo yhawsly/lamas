@@ -95,7 +95,7 @@ const ALL_UNIVERSITY_CLASSES = [
         ]
     },
     {
-        group: "🚀 B.Tech Top-Up (Weekend ONLY, LVL 300 - 400)",
+        group: "B.Tech Top-Up (Weekend ONLY, LVL 300 - 400)",
         options: [
             { name: "B.Tech Computer Science Top-Up LVL 300 (Weekend)", session: "WEEKEND" as const },
             { name: "B.Tech Computer Science Top-Up LVL 400 (Weekend)", session: "WEEKEND" as const },
@@ -104,7 +104,7 @@ const ALL_UNIVERSITY_CLASSES = [
         ]
     },
     {
-        group: "⚡ Faculty of Engineering",
+        group: "Faculty of Engineering",
         options: [
             { name: "BEng Electrical LVL 100 (Regular)", session: "REGULAR" as const },
             { name: "BEng Electrical LVL 200 (Regular)", session: "REGULAR" as const },
@@ -119,7 +119,7 @@ const ALL_UNIVERSITY_CLASSES = [
         ]
     },
     {
-        group: "📊 Faculty of Business & Management",
+        group: "Faculty of Business & Management",
         options: [
             { name: "BBA Accounting LVL 100 (Regular)", session: "REGULAR" as const },
             { name: "BBA Accounting LVL 200 (Regular)", session: "REGULAR" as const },
@@ -254,7 +254,7 @@ export default function AssignmentsTab() {
             </div>
 
             {/* Department Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                 {[
                     { label: "Total Classes", value: totalClasses, icon: <BookOpen className="w-6 h-6" />, color: "#3b82f6" },
                     { label: "Assigned Workload", value: assignedClasses, icon: <CheckCircle className="w-6 h-6" />, color: "#10b981" },
@@ -397,19 +397,21 @@ export default function AssignmentsTab() {
 
                                 {/* Actions */}
                                 <div className="col-span-1 sm:col-span-2 flex justify-end">
-                                    <button
-                                        onClick={() => {
-                                            setActiveAddClassCourseId(prev => prev === course.id ? null : course.id);
-                                            setSelectedClassDropdown("");
-                                            setNewClassName("");
-                                            setNewClassSession("REGULAR");
-                                        }}
-                                        className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800/60 text-xs font-bold transition flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800"
-                                        style={{ color: "var(--text-primary)" }}
-                                    >
-                                        <ListPlus className="w-4 h-4" />
-                                        Add Section
-                                    </button>
+                                    {!isArchiveMode && (
+                                        <button
+                                            onClick={() => {
+                                                setActiveAddClassCourseId(prev => prev === course.id ? null : course.id);
+                                                setSelectedClassDropdown("");
+                                                setNewClassName("");
+                                                setNewClassSession("REGULAR");
+                                            }}
+                                            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800/60 text-xs font-bold transition flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                            style={{ color: "var(--text-primary)" }}
+                                        >
+                                            <ListPlus className="w-4 h-4" />
+                                            Add Section
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
@@ -459,7 +461,7 @@ export default function AssignmentsTab() {
                                                         const matching = ALL_UNIVERSITY_CLASSES.flatMap(g => g.options).filter(o => o.name.includes(`LVL ${courseLevel}`));
                                                         if (matching.length === 0) return null;
                                                         return (
-                                                            <optgroup label={`⭐ Recommended for Level ${courseLevel}`}>
+                                                            <optgroup label={`Recommended for Level ${courseLevel}`}>
                                                                 {matching.map(opt => (
                                                                     <option key={`rec-${opt.name}`} value={opt.name}>
                                                                         {opt.name}
@@ -479,7 +481,7 @@ export default function AssignmentsTab() {
                                                         </optgroup>
                                                     ))}
 
-                                                    <optgroup label="✏️ Other / Custom">
+                                                    <optgroup label="Other / Custom Classes">
                                                         <option value="CUSTOM">+ Enter Custom Class Name...</option>
                                                     </optgroup>
                                                 </select>
@@ -574,11 +576,12 @@ export default function AssignmentsTab() {
 
                                                         <select
                                                             value={section.lecturerId || ""}
+                                                            disabled={isArchiveMode}
                                                             onChange={(e) => {
                                                                 const val = e.target.value;
                                                                 handleAssignLecturer(course.id, section.id, val ? parseInt(val) : null);
                                                             }}
-                                                            className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800/60 rounded-lg px-2 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/40 transition hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer w-[130px] shrink-0"
+                                                            className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800/60 rounded-lg px-2 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/40 transition hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer w-[130px] shrink-0 disabled:opacity-50"
                                                             style={{ color: "var(--text-primary)" }}
                                                         >
                                                             <option value="">+ Assign Staff</option>

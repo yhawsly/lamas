@@ -10,7 +10,8 @@ import {
     BellRing,
     Calendar,
     CheckCircle2,
-    AlertTriangle
+    AlertTriangle,
+    Clock
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
@@ -125,7 +126,7 @@ export default function DeoDashboard() {
     async function assign(e: React.FormEvent) {
         e.preventDefault();
         if (isArchiveMode) {
-            setMsg("❌ Action Disabled: You are currently viewing a read-only historical archive.");
+            setMsg("Action Disabled: You are currently viewing a read-only historical archive.");
             setTimeout(() => setMsg(""), 4000);
             return;
         }
@@ -155,15 +156,15 @@ export default function DeoDashboard() {
                 body: JSON.stringify(body),
             });
             if (res.ok) { 
-                setMsg("✅ Review assigned successfully!"); 
+                setMsg("Review assigned successfully!"); 
                 setForm({ lecturerId: "", observerId: "", courseCode: "" }); 
                 loadData();
             } else { 
                 const errData = await res.json().catch(() => ({}));
-                setMsg(`❌ ${errData.error || "Failed to assign."}`); 
+                setMsg(errData.error || "Failed to assign review."); 
             }
         } catch {
-            setMsg("❌ Network error.");
+            setMsg("Network error occurred.");
         } finally {
             setIsSubmitting(false);
             setTimeout(() => setMsg(""), 3000);
@@ -251,7 +252,7 @@ export default function DeoDashboard() {
     const selectedCourseObj = courses.find(c => c.code === form.courseCode);
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in duration-500">
             {/* Header & Primary Navigation Tabs */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
@@ -306,28 +307,28 @@ export default function DeoDashboard() {
             {mainTab === "reviews" && (
                 <div className="space-y-8 animate-in fade-in duration-300">
                     {/* 3 Clickable Horizontal Dispatch Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
                         {/* Card 1: Form A */}
                         <button
                             type="button"
                             onClick={() => setReviewType("A")}
-                            className={`text-left p-5 rounded-[24px] border-2 transition-all duration-200 cursor-pointer flex gap-4 items-center group relative overflow-hidden ${
+                            className={`text-left p-3.5 sm:p-5 rounded-[20px] sm:rounded-[24px] border-2 transition-all duration-200 cursor-pointer flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center group relative overflow-hidden ${
                                 reviewType === "A"
                                     ? "bg-amber-500/5 dark:bg-amber-500/10 border-amber-500 shadow-md"
                                     : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-850 hover:border-amber-500/40"
                             }`}
                         >
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                            <div className={`w-9 sm:w-12 h-9 sm:h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                                 reviewType === "A"
                                     ? "bg-amber-500 text-white"
                                     : "bg-slate-100 dark:bg-slate-900 text-slate-400 group-hover:bg-amber-500/10 group-hover:text-amber-500"
                             }`}>
-                                <BookOpen className="w-6 h-6" />
+                                <BookOpen className="w-4 h-4 sm:w-6 sm:h-6" />
                             </div>
                             <div>
-                                <div className="text-[10px] font-black uppercase tracking-wider text-amber-550 dark:text-amber-400">Form A Audit</div>
-                                <h4 className="text-sm font-extrabold mt-1 text-slate-900 dark:text-white">Instructional Materials</h4>
-                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug font-medium">Syllabus outlines, textbook relevance, notes audit.</p>
+                                <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-amber-550 dark:text-amber-400">Form A Audit</div>
+                                <h4 className="text-xs sm:text-sm font-extrabold mt-0.5 sm:mt-1 text-slate-900 dark:text-white truncate">Instructional Materials</h4>
+                                <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 sm:mt-1 leading-snug font-medium line-clamp-2">Syllabus outlines & notes.</p>
                             </div>
                         </button>
 
@@ -335,23 +336,23 @@ export default function DeoDashboard() {
                         <button
                             type="button"
                             onClick={() => setReviewType("B")}
-                            className={`text-left p-5 rounded-[24px] border-2 transition-all duration-200 cursor-pointer flex gap-4 items-center group relative overflow-hidden ${
+                            className={`text-left p-3.5 sm:p-5 rounded-[20px] sm:rounded-[24px] border-2 transition-all duration-200 cursor-pointer flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center group relative overflow-hidden ${
                                 reviewType === "B"
                                     ? "bg-blue-500/5 dark:bg-blue-500/10 border-blue-500 shadow-md"
                                     : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-850 hover:border-blue-500/40"
                             }`}
                         >
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                            <div className={`w-9 sm:w-12 h-9 sm:h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                                 reviewType === "B"
                                     ? "bg-blue-500 text-white"
                                     : "bg-slate-100 dark:bg-slate-900 text-slate-400 group-hover:bg-blue-500/10 group-hover:text-blue-500"
                             }`}>
-                                <Video className="w-6 h-6" />
+                                <Video className="w-4 h-4 sm:w-6 sm:h-6" />
                             </div>
                             <div>
-                                <div className="text-[10px] font-black uppercase tracking-wider text-blue-550 dark:text-blue-400">Form B Review</div>
-                                <h4 className="text-sm font-extrabold mt-1 text-slate-900 dark:text-white">Teaching Observation</h4>
-                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug font-medium">Classroom pacing, slides structure, student dialogue.</p>
+                                <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-blue-550 dark:text-blue-400">Form B Review</div>
+                                <h4 className="text-xs sm:text-sm font-extrabold mt-0.5 sm:mt-1 text-slate-900 dark:text-white truncate">Teaching Observation</h4>
+                                <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 sm:mt-1 leading-snug font-medium line-clamp-2">Classroom pacing & slides.</p>
                             </div>
                         </button>
 
@@ -359,23 +360,23 @@ export default function DeoDashboard() {
                         <button
                             type="button"
                             onClick={() => setReviewType("C")}
-                            className={`text-left p-5 rounded-[24px] border-2 transition-all duration-200 cursor-pointer flex gap-4 items-center group relative overflow-hidden ${
+                            className={`text-left p-3.5 sm:p-5 rounded-[20px] sm:rounded-[24px] border-2 transition-all duration-200 cursor-pointer flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center group relative overflow-hidden col-span-2 md:col-span-1 ${
                                 reviewType === "C"
                                     ? "bg-purple-500/5 dark:bg-purple-500/10 border-purple-500 shadow-md"
                                     : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-850 hover:border-purple-500/40"
                             }`}
                         >
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                            <div className={`w-9 sm:w-12 h-9 sm:h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                                 reviewType === "C"
                                     ? "bg-purple-500 text-white"
-                                    : "bg-slate-100 dark:bg-slate-900 text-slate-450 dark:text-slate-400 group-hover:bg-purple-500/10 group-hover:text-purple-500"
+                                    : "bg-slate-100 dark:bg-slate-900 text-slate-400 group-hover:bg-purple-500/10 group-hover:text-purple-500"
                             }`}>
-                                <ShieldCheck className="w-6 h-6" />
+                                <ShieldCheck className="w-4 h-4 sm:w-6 sm:h-6" />
                             </div>
                             <div>
-                                <div className="text-[10px] font-black uppercase tracking-wider text-purple-550 dark:text-purple-400">Form C Moderation</div>
-                                <h4 className="text-sm font-extrabold mt-1 text-slate-900 dark:text-white">Exam Moderation</h4>
-                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug font-medium">Marking rubrics, Bloom taxonomy, question feasibility.</p>
+                                <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-purple-550 dark:text-purple-400">Form C Moderation</div>
+                                <h4 className="text-xs sm:text-sm font-extrabold mt-0.5 sm:mt-1 text-slate-900 dark:text-white truncate">Exam Moderation</h4>
+                                <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 sm:mt-1 leading-snug font-medium line-clamp-2">Question paper vetting & mark scheme.</p>
                             </div>
                         </button>
                     </div>
@@ -416,8 +417,9 @@ export default function DeoDashboard() {
                                         disabled={!form.courseCode}
                                     />
                                     {form.courseCode && selectedCourseObj && !selectedCourseObj.sections.some((s: any) => s.lecturerId) && (
-                                        <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-1.5 absolute top-full left-0 w-max">
-                                            ⚠️ No lecturers officially assigned to this course yet.
+                                        <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-1.5 absolute top-full left-0 w-max flex items-center gap-1">
+                                            <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0" />
+                                            <span>No lecturers officially assigned to this course yet.</span>
                                         </p>
                                     )}
                                 </div>
@@ -558,8 +560,9 @@ export default function DeoDashboard() {
                                                                     </span>
 
                                                                     {isPending && days >= 5 && (
-                                                                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
-                                                                            ⚠️ {days}d overdue
+                                                                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 flex items-center gap-1">
+                                                                            <Clock className="w-2.5 h-2.5 shrink-0" />
+                                                                            <span>{days}d overdue</span>
                                                                         </span>
                                                                     )}
                                                                 </div>

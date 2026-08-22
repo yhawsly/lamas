@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { AlertTriangle, AlertCircle } from "lucide-react";
+import { useTerm } from "@/context/TermContext";
 
 const DetailWorkspaceSkeleton = () => (
     <div className="max-w-4xl mx-auto space-y-8 animate-pulse pb-20 pt-6 px-4">
@@ -118,6 +120,7 @@ export default function ConductObservationPage() {
     const { id } = useParams();
     const router = useRouter();
     const { data: session } = useSession();
+    const { isArchiveMode } = useTerm();
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -173,6 +176,10 @@ export default function ConductObservationPage() {
     }, [id]);
 
     const handleSave = async () => {
+        if (isArchiveMode) {
+            setError("Action Disabled: You are viewing a read-only historical archive.");
+            return;
+        }
         setError("");
         setSaving(true);
         // Map recommendation and feedback together for backward compatibility
@@ -198,6 +205,10 @@ export default function ConductObservationPage() {
     };
 
     const handleSchedule = async () => {
+        if (isArchiveMode) {
+            setError("Action Disabled: You are viewing a read-only historical archive.");
+            return;
+        }
         if (!scheduleDate || !scheduleTime) return setError("Please select both a date and a time.");
         setError("");
         setScheduling(true);
@@ -230,7 +241,7 @@ export default function ConductObservationPage() {
     const isCompleted = data.status !== "PENDING";
     const isBlocked = data.isObserveeAssigned === false;
     const isObserverUser = parseInt(session?.user?.id || "0") === data.observerId;
-    const isDisabled = isCompleted || isBlocked || !isObserverUser;
+    const isDisabled = isCompleted || isBlocked || !isObserverUser || isArchiveMode;
 
     const renderRadioGroup = (section: keyof FormAReviewData["criteria"], field: string, sn: number, text: string) => {
         return (
@@ -320,7 +331,7 @@ export default function ConductObservationPage() {
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="w-full max-w-5xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-500">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-start pb-6 border-b" style={{ borderColor: "var(--bg-border)" }}>
                 <div>
@@ -356,7 +367,7 @@ export default function ConductObservationPage() {
             {isBlocked && (
                 <div className="p-6 rounded-3xl border flex gap-4 items-start shadow-sm" style={{ backgroundColor: "rgba(239, 68, 68, 0.08)", borderColor: "rgba(239, 68, 68, 0.2)", color: "#ef4444" }}>
                     <div className="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center font-bold text-white shadow-sm mt-0.5 bg-red-500">
-                        ⚠️
+                        <AlertTriangle className="w-4 h-4 text-white" />
                     </div>
                     <div>
                         <h3 className="font-bold text-[15px] mb-1.5">Review Blocked</h3>
@@ -528,8 +539,9 @@ export default function ConductObservationPage() {
 
             {/* Error */}
             {error && (
-                <div className="p-4 rounded-2xl border text-sm font-medium" style={{ background: "rgba(239,68,68,0.08)", borderColor: "rgba(239,68,68,0.25)", color: "#f87171" }}>
-                    ⚠️ {error}
+                <div className="p-4 rounded-2xl border text-sm font-medium flex items-center gap-2" style={{ background: "rgba(239,68,68,0.08)", borderColor: "rgba(239,68,68,0.25)", color: "#f87171" }}>
+                    <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                    <span>{error}</span>
                 </div>
             )}
 

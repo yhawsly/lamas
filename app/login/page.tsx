@@ -48,7 +48,7 @@ export default function LoginPage() {
     return (
         <div className="min-h-screen w-full flex flex-col md:flex-row bg-white font-sans antialiased text-slate-900 selection:bg-blue-600 selection:text-white">
             {/* Left Side - University Visual Hero Panel */}
-            <div className="relative flex flex-col justify-between p-8 sm:p-12 md:p-14 lg:p-16 text-white w-full md:w-1/2 lg:w-[52%] min-h-[480px] md:min-h-screen overflow-hidden shrink-0 select-none">
+            <div className="relative flex flex-col justify-between p-6 sm:p-10 md:p-14 lg:p-16 text-white w-full md:w-1/2 lg:w-[52%] min-h-[200px] sm:min-h-[300px] md:min-h-screen overflow-hidden shrink-0 select-none">
                 {/* Background Image (HTU Official Image) */}
                 <div
                     className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
@@ -63,35 +63,35 @@ export default function LoginPage() {
 
                 {/* Top Badge: HTU LAMAS Emblem */}
                 <div className="relative z-10">
-                    <div className="inline-flex items-center gap-3 bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl shadow-xl border border-white/40">
-                        <div className="w-9 h-9 rounded-xl bg-white p-0.5 flex items-center justify-center shadow-xs">
+                    <div className="inline-flex items-center gap-3 bg-white/95 backdrop-blur-md px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-xl border border-white/40">
+                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white p-0.5 flex items-center justify-center shadow-xs">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src="/htu-logo.png" alt="HTU Official Crest" className="w-full h-full object-contain" />
                         </div>
                         <div className="flex flex-col leading-none">
-                            <span className="font-black text-blue-950 text-sm tracking-wider">HTU</span>
-                            <span className="font-extrabold text-blue-800 text-[11px] tracking-widest uppercase">LAMAS</span>
+                            <span className="font-black text-blue-950 text-xs sm:text-sm tracking-wider">HTU</span>
+                            <span className="font-extrabold text-blue-800 text-[10px] sm:text-[11px] tracking-widest uppercase">LAMAS</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Middle & Bottom Content Area */}
-                <div className="relative z-10 space-y-7 my-auto pt-10 pb-6 max-w-xl">
+                <div className="relative z-10 space-y-4 md:space-y-7 my-auto pt-4 md:pt-10 pb-4 md:pb-6 max-w-xl">
                     {/* Main Headline */}
-                    <div className="space-y-3">
-                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-[1.12] drop-shadow-sm">
-                            Championing <br />
-                            Academic Excellence <br />
+                    <div className="space-y-2 md:space-y-3">
+                        <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-[1.12] drop-shadow-sm">
+                            Championing <br className="hidden sm:inline" />
+                            Academic Excellence <br className="hidden sm:inline" />
                             <span className="text-blue-200">&amp; Integrity</span>
                         </h1>
-                        <p className="text-sm sm:text-base text-slate-200/90 font-normal leading-relaxed max-w-lg">
+                        <p className="text-xs sm:text-sm md:text-base text-slate-200/90 font-normal leading-relaxed max-w-lg">
                             Ho Technical University&apos;s premier lecture &amp; academic audit portal — empowering faculty,
                             heads of department, and exam officers with real-time quality assurance.
                         </p>
                     </div>
 
-                    {/* 3 Pill Features */}
-                    <div className="space-y-3 pt-2">
+                    {/* 3 Pill Features (visible on larger screens) */}
+                    <div className="hidden sm:block space-y-3 pt-2">
                         <div className="flex items-center gap-3.5 text-slate-100/95 group">
                             <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shrink-0 group-hover:bg-white/20 transition">
                                 <FileText className="w-5 h-5 text-blue-300" />
@@ -122,7 +122,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* Footer Copyright */}
-                <div className="relative z-10 text-[11px] text-slate-400 font-medium pt-4">
+                <div className="relative z-10 text-[10px] sm:text-[11px] text-slate-400 font-medium pt-2 md:pt-4">
                     © {new Date().getFullYear()} Ho Technical University. All rights reserved.
                 </div>
             </div>

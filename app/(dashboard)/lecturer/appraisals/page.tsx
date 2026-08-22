@@ -55,24 +55,24 @@ export default function AppraisalsPage() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in duration-500">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>Appraisals & Reviews</h1>
                 <p className="mt-1" style={{ color: "var(--text-secondary)" }}>Track all your peer observations, teaching observations, and exam moderations.</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                <div className="bg-emerald-500/10 border border-emerald-500/20 p-5 rounded-2xl flex flex-col justify-center">
-                    <div className="text-emerald-500 text-sm font-bold mb-1 tracking-widest uppercase">Assigned to Observe</div>
-                    <div className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>{assignments.filter(o => o.observerId === userId).length}</div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-8">
+                <div className="bg-emerald-500/10 border border-emerald-500/20 p-3.5 sm:p-5 rounded-2xl flex flex-col justify-center">
+                    <div className="text-emerald-500 text-[10px] sm:text-xs font-bold mb-1 tracking-wider uppercase truncate">Assigned to Observe</div>
+                    <div className="text-2xl sm:text-3xl font-black" style={{ color: "var(--text-primary)" }}>{assignments.filter(o => o.observerId === userId).length}</div>
                 </div>
-                <div className="bg-blue-500/10 border border-blue-500/20 p-5 rounded-2xl flex flex-col justify-center">
-                    <div className="text-blue-500 text-sm font-bold mb-1 tracking-widest uppercase">Being Evaluated</div>
-                    <div className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>{assignments.filter(o => o.lecturerId === userId).length}</div>
+                <div className="bg-blue-500/10 border border-blue-500/20 p-3.5 sm:p-5 rounded-2xl flex flex-col justify-center">
+                    <div className="text-blue-500 text-[10px] sm:text-xs font-bold mb-1 tracking-wider uppercase truncate">Being Evaluated</div>
+                    <div className="text-2xl sm:text-3xl font-black" style={{ color: "var(--text-primary)" }}>{assignments.filter(o => o.lecturerId === userId).length}</div>
                 </div>
-                <div className="bg-amber-500/10 border border-amber-500/20 p-5 rounded-2xl flex flex-col justify-center">
-                    <div className="text-amber-500 text-sm font-bold mb-1 tracking-widest uppercase">Pending Action</div>
-                    <div className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>{assignments.filter(o => o.status === "PENDING" && o.observerId === userId).length}</div>
+                <div className="bg-amber-500/10 border border-amber-500/20 p-3.5 sm:p-5 rounded-2xl flex flex-col justify-center col-span-2 sm:col-span-1">
+                    <div className="text-amber-500 text-[10px] sm:text-xs font-bold mb-1 tracking-wider uppercase truncate">Pending Action</div>
+                    <div className="text-2xl sm:text-3xl font-black" style={{ color: "var(--text-primary)" }}>{assignments.filter(o => o.status === "PENDING" && o.observerId === userId).length}</div>
                 </div>
             </div>
 

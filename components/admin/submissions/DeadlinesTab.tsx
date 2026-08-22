@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
-import { Clock, Plus, Calendar, AlertTriangle } from "lucide-react";
+import { Clock, Plus, Calendar, AlertTriangle, Zap, CheckCircle2, AlertCircle } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 
 const DeadlinesSkeleton = () => (
@@ -50,7 +50,7 @@ export default function DeadlinesTab() {
     async function createDeadline(e: React.FormEvent) {
         e.preventDefault(); 
         if (isArchiveMode) {
-            setMsg("❌ Action Disabled: You are currently viewing a read-only historical archive.");
+            setMsg("Action Disabled: You are currently viewing a read-only historical archive.");
             setTimeout(() => setMsg(""), 3000);
             return;
         }
@@ -59,10 +59,10 @@ export default function DeadlinesTab() {
         if (res.ok) {
             const d = await res.json().catch(() => ({}));
             setDeadlines(p => [d, ...p]);
-            setMsg("✅ Deadline created and lecturers notified!");
+            setMsg("Deadline created and lecturers notified!");
             setForm({ type: "SEMESTER_CALENDAR", label: "", dueDate: "" });
         }
-        else setMsg("❌ Failed to create deadline.");
+        else setMsg("Failed to create deadline.");
         setSaving(false); setTimeout(() => setMsg(""), 3000);
     }
 
@@ -80,20 +80,89 @@ export default function DeadlinesTab() {
         return Math.ceil((new Date(d).getTime() - now) / 86400000);
     }
 
+    const [isAutoGenerating, setIsAutoGenerating] = useState(false);
+
+    async function handleAutoGenerate() {
+        if (isArchiveMode) {
+            setMsg("Action Disabled: You are currently viewing a read-only historical archive.");
+            setTimeout(() => setMsg(""), 3000);
+            return;
+        }
+        setIsAutoGenerating(true);
+        try {
+            const res = await fetch("/api/deadlines/auto", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ termId: selectedTermId })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setMsg(`Automated Milestones Generated! (${data.count || 0} milestones created).`);
+                // Reload deadlines
+                const termParam = selectedTermId ? `?termId=${selectedTermId}` : "";
+                const r = await fetch(`/api/deadlines${termParam}`);
+                const d = await r.ok ? r.json().catch(() => []) : [];
+                setDeadlines(Array.isArray(d) ? d : []);
+            } else {
+                setMsg(`Error: ${data.error || "Failed to auto-generate milestones"}`);
+            }
+        } catch (e: any) {
+            setMsg(`Error: ${e.message}`);
+        } finally {
+            setIsAutoGenerating(false);
+            setTimeout(() => setMsg(""), 4000);
+        }
+    }
+
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            <div>
-                <h2 className="text-2xl font-bold tracking-tight mb-2" style={{ color: "var(--text-primary)" }}>Submission Deadlines</h2>
-                <p className="text-sm" style={{ color: "var(--text-muted)" }}>Create and manage due dates for lecturer appraisals and curriculum submissions.</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight mb-2" style={{ color: "var(--text-primary)" }}>Submission Deadlines</h2>
+                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>Create and manage due dates for lecturer appraisals and curriculum submissions.</p>
+                </div>
+
+                <button
+                    type="button"
+                    onClick={handleAutoGenerate}
+                    disabled={isAutoGenerating || isArchiveMode}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 transition shadow-md shadow-blue-500/20 flex items-center gap-2 cursor-pointer disabled:opacity-50 shrink-0"
+                >
+                    <Zap className="w-3.5 h-3.5" />
+                    <span>{isAutoGenerating ? "Generating..." : "Auto-Populate 4 Active Milestones"}</span>
+                </button>
+            </div>
+
+            {/* Automated Milestone Framework Banner */}
+            <div className="p-4 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-800/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                        <Clock className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <h4 className="text-xs font-extrabold text-blue-900 dark:text-blue-300">Automated Milestone Engine Active</h4>
+                        <p className="text-[11px] text-blue-700/80 dark:text-blue-400 mt-0.5">
+                            Standard active milestones: <strong>Wk 2</strong> (Calendar) · <strong>Wk 3</strong> (Topics) · <strong>Wk 8</strong> (Mid-Term Log) · <strong>Wk 9</strong> (Observation)
+                        </p>
+                    </div>
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 self-start md:self-auto">
+                    Auto-Linked to Term Start
+                </span>
             </div>
 
             {msg && (
-                <div className="p-4 rounded-xl text-sm border font-semibold" style={{
-                    backgroundColor: msg.startsWith("✅") ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
-                    borderColor: msg.startsWith("✅") ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)",
-                    color: msg.startsWith("✅") ? "#10b981" : "#ef4444"
-                }}>
-                    {msg}
+                <div className={`p-4 rounded-xl text-sm border font-semibold flex items-center gap-2.5 ${
+                    !msg.toLowerCase().includes("failed") && !msg.toLowerCase().includes("error") && !msg.toLowerCase().includes("disabled")
+                        ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                        : "bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400"
+                }`}>
+                    {!msg.toLowerCase().includes("failed") && !msg.toLowerCase().includes("error") && !msg.toLowerCase().includes("disabled") ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    ) : (
+                        <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                    )}
+                    <span>{msg.replace(/^Error:\s*/i, "")}</span>
                 </div>
             )}
 
@@ -134,8 +203,9 @@ export default function DeadlinesTab() {
                                 value={form.label} 
                                 onChange={e => setForm({ ...form, label: e.target.value })} 
                                 required 
+                                disabled={isArchiveMode}
                                 placeholder="e.g. Semester 2 Calendar Submission"
-                                className="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900" 
+                                className="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 disabled:opacity-50" 
                                 style={{ color: "var(--text-primary)" }} 
                             />
                         </div>
@@ -151,7 +221,8 @@ export default function DeadlinesTab() {
                                 value={form.dueDate} 
                                 onChange={e => setForm({ ...form, dueDate: e.target.value })} 
                                 required
-                                className="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900" 
+                                disabled={isArchiveMode}
+                                className="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 disabled:opacity-50" 
                                 style={{ color: "var(--text-primary)" }} 
                             />
                         </div>
@@ -159,11 +230,11 @@ export default function DeadlinesTab() {
                         <div className="lg:col-span-2">
                             <button 
                                 type="submit" 
-                                disabled={saving}
+                                disabled={saving || isArchiveMode}
                                 className="w-full px-5 py-2.5 rounded-xl text-sm font-bold transition-all hover:brightness-105 active:scale-[0.98] text-white flex items-center justify-center gap-2 shrink-0 h-[42px] shadow-md shadow-blue-500/20 disabled:opacity-50 cursor-pointer"
                                 style={{ backgroundColor: "var(--primary)" }}
                             >
-                                {saving ? "Creating..." : "Create & Notify"}
+                                {isArchiveMode ? "Read Only" : saving ? "Creating..." : "Create & Notify"}
                             </button>
                         </div>
                     </form>

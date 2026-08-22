@@ -22,7 +22,8 @@ import {
     X,
     FileSpreadsheet,
     CheckSquare,
-    Image as ImageIcon
+    Image as ImageIcon,
+    Lock
 } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 
@@ -372,7 +373,7 @@ export default function LecturerResourcesPage() {
     });
 
     return (
-        <div className="max-w-7xl mx-auto animate-in fade-in duration-400">
+        <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in duration-400">
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Resources</h1>
@@ -433,7 +434,18 @@ export default function LecturerResourcesPage() {
             {/* ─── TAB Content: MY UPLOADS ─── */}
             {activeTab === "MY_UPLOADS" && (
                 <div className="space-y-8 animate-in fade-in duration-300">
-                    {/* DRAG AND DROP ZONE */}
+                    {/* DRAG AND DROP ZONE / ARCHIVE NOTICE */}
+                    {isArchiveMode ? (
+                        <div className="rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 p-8 text-center bg-slate-50/50 dark:bg-slate-900/30">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 mx-auto flex items-center justify-center mb-3">
+                                <Lock className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">Read-Only Archive Mode</h3>
+                            <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+                                You are reviewing an archived academic term. File uploads and deletions are disabled.
+                            </p>
+                        </div>
+                    ) : (
                     <div 
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
@@ -574,6 +586,7 @@ export default function LecturerResourcesPage() {
                             </div>
                         )}
                     </div>
+                    )}
 
                     {/* ATTACHED FILES TABLE GRID */}
                     <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-3xl overflow-hidden shadow-sm">
@@ -708,13 +721,15 @@ export default function LecturerResourcesPage() {
                                                             >
                                                                 <ExternalLink className="w-4 h-4" />
                                                             </a>
-                                                            <button 
-                                                                onClick={() => handleDelete(r.id)}
-                                                                className="inline-flex items-center justify-center p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-rose-600 hover:bg-rose-600 hover:text-white transition"
-                                                                title="Delete"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
+                                                            {!isArchiveMode && (
+                                                                <button 
+                                                                    onClick={() => handleDelete(r.id)}
+                                                                    className="inline-flex items-center justify-center p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-rose-600 hover:bg-rose-600 hover:text-white transition"
+                                                                    title="Delete"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </td>
                                                 </tr>

@@ -41,10 +41,10 @@ export default function AdminNotifyPage() {
     }
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>Broadcast Notification</h1>
-                <p className="mt-1" style={{ color: "var(--text-muted)" }}>Send a message to all lecturers or a specific group</p>
+        <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in duration-500">
+            <div className="mb-4 sm:mb-8">
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight" style={{ color: "var(--text-primary)" }}>Broadcast Notification</h1>
+                <p className="text-xs sm:text-sm mt-1" style={{ color: "var(--text-muted)" }}>Send official notifications and announcements to faculty members, HODs, or entire departments.</p>
             </div>
             <div className="rounded-2xl p-8" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
                 {result ? (

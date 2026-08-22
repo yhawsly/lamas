@@ -81,14 +81,43 @@ export default function HoDDashboard() {
     const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b.score, 0) / scores.length) : 0;
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
-            <div className="mb-4">
-                <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">HOD Dashboard</h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Department compliance and observation management.</p>
+        <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in duration-500">
+            <div className="mb-2 sm:mb-4">
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">HOD Dashboard</h1>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Department compliance, curriculum distribution, and peer observation management.</p>
+            </div>
+
+            {/* ── Mobile-Only Quick Actions ── */}
+            <div className="grid grid-cols-2 gap-2.5 sm:hidden">
+                <a 
+                    href="/hod/staff"
+                    className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs flex items-center gap-3 active:scale-[0.98] transition"
+                >
+                    <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                        <Users className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                        <div className="text-xs font-black text-slate-900 dark:text-white leading-tight">Staff & Reviews</div>
+                        <div className="text-[10px] text-slate-400 font-semibold mt-0.5">{scores.length} Lecturers</div>
+                    </div>
+                </a>
+
+                <a 
+                    href="/hod/curriculum"
+                    className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs flex items-center gap-3 active:scale-[0.98] transition"
+                >
+                    <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                        <BookOpen className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                        <div className="text-xs font-black text-slate-900 dark:text-white leading-tight">Curriculum Map</div>
+                        <div className="text-[10px] text-slate-400 font-semibold mt-0.5">{courses.length} Courses</div>
+                    </div>
+                </a>
             </div>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
                 {[
                     { label: "Dept. Lecturers", value: scores.length, icon: <Users className="w-6 h-6" />, color: "#3b82f6" },
                     { label: "Avg Compliance", value: `${avgScore}%`, icon: <BarChart2 className="w-6 h-6" />, color: avgScore >= 70 ? "#10b981" : "#ef4444" },

@@ -15,7 +15,9 @@ import {
     X,
     RotateCcw,
     FileSpreadsheet,
-    Image as ImageIcon
+    Image as ImageIcon,
+    CheckCircle2,
+    AlertCircle
 } from "lucide-react";
 
 import { useTerm } from "@/context/TermContext";
@@ -106,7 +108,7 @@ export default function HODResourcesPage() {
 
     const updateStatus = async (id: number, status: string, providedFeedback?: string) => {
         if (isArchiveMode) {
-            setMsg("❌ Action Disabled: You are currently viewing a read-only historical archive.");
+            setMsg("Action Disabled: You are currently viewing a read-only historical archive.");
             setTimeout(() => setMsg(""), 4000);
             return;
         }
@@ -122,13 +124,13 @@ export default function HODResourcesPage() {
             });
 
             if (res.ok) {
-                setMsg(`✅ Resource marked as ${status}`);
+                setMsg(`Resource marked as ${status}`);
                 fetchResources();
             } else {
-                setMsg("❌ Failed to update resource status");
+                setMsg("Failed to update resource status");
             }
         } catch (e: any) {
-            setMsg(`❌ Error: ${e.message}`);
+            setMsg(`Error: ${e.message}`);
         }
         setTimeout(() => setMsg(""), 4000);
     };
@@ -169,7 +171,7 @@ export default function HODResourcesPage() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-400">
+        <div className="w-full space-y-8 animate-in fade-in duration-400">
             <header className="mb-8">
                 <h1 className="text-3xl font-semibold text-slate-900 dark:text-white tracking-tight">Resource Approvals</h1>
                 <p className="mt-1 text-slate-600 dark:text-slate-350 max-w-3xl">
@@ -178,12 +180,17 @@ export default function HODResourcesPage() {
             </header>
 
             {msg && (
-                <div className="p-4 rounded-xl text-sm border transition-all animate-in slide-in-from-top-2" style={{
-                    backgroundColor: msg.startsWith("✅") ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
-                    borderColor: msg.startsWith("✅") ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)",
-                    color: msg.startsWith("✅") ? "#10b981" : "#ef4444"
-                }}>
-                    {msg}
+                <div className={`p-4 rounded-xl text-sm border flex items-center gap-2.5 font-semibold transition-all animate-in slide-in-from-top-2 ${
+                    msg.startsWith("Resource marked") 
+                        ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                        : "bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400"
+                }`}>
+                    {msg.startsWith("Resource marked") ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    ) : (
+                        <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                    )}
+                    <span>{msg}</span>
                 </div>
             )}
 
@@ -266,41 +273,45 @@ export default function HODResourcesPage() {
                                                         <Eye className="w-4 h-4" />
                                                     </a>
 
-                                                    {r.status === "PENDING" && (
+                                                    {!isArchiveMode && (
                                                         <>
-                                                            <button 
-                                                                onClick={() => updateStatus(r.id, "APPROVED")} 
-                                                                className="inline-flex items-center justify-center p-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 transition shadow-sm"
-                                                                title="Approve"
-                                                            >
-                                                                <Check className="w-4 h-4" />
-                                                            </button>
-                                                            <button 
-                                                                onClick={() => setRejectingId(r.id)} 
-                                                                className="inline-flex items-center justify-center p-2 rounded-lg bg-rose-600 text-white hover:bg-rose-500 transition shadow-sm"
-                                                                title="Reject"
-                                                            >
-                                                                <X className="w-4 h-4" />
-                                                            </button>
+                                                            {r.status === "PENDING" && (
+                                                                <>
+                                                                    <button 
+                                                                        onClick={() => updateStatus(r.id, "APPROVED")} 
+                                                                        className="inline-flex items-center justify-center p-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 transition shadow-sm"
+                                                                        title="Approve"
+                                                                    >
+                                                                        <Check className="w-4 h-4" />
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={() => setRejectingId(r.id)} 
+                                                                        className="inline-flex items-center justify-center p-2 rounded-lg bg-rose-600 text-white hover:bg-rose-500 transition shadow-sm"
+                                                                        title="Reject"
+                                                                    >
+                                                                        <X className="w-4 h-4" />
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            {r.status === "APPROVED" && (
+                                                                <button 
+                                                                    onClick={() => setRejectingId(r.id)} 
+                                                                    className="inline-flex items-center justify-center p-2 rounded-lg bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 hover:bg-rose-600 hover:text-white transition"
+                                                                    title="Revoke / Reject"
+                                                                >
+                                                                    <X className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                            {r.status === "REJECTED" && (
+                                                                <button 
+                                                                    onClick={() => updateStatus(r.id, "APPROVED")} 
+                                                                    className="inline-flex items-center justify-center p-2 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-650 hover:bg-emerald-650 hover:text-white transition"
+                                                                    title="Restore / Approve"
+                                                                >
+                                                                    <RotateCcw className="w-4 h-4" />
+                                                                </button>
+                                                            )}
                                                         </>
-                                                    )}
-                                                    {r.status === "APPROVED" && (
-                                                        <button 
-                                                            onClick={() => setRejectingId(r.id)} 
-                                                            className="inline-flex items-center justify-center p-2 rounded-lg bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 hover:bg-rose-600 hover:text-white transition"
-                                                            title="Revoke / Reject"
-                                                        >
-                                                            <X className="w-4 h-4" />
-                                                        </button>
-                                                    )}
-                                                    {r.status === "REJECTED" && (
-                                                        <button 
-                                                            onClick={() => updateStatus(r.id, "APPROVED")} 
-                                                            className="inline-flex items-center justify-center p-2 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-650 hover:bg-emerald-650 hover:text-white transition"
-                                                            title="Restore / Approve"
-                                                        >
-                                                            <RotateCcw className="w-4 h-4" />
-                                                        </button>
                                                     )}
                                                 </div>
                                             </td>

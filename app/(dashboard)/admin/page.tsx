@@ -84,10 +84,10 @@ export default function AdminDashboard() {
     const { summary } = data;
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <div className="mb-8">
-                <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Admin Dashboard</h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Institution-wide academic compliance overview.</p>
+        <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in duration-500">
+            <div className="mb-4 sm:mb-8">
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Admin Dashboard</h1>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Institution-wide academic compliance overview and governance.</p>
             </div>
 
             {/* KPI Strip */}

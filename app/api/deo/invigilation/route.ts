@@ -161,7 +161,7 @@ export async function POST(req: NextRequest) {
 
         if (venueConflict) {
             return NextResponse.json({
-                error: `⚠️ Venue Clash: ${venueConflict.hall.name} is already booked for ${venueConflict.courseCode} on this date at ${timeSlot}.`
+                error: `Venue Clash: ${venueConflict.hall.name} is already booked for ${venueConflict.courseCode} on this date at ${timeSlot}.`
             }, { status: 409 });
         }
 
@@ -187,7 +187,7 @@ export async function POST(req: NextRequest) {
             if (chiefConflict) {
                 const lecturerName = chiefConflict.chiefInvigilator?.name || "The selected chief invigilator";
                 return NextResponse.json({
-                    error: `⚠️ Invigilator Clash: ${lecturerName} is already assigned to ${chiefConflict.courseCode} in ${chiefConflict.hall.name} at ${timeSlot}.`
+                    error: `Invigilator Clash: ${lecturerName} is already assigned to ${chiefConflict.courseCode} in ${chiefConflict.hall.name} at ${timeSlot}.`
                 }, { status: 409 });
             }
         }
@@ -213,7 +213,7 @@ export async function POST(req: NextRequest) {
             if (astConflict) {
                 const confUser = await prisma.user.findUnique({ where: { id: astId }, select: { name: true } });
                 return NextResponse.json({
-                    error: `⚠️ Invigilator Clash: Assistant ${confUser?.name || 'Lecturer'} is already assigned to ${astConflict.courseCode} in ${astConflict.hall.name} at ${timeSlot}.`
+                    error: `Invigilator Clash: Assistant ${confUser?.name || 'Lecturer'} is already assigned to ${astConflict.courseCode} in ${astConflict.hall.name} at ${timeSlot}.`
                 }, { status: 409 });
             }
         }
@@ -269,7 +269,7 @@ export async function POST(req: NextRequest) {
         const classInfo = result.targetClass ? ` for ${result.targetClass}` : "";
         const notificationsData = assignedLecturersToNotify.map(uid => ({
             userId: uid,
-            message: `📋 Invigilation Duty: You have been assigned as an invigilator for ${result.courseCode}${classInfo} on ${formattedDate} (${result.timeSlot}) at ${result.hall.name}.`
+            message: `Invigilation Duty: You have been assigned as an invigilator for ${result.courseCode}${classInfo} on ${formattedDate} (${result.timeSlot}) at ${result.hall.name}.`
         }));
 
         if (notificationsData.length > 0) {

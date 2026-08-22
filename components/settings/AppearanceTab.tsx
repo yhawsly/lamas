@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { 
-    Palette, Sun, Moon, Monitor, Eye, 
-    Sparkles, CheckCircle2, Sliders, LayoutGrid, Check 
+    Palette, Sun, Moon, 
+    Sparkles, CheckCircle2, Sliders, Check 
 } from "lucide-react";
 
 export default function AppearanceTab() {
@@ -17,6 +17,7 @@ export default function AppearanceTab() {
         const saved = (localStorage.getItem("lamas-theme") as "light" | "dark") || "dark";
         const storedCompact = localStorage.getItem("lamas_compact_mode") === "true";
         const storedMotion = localStorage.getItem("lamas_reduce_motion") === "true";
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setThemeState(saved);
         setCompactMode(storedCompact);
         setReduceMotion(storedMotion);
@@ -81,46 +82,46 @@ export default function AppearanceTab() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     <button
                         type="button"
                         onClick={() => handleThemeChange("light")}
-                        className={`p-5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                        className={`p-3.5 sm:p-5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                             theme === "light"
                                 ? "bg-indigo-50/60 dark:bg-indigo-950/40 border-indigo-500 shadow-md ring-2 ring-indigo-500/20"
                                 : "bg-slate-50/50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-700 hover:border-slate-300"
                         }`}
                     >
                         <div className="flex items-center justify-between">
-                            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-amber-500 shadow-xs">
-                                <Sun className="w-5 h-5" />
+                            <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-amber-500 shadow-xs">
+                                <Sun className="w-4 h-4 sm:w-5 sm:h-5" />
                             </div>
-                            {theme === "light" && <Check className="w-5 h-5 text-indigo-600" />}
+                            {theme === "light" && <Check className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />}
                         </div>
-                        <div className="mt-4">
-                            <div className="font-bold text-sm text-slate-900 dark:text-white">Light Mode</div>
-                            <p className="text-xs text-slate-500 mt-0.5">Crisp, high-clarity academic daytime view</p>
+                        <div className="mt-3 sm:mt-4">
+                            <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate">Light Mode</div>
+                            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 line-clamp-2">Crisp academic daytime view</p>
                         </div>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => handleThemeChange("dark")}
-                        className={`p-5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                        className={`p-3.5 sm:p-5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                             theme === "dark"
                                 ? "bg-indigo-50/60 dark:bg-indigo-950/40 border-indigo-500 shadow-md ring-2 ring-indigo-500/20"
                                 : "bg-slate-50/50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-700 hover:border-slate-300"
                         }`}
                     >
                         <div className="flex items-center justify-between">
-                            <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-indigo-400 shadow-xs">
-                                <Moon className="w-5 h-5" />
+                            <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-indigo-400 shadow-xs">
+                                <Moon className="w-4 h-4 sm:w-5 sm:h-5" />
                             </div>
-                            {theme === "dark" && <Check className="w-5 h-5 text-indigo-400" />}
+                            {theme === "dark" && <Check className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400" />}
                         </div>
-                        <div className="mt-4">
-                            <div className="font-bold text-sm text-slate-900 dark:text-white">Dark Mode</div>
-                            <p className="text-xs text-slate-500 mt-0.5">Deep slate palette tailored for low-light focus</p>
+                        <div className="mt-3 sm:mt-4">
+                            <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate">Dark Mode</div>
+                            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 line-clamp-2">Deep slate low-light focus</p>
                         </div>
                     </button>
                 </div>

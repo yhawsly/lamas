@@ -3,6 +3,8 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { headers, cookies } from "next/headers";
 
+import { generateAutomatedDeadlinesForTerm } from "@/lib/auto-deadlines";
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
@@ -40,7 +42,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
             prisma.academicTerm.update({ where: { id: termId }, data: { isActive: true } })
         ]);
 
-        return NextResponse.json({ success: true });
+        // Automatically generate standard academic milestones for the newly activated term
+        const createdDeadlines = await generateAutomatedDeadlinesForTerm(
+            termId, 
+            parseInt(session.user!.id!)
+        );
+
+        return NextResponse.json({ 
+            success: true, 
+            message: `Term activated successfully. ${createdDeadlines.length} automated milestone deadlines generated.`,
+            autoDeadlinesCount: createdDeadlines.length
+        });
     } catch (error) {
         console.error("Failed to activate term:", error);
         return NextResponse.json({ error: "Failed to activate term" }, { status: 500 });

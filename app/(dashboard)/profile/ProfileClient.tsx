@@ -160,7 +160,7 @@ export default function ProfileClient({ user }: { user: UserProfile }) {
     };
 
     return (
-        <div className="max-w-4xl mx-auto pb-24 space-y-8 animate-in fade-in duration-500">
+        <div className="w-full max-w-5xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-500">
             {/* Page Title */}
             <div>
                 <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">

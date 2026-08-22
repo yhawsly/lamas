@@ -110,7 +110,7 @@ export default function AllUsersTab() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                 {[
                     { label: "Total Users", value: totalUsers, icon: <Users className="w-6 h-6" />, color: "#3b82f6" },
                     { label: "Administrators", value: adminCount, icon: <Key className="w-6 h-6" />, color: "#a855f7" },

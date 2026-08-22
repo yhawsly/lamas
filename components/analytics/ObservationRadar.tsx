@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { BarChart2 } from "lucide-react";
 
 export default function ObservationRadar() {
     const [data, setData] = useState<any[]>([]);
@@ -19,8 +20,8 @@ export default function ObservationRadar() {
 
     if (data.length === 0) return (
         <div className="h-64 flex flex-col items-center justify-center" style={{ color: "var(--text-muted)" }}>
-            <span className="text-3xl mb-2">📊</span>
-            <p>No observation records available</p>
+            <BarChart2 className="w-8 h-8 mb-2 opacity-40 text-blue-500" />
+            <p className="text-xs font-semibold">No observation records available</p>
         </div>
     );
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendEmail } from "@/lib/email";
+import { sendPasswordResetEmail, getBaseUrl } from "@/lib/email";
 import { hashPassword } from "@/lib/password";
 import { headers, cookies } from "next/headers";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -74,32 +74,10 @@ export async function POST(req: NextRequest) {
             }
         });
 
-        // Send reset email
-        const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+        // Send reset email using Academic Standard template & smart base URL
+        const baseUrl = getBaseUrl();
         const resetUrl = `${baseUrl}/reset-password/token?token=${resetToken}`;
-        await sendEmail({
-            to: user.email,
-            subject: "LAMAS - Password Reset Request",
-            html: `
-                <h2>Password Reset Request</h2>
-                <p>Hi ${user.name},</p>
-                <p>You requested a password reset for your LAMAS account.</p>
-                <p>
-                    <a href="${resetUrl}" style="
-                        display: inline-block;
-                        padding: 10px 20px;
-                        background-color: #3b82f6;
-                        color: white;
-                        text-decoration: none;
-                        border-radius: 5px;
-                    ">
-                        Reset Password
-                    </a>
-                </p>
-                <p>This link will expire in 1 hour.</p>
-                <p>If you didn't request this, you can safely ignore this email.</p>
-            `
-        });
+        await sendPasswordResetEmail(user.email, user.name || "Colleague", resetUrl);
 
         return NextResponse.json(
             { message: "If an account exists with this email, you will receive a password reset link shortly." },

@@ -430,38 +430,46 @@ export default function ReviewCenterTab() {
                         </div>
 
                         {/* Review Section */}
-                        {tab === "pending" && !reviewMode && (
-                            <button onClick={() => setReviewMode(true)} className="w-full py-4 rounded-xl bg-amber-500 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-amber-500/20 active:scale-95 transition-all">
-                                Begin Quality Audit
-                            </button>
-                        )}
-
-                        {reviewMode && (
-                            <div className="space-y-4 animate-in slide-in-from-bottom-4">
-                                <div className="text-[10px] font-black uppercase tracking-widest opacity-40">Reviewer Feedback</div>
-                                <textarea 
-                                    value={feedback}
-                                    onChange={(e) => setFeedback(e.target.value)}
-                                    placeholder="Provide constructive feedback for the lecturer..."
-                                    rows={3}
-                                    className="w-full px-4 py-3 rounded-2xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900"
-                                    style={{ color: "var(--text-primary)" }}
-                                />
-                                <div className="grid grid-cols-2 gap-4">
-                                    <button 
-                                        onClick={() => handleReview("REJECTED")}
-                                        disabled={isUpdating}
-                                        className="py-3 rounded-xl border border-rose-200 dark:border-rose-500/20 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-widest hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-all disabled:opacity-50">
-                                        Flag Issues
-                                    </button>
-                                    <button 
-                                        onClick={() => handleReview("APPROVED")}
-                                        disabled={isUpdating}
-                                        className="py-3 rounded-xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 transition-all disabled:opacity-50">
-                                        Approve Plan
-                                    </button>
-                                </div>
+                        {isArchiveMode ? (
+                            <div className="w-full py-3.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold text-xs uppercase tracking-widest text-center border border-slate-200 dark:border-slate-700">
+                                Read-Only Archive Review
                             </div>
+                        ) : (
+                            <>
+                                {tab === "pending" && !reviewMode && (
+                                    <button onClick={() => setReviewMode(true)} className="w-full py-4 rounded-xl bg-amber-500 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-amber-500/20 active:scale-95 transition-all">
+                                        Begin Quality Audit
+                                    </button>
+                                )}
+
+                                {reviewMode && (
+                                    <div className="space-y-4 animate-in slide-in-from-bottom-4">
+                                        <div className="text-[10px] font-black uppercase tracking-widest opacity-40">Reviewer Feedback</div>
+                                        <textarea 
+                                            value={feedback}
+                                            onChange={(e) => setFeedback(e.target.value)}
+                                            placeholder="Provide constructive feedback for the lecturer..."
+                                            rows={3}
+                                            className="w-full px-4 py-3 rounded-2xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900"
+                                            style={{ color: "var(--text-primary)" }}
+                                        />
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <button 
+                                                onClick={() => handleReview("REJECTED")}
+                                                disabled={isUpdating}
+                                                className="py-3 rounded-xl border border-rose-200 dark:border-rose-500/20 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-widest hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-all disabled:opacity-50">
+                                                Flag Issues
+                                            </button>
+                                            <button 
+                                                onClick={() => handleReview("APPROVED")}
+                                                disabled={isUpdating}
+                                                className="py-3 rounded-xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 transition-all disabled:opacity-50">
+                                                Approve Plan
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
                         )}
 
                         {selectedSub.feedback && !reviewMode && (

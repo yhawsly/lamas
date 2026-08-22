@@ -42,13 +42,13 @@ export default function SystemControlsTab() {
             });
             const data = await res.json();
             if (res.ok) {
-                setStatusMsg({ type: "success", text: "✅ " + data.message });
+                setStatusMsg({ type: "success", text: data.message });
                 fetchMetrics();
             } else {
-                setStatusMsg({ type: "error", text: "❌ " + (data.error || "Failed to purge cache") });
+                setStatusMsg({ type: "error", text: data.error || "Failed to purge cache" });
             }
         } catch (e: any) {
-            setStatusMsg({ type: "error", text: "❌ " + e.message });
+            setStatusMsg({ type: "error", text: e.message });
         } finally {
             setActionLoading(null);
         }
@@ -65,12 +65,12 @@ export default function SystemControlsTab() {
             });
             const data = await res.json();
             if (res.ok) {
-                setStatusMsg({ type: "success", text: "✅ " + data.message });
+                setStatusMsg({ type: "success", text: data.message });
             } else {
-                setStatusMsg({ type: "error", text: "❌ " + (data.error || "Email dispatch failed") });
+                setStatusMsg({ type: "error", text: data.error || "Email dispatch failed" });
             }
         } catch (e: any) {
-            setStatusMsg({ type: "error", text: "❌ " + e.message });
+            setStatusMsg({ type: "error", text: e.message });
         } finally {
             setActionLoading(null);
         }
@@ -109,44 +109,44 @@ export default function SystemControlsTab() {
             )}
 
             {/* Infrastructure Vitals Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 shadow-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                <div className="p-3.5 sm:p-5 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 shadow-xs">
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">In-Memory Cache</span>
-                        <Cpu className="w-4 h-4 text-blue-500" />
+                        <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Memory Cache</span>
+                        <Cpu className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-blue-500 shrink-0" />
                     </div>
-                    <div className="text-2xl font-black text-slate-900 dark:text-white mt-2">
+                    <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1.5 sm:mt-2">
                         {loading ? "..." : `${metrics?.cache?.size || 0} Keys`}
                     </div>
-                    <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1 flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        Active TTL Protection
+                    <div className="text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1 flex items-center gap-1 truncate">
+                        <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                        Active TTL
                     </div>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 shadow-xs">
+                <div className="p-3.5 sm:p-5 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 shadow-xs">
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">PostgreSQL Pool</span>
-                        <Database className="w-4 h-4 text-purple-500" />
+                        <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Postgres Pool</span>
+                        <Database className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-purple-500 shrink-0" />
                     </div>
-                    <div className="text-2xl font-black text-slate-900 dark:text-white mt-2">
-                        {loading ? "..." : `Max ${metrics?.database?.poolMax || 5} Conns`}
+                    <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1.5 sm:mt-2">
+                        {loading ? "..." : `Max ${metrics?.database?.poolMax || 5}`}
                     </div>
-                    <div className="text-[11px] text-slate-500 mt-1 font-medium">
-                        Idle timeout: 10s • Pool Singleton
+                    <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1 font-medium truncate">
+                        Pool Singleton
                     </div>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 shadow-xs">
+                <div className="p-3.5 sm:p-5 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 shadow-xs col-span-2 sm:col-span-1">
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active Faculty & Staff</span>
-                        <Shield className="w-4 h-4 text-emerald-500" />
+                        <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Active Staff</span>
+                        <Shield className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-emerald-500 shrink-0" />
                     </div>
-                    <div className="text-2xl font-black text-slate-900 dark:text-white mt-2">
+                    <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1.5 sm:mt-2">
                         {loading ? "..." : `${metrics?.database?.activeUsers || 0} Users`}
                     </div>
-                    <div className="text-[11px] text-slate-500 mt-1 font-medium">
-                        Active Semester: {metrics?.database?.activeTerm || "Live"}
+                    <div className="text-[10px] sm:text-[11px] text-slate-500 mt-1 font-medium truncate">
+                        Semester: {metrics?.database?.activeTerm || "Live"}
                     </div>
                 </div>
             </div>

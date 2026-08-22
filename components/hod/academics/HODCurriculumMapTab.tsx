@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { ListPlus } from "lucide-react";
+import { ListPlus, User, AlertTriangle } from "lucide-react";
+import { useTerm } from "@/context/TermContext";
 
 const LEVELS = [100, 200, 300, 400, 500];
 const SEMESTERS = [1, 2];
@@ -105,7 +106,7 @@ const ALL_UNIVERSITY_CLASSES = [
         ]
     },
     {
-        group: "🚀 B.Tech Top-Up (Weekend ONLY, LVL 300 - 400)",
+        group: "B.Tech Top-Up (Weekend ONLY, LVL 300 - 400)",
         options: [
             { name: "B.Tech Computer Science Top-Up LVL 300 (Weekend)", session: "WEEKEND" as const },
             { name: "B.Tech Computer Science Top-Up LVL 400 (Weekend)", session: "WEEKEND" as const },
@@ -114,7 +115,7 @@ const ALL_UNIVERSITY_CLASSES = [
         ]
     },
     {
-        group: "⚡ Faculty of Engineering",
+        group: "Faculty of Engineering",
         options: [
             { name: "BEng Electrical LVL 100 (Regular)", session: "REGULAR" as const },
             { name: "BEng Electrical LVL 200 (Regular)", session: "REGULAR" as const },
@@ -129,7 +130,7 @@ const ALL_UNIVERSITY_CLASSES = [
         ]
     },
     {
-        group: "📊 Faculty of Business & Management",
+        group: "Faculty of Business & Management",
         options: [
             { name: "BBA Accounting LVL 100 (Regular)", session: "REGULAR" as const },
             { name: "BBA Accounting LVL 200 (Regular)", session: "REGULAR" as const },
@@ -147,6 +148,7 @@ const ALL_UNIVERSITY_CLASSES = [
 
 export default function HODCurriculumMapTab() {
     const { data: session } = useSession();
+    const { isArchiveMode } = useTerm();
     const userDeptId = (session?.user as any)?.departmentId;
 
     const [programs, setPrograms] = useState<Program[]>([]);
@@ -208,6 +210,10 @@ export default function HODCurriculumMapTab() {
 
     // Assignment & Section Management Actions
     const handleAssignLecturer = async (courseId: number, sectionId: number, lecturerId: number | null) => {
+        if (isArchiveMode) {
+            showAlert("Action Disabled", "Modifying course allocations is disabled in Read-Only Archive Mode.");
+            return;
+        }
         const res = await fetch("/api/courses/assignments", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -249,6 +255,10 @@ export default function HODCurriculumMapTab() {
     };
 
     const handleCreateSection = async (courseId: number) => {
+        if (isArchiveMode) {
+            showAlert("Action Disabled", "Creating classes is disabled in Read-Only Archive Mode.");
+            return;
+        }
         if (!newSectionName.trim()) return;
         setIsSavingSection(true);
         try {
@@ -456,9 +466,15 @@ export default function HODCurriculumMapTab() {
                                                                                 <div key={s.id} className="flex items-center justify-between text-[10px] font-medium text-slate-400">
                                                                                     <span className="truncate max-w-[100px]">{s.name}</span>
                                                                                     {s.lecturer ? (
-                                                                                        <span className="font-bold text-slate-500 dark:text-slate-300 truncate max-w-[100px]">👤 {s.lecturer.name}</span>
+                                                                                        <span className="font-bold text-slate-500 dark:text-slate-300 truncate max-w-[100px] flex items-center gap-1">
+                                                                                            <User className="w-3 h-3 text-slate-400 shrink-0" />
+                                                                                            <span>{s.lecturer.name}</span>
+                                                                                        </span>
                                                                                     ) : (
-                                                                                        <span className="font-bold text-amber-600 dark:text-amber-500">⚠️ Unassigned</span>
+                                                                                        <span className="font-bold text-amber-600 dark:text-amber-500 flex items-center gap-1">
+                                                                                            <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0" />
+                                                                                            <span>Unassigned</span>
+                                                                                        </span>
                                                                                     )}
                                                                                 </div>
                                                                             ))
@@ -528,7 +544,7 @@ export default function HODCurriculumMapTab() {
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between border-b pb-2" style={{ borderColor: "var(--bg-border)" }}>
                                     <h3 className="font-bold text-sm uppercase tracking-wider text-slate-400">Classes</h3>
-                                    {activeCourse.departmentId === userDeptId && (
+                                    {activeCourse.departmentId === userDeptId && !isArchiveMode && (
                                         <button
                                             onClick={() => setShowAddSection(!showAddSection)}
                                             className="text-xs font-bold text-blue-500 hover:text-blue-400 transition flex items-center gap-1"
@@ -546,7 +562,7 @@ export default function HODCurriculumMapTab() {
                                 </div>
 
                                 {/* Add Class Form */}
-                                {showAddSection && activeCourse.departmentId === userDeptId && (
+                                {showAddSection && activeCourse.departmentId === userDeptId && !isArchiveMode && (
                                     <div className="p-4 rounded-xl border space-y-3 shadow-inner animate-in slide-in-from-top-2 duration-300" style={{ backgroundColor: "var(--bg-hover)", borderColor: "var(--bg-border)" }}>
                                         <div className="flex items-center justify-between">
                                             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">New Section Configuration</div>
@@ -583,7 +599,7 @@ export default function HODCurriculumMapTab() {
                                                 const matching = ALL_UNIVERSITY_CLASSES.flatMap(g => g.options).filter(o => o.name.includes(`LVL ${courseLevel}`));
                                                 if (matching.length === 0) return null;
                                                 return (
-                                                    <optgroup label={`⭐ Recommended for Level ${courseLevel}`}>
+                                                    <optgroup label={`Recommended for Level ${courseLevel}`}>
                                                         {matching.map(opt => (
                                                             <option key={`rec-hod-${opt.name}`} value={opt.name}>
                                                                 {opt.name}
@@ -603,7 +619,7 @@ export default function HODCurriculumMapTab() {
                                                 </optgroup>
                                             ))}
 
-                                            <optgroup label="✏️ Other / Custom">
+                                            <optgroup label="Other / Custom Classes">
                                                 <option value="CUSTOM">+ Enter Custom Class Name...</option>
                                             </optgroup>
                                         </select>
@@ -656,11 +672,12 @@ export default function HODCurriculumMapTab() {
                                                     {activeCourse.departmentId === userDeptId ? (
                                                         <select
                                                             value={section.lecturerId || ""}
+                                                            disabled={isArchiveMode}
                                                             onChange={(e) => {
                                                                 const val = e.target.value;
                                                                 handleAssignLecturer(activeCourse.id, section.id, val ? parseInt(val) : null);
                                                             }}
-                                                            className="bg-white dark:bg-slate-800 border rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-blue-500/50 transition"
+                                                            className="bg-white dark:bg-slate-800 border rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-blue-500/50 transition disabled:opacity-50"
                                                             style={{ borderColor: "var(--bg-border)" }}
                                                         >
                                                             <option value="">Unassigned</option>
@@ -669,8 +686,9 @@ export default function HODCurriculumMapTab() {
                                                             ))}
                                                         </select>
                                                     ) : (
-                                                        <span className="text-xs font-semibold text-slate-400">
-                                                            👤 {section.lecturer?.name || "Unassigned"}
+                                                        <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
+                                                            <User className="w-3 h-3 text-slate-400" />
+                                                            <span>{section.lecturer?.name || "Unassigned"}</span>
                                                         </span>
                                                     )}
                                                 </div>
@@ -702,7 +720,7 @@ export default function HODCurriculumMapTab() {
                 <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="w-full max-w-sm rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200 text-center" style={{ backgroundColor: "var(--bg-base)", border: "1px solid var(--bg-border)" }}>
                         <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-red-50 text-red-500 dark:bg-red-500/10">
-                            <span className="text-2xl">⚠️</span>
+                            <AlertTriangle className="w-8 h-8 text-amber-500" />
                         </div>
                         <h2 className="text-xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>{customModal.title}</h2>
                         <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>{customModal.message}</p>

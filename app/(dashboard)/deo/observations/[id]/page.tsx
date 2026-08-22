@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { AlertCircle } from "lucide-react";
 
 const DetailWorkspaceSkeleton = () => (
     <div className="max-w-4xl mx-auto space-y-8 animate-pulse pb-20 pt-6 px-4">
@@ -434,8 +435,9 @@ export default function ConductObservationPage() {
 
             {/* Error */}
             {error && (
-                <div className="p-4 rounded-2xl border text-sm font-medium" style={{ background: "rgba(239,68,68,0.08)", borderColor: "rgba(239,68,68,0.25)", color: "#f87171" }}>
-                    ⚠️ {error}
+                <div className="p-4 rounded-2xl border text-sm font-medium flex items-center gap-2" style={{ background: "rgba(239,68,68,0.08)", borderColor: "rgba(239,68,68,0.25)", color: "#f87171" }}>
+                    <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                    <span>{error}</span>
                 </div>
             )}
 
