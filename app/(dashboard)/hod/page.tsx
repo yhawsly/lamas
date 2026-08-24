@@ -230,11 +230,11 @@ export default function HoDDashboard() {
                                             <div className="font-bold truncate" style={{ color: "var(--text-primary)" }}>{s.lecturerName}</div>
                                             <div className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{s.email}</div>
                                             <div className="mt-3 h-1.5 rounded-full w-full overflow-hidden" style={{ backgroundColor: "var(--bg-border)" }}>
-                                                <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${s.score}%`, backgroundColor: s.score >= 70 ? "#10b981" : "#ef4444" }} />
+                                                <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${Math.min(100, Math.max(0, s.score))}%`, backgroundColor: s.score >= 70 ? "#10b981" : "#ef4444" }} />
                                             </div>
                                         </div>
                                         <div className="text-right shrink-0">
-                                            <div className="text-2xl font-black" style={{ color: s.score >= 70 ? "#10b981" : "#ef4444" }}>{s.score}%</div>
+                                            <div className="text-2xl font-black" style={{ color: s.score >= 70 ? "#10b981" : "#ef4444" }}>{Math.min(100, Math.max(0, s.score))}%</div>
                                             <div className="text-[10px] font-bold uppercase" style={{ color: "var(--text-muted)" }}>{s.submitted} SUBMITTED</div>
                                         </div>
                                         {s.isAtRisk && <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/20 uppercase tracking-tighter">AT RISK</span>}

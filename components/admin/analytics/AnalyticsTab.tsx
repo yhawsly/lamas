@@ -175,13 +175,13 @@ export default function AnalyticsTab() {
                     </div>
                     <div className="mt-3 sm:mt-4">
                         <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                            {summary.avgScore}%
+                            {Math.min(100, Math.max(0, summary.avgScore))}%
                         </div>
                         <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mt-1 truncate">Average Compliance</p>
                     </div>
                     {/* Progress Bar */}
                     <div className="w-full bg-slate-100 dark:bg-slate-700/80 rounded-full h-1.5 mt-3 sm:mt-4 overflow-hidden">
-                        <div className="bg-blue-600 h-full rounded-full transition-all duration-700" style={{ width: `${summary.avgScore}%` }} />
+                        <div className="bg-blue-600 h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, Math.max(0, summary.avgScore))}%` }} />
                     </div>
                 </div>
 
@@ -497,7 +497,7 @@ export default function AnalyticsTab() {
                                             <span className={`font-black ${
                                                 isAtRisk ? "text-rose-600 dark:text-rose-400" : isOptimal ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
                                             }`}>
-                                                {lec.score}%
+                                                {Math.min(100, Math.max(0, lec.score))}%
                                             </span>
                                         </div>
                                         <div className="w-full bg-slate-200 dark:bg-slate-700/80 rounded-full h-2 overflow-hidden">
@@ -505,7 +505,7 @@ export default function AnalyticsTab() {
                                                 className={`h-full rounded-full transition-all duration-500 ${
                                                     isAtRisk ? "bg-rose-500" : isOptimal ? "bg-emerald-500" : "bg-amber-500"
                                                 }`}
-                                                style={{ width: `${lec.score}%` }}
+                                                style={{ width: `${Math.min(100, Math.max(0, lec.score))}%` }}
                                             />
                                         </div>
                                     </div>

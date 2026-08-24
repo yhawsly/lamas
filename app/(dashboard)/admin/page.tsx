@@ -183,9 +183,9 @@ export default function AdminDashboard() {
                                         <td className="py-3">
                                             <div className="flex items-center gap-2">
                                                 <div className="w-20 h-1.5 rounded-full" style={{ backgroundColor: "var(--bg-hover)" }}>
-                                                    <div className="h-1.5 rounded-full" style={{ width: `${s.score}%`, backgroundColor: s.score >= 70 ? "#10b981" : "#ef4444" }} />
+                                                    <div className="h-1.5 rounded-full" style={{ width: `${Math.min(100, Math.max(0, s.score))}%`, backgroundColor: s.score >= 70 ? "#10b981" : "#ef4444" }} />
                                                 </div>
-                                                <span style={{ color: s.score >= 70 ? "#10b981" : "#ef4444" }}>{s.score}%</span>
+                                                <span style={{ color: s.score >= 70 ? "#10b981" : "#ef4444" }}>{Math.min(100, Math.max(0, s.score))}%</span>
                                             </div>
                                         </td>
                                         <td className="py-3" style={{ color: "#10b981" }}>{s.submitted}</td>
@@ -246,10 +246,10 @@ export default function AdminDashboard() {
                                             <div className="mb-5 space-y-2">
                                                 <div className="flex justify-between text-xs font-semibold">
                                                     <span style={{ color: "var(--text-secondary)" }}>Compliance Rating</span>
-                                                    <span className="font-extrabold text-rose-600">{s.score}%</span>
+                                                    <span className="font-extrabold text-rose-600">{Math.min(100, Math.max(0, s.score))}%</span>
                                                 </div>
                                                 <div className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-hover)" }}>
-                                                    <div className="h-2 rounded-full bg-gradient-to-r from-red-500 to-rose-600" style={{ width: `${s.score}%` }} />
+                                                    <div className="h-2 rounded-full bg-gradient-to-r from-red-500 to-rose-600" style={{ width: `${Math.min(100, Math.max(0, s.score))}%` }} />
                                                 </div>
                                             </div>
 

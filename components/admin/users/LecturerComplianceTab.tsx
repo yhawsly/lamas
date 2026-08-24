@@ -145,9 +145,9 @@ export default function LecturerComplianceTab() {
                                     {/* Compliance Rate */}
                                     <div className="col-span-1 sm:col-span-3 flex items-center gap-3">
                                         <div className="w-full max-w-[120px] h-2 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-800">
-                                            <div className="h-full transition-all duration-1000 ease-out" style={{ width: `${s.score}%`, backgroundColor: s.score >= 70 ? "#10b981" : "#ef4444" }} />
+                                            <div className="h-full transition-all duration-1000 ease-out" style={{ width: `${Math.min(100, Math.max(0, s.score))}%`, backgroundColor: s.score >= 70 ? "#10b981" : "#ef4444" }} />
                                         </div>
-                                        <span className="text-xs font-bold w-9" style={{ color: s.score >= 70 ? "#10b981" : "#ef4444" }}>{s.score}%</span>
+                                        <span className="text-xs font-bold w-9" style={{ color: s.score >= 70 ? "#10b981" : "#ef4444" }}>{Math.min(100, Math.max(0, s.score))}%</span>
                                     </div>
 
                                     {/* Submissions (Late) */}

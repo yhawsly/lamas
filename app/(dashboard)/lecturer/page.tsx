@@ -27,6 +27,8 @@ const typeIcon: Record<string, ReactNode> = {
     WEEKLY_TOPICS: <Clock className="w-5 h-5 text-violet-500" />,
 };
 
+const ON_TIME_STATUSES = ["SUBMITTED", "APPROVED", "REVIEWED"];
+
 export default function LecturerDashboard() {
     const { selectedTermId } = useTerm();
     const termQuery = selectedTermId ? `?termId=${selectedTermId}` : "";
@@ -65,8 +67,26 @@ export default function LecturerDashboard() {
     }, []);
 
     const unreadNotifs = useMemo(() => notifications.filter((n: Notification) => !n.read), [notifications]);
-    const submittedCount = useMemo(() => submissions.filter((s: Submission) => s.status === "SUBMITTED").length, [submissions]);
-    const compliance = useMemo(() => deadlines.length > 0 ? Math.round((submittedCount / deadlines.length) * 100) : 100, [deadlines, submittedCount]);
+    const fulfilledDeadlinesCount = useMemo(() => {
+        if (!deadlines || deadlines.length === 0) return 0;
+        return deadlines.filter((d: any) =>
+            submissions.some((s: Submission) =>
+                (s.deadlineId === d.id || s.type === d.type) && ON_TIME_STATUSES.includes(s.status)
+            )
+        ).length;
+    }, [deadlines, submissions]);
+
+    const compliance = useMemo(() => 
+        deadlines.length > 0 
+            ? Math.min(100, Math.max(0, Math.round((fulfilledDeadlinesCount / deadlines.length) * 100))) 
+            : 100, 
+        [deadlines, fulfilledDeadlinesCount]
+    );
+
+    const submittedCount = useMemo(() => 
+        submissions.filter((s: Submission) => ["SUBMITTED", "APPROVED", "REVIEWED", "LATE"].includes(s.status)).length, 
+        [submissions]
+    );
 
     // Calculate weekly date strip centered around currentDate
     const weeklyDays = useMemo(() => {

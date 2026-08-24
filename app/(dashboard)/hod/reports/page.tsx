@@ -202,11 +202,11 @@ export default function HODReportsPage() {
                                             <div className="w-24 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-border)" }}>
                                                 <div 
                                                     className={`h-full rounded-full transition-all duration-1000 ${lecturer.stats.complianceScore >= 80 ? 'bg-emerald-500' : lecturer.stats.complianceScore >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`}
-                                                    style={{ width: `${lecturer.stats.complianceScore}%` }}
+                                                    style={{ width: `${Math.min(100, Math.max(0, lecturer.stats.complianceScore))}%` }}
                                                 />
                                             </div>
                                             <span className="text-xs font-black" style={{ color: lecturer.stats.complianceScore >= 80 ? "#10b981" : lecturer.stats.complianceScore >= 50 ? "#f59e0b" : "#f43f5e" }}>
-                                                {lecturer.stats.complianceScore}%
+                                                {Math.min(100, Math.max(0, lecturer.stats.complianceScore))}%
                                             </span>
                                         </div>
                                     </td>

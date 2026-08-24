@@ -125,14 +125,14 @@ export default function MyLecturersTab() {
                                     {/* Compliance Score */}
                                     <div className="col-span-1 sm:col-span-4">
                                         <div className="flex items-center justify-between mb-1.5">
-                                            <div className="text-sm font-black" style={{ color: s.score >= 70 ? "#10b981" : "#ef4444" }}>{s.score}%</div>
+                                            <div className="text-sm font-black" style={{ color: s.score >= 70 ? "#10b981" : "#ef4444" }}>{Math.min(100, Math.max(0, s.score))}%</div>
                                             <div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
                                                 {s.submitted} / {s.totalRequired} submitted
                                             </div>
                                         </div>
                                         <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                                             <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ 
-                                                width: `${s.score}%`, 
+                                                width: `${Math.min(100, Math.max(0, s.score))}%`, 
                                                 backgroundColor: s.score >= 70 ? "#10b981" : "#ef4444" 
                                             }} />
                                         </div>
