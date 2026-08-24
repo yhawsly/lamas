@@ -117,8 +117,8 @@ export default function LecturerDashboard() {
             <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in duration-500">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <div className="h-8 w-48 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-                        <div className="h-4 w-72 bg-slate-200 dark:bg-slate-800 rounded animate-pulse mt-2" />
+                        <div className="h-8 w-48 bg-slate-200 dark:bg-slate-700/80 rounded animate-pulse" />
+                        <div className="h-4 w-72 bg-slate-200 dark:bg-slate-700/80 rounded animate-pulse mt-2" />
                     </div>
                     <div className="w-32 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse shrink-0" />
                 </div>
@@ -511,14 +511,21 @@ export default function LecturerDashboard() {
                                             </span>
                                         </div>
 
-                                        <div className="text-[11px] text-slate-500 flex items-center gap-2">
-                                            <span>📅 {new Date(duty.examDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
-                                            <span>•</span>
-                                            <span>🕒 {duty.timeSlot}</span>
+                                        <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2 flex-wrap">
+                                            <span className="flex items-center gap-1">
+                                                <CalendarIcon className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400 shrink-0" />
+                                                <span>{new Date(duty.examDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+                                            </span>
+                                            <span className="text-slate-300 dark:text-slate-700">•</span>
+                                            <span className="flex items-center gap-1">
+                                                <Clock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                                                <span>{duty.timeSlot}</span>
+                                            </span>
                                         </div>
 
-                                        <div className="text-[10px] text-slate-400 font-medium">
-                                            📍 Venue: <strong className="text-slate-700 dark:text-slate-300">{duty.hall?.name || "TBD"}</strong>
+                                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5 pt-0.5">
+                                            <MapPin className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400 shrink-0" />
+                                            <span>Venue: <strong className="text-slate-800 dark:text-slate-200 font-bold">{duty.hall?.name || "TBD"}</strong></span>
                                         </div>
                                     </div>
                                 ))}

@@ -185,6 +185,65 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             },
         });
 
+        // Auto-sync all attached lecture resources into the institutional Resource repository
+        if (Array.isArray(classes)) {
+            try {
+                const lecturerUser = await prisma.user.findUnique({
+                    where: { id: userId },
+                    select: { departmentId: true }
+                });
+
+                for (const cls of classes) {
+                    if (!Array.isArray(cls.modules)) continue;
+                    for (const mod of cls.modules) {
+                        if (!Array.isArray(mod.resources)) continue;
+                        for (const resItem of mod.resources) {
+                            if (!resItem.url || resItem.url === "#") continue;
+
+                            const extension = (resItem.name || "").split('.').pop()?.toLowerCase() || '';
+                            let resourceType: any = "OTHER";
+                            if (["pdf"].includes(extension)) resourceType = "PDF";
+                            else if (["ppt", "pptx", "key"].includes(extension)) resourceType = "SLIDES";
+                            else if (["doc", "docx", "txt", "rtf"].includes(extension)) resourceType = "DOCUMENT";
+                            else if (["xls", "xlsx", "csv"].includes(extension)) resourceType = "SPREADSHEET";
+                            else if (["png", "jpg", "jpeg", "webp", "svg"].includes(extension)) resourceType = "IMAGE";
+                            else if (["mp4", "webm", "mov"].includes(extension)) resourceType = "VIDEO";
+                            else if (["js", "ts", "py", "java", "cpp", "c", "html", "css", "zip"].includes(extension)) resourceType = "CODE";
+
+                            const resTitle = basicInfo?.courseCode 
+                                ? `${basicInfo.courseCode} - Week ${mod.week}: ${resItem.name}`
+                                : `Week ${mod.week}: ${resItem.name}`;
+
+                            const resDesc = `Lecture material for ${basicInfo?.courseCode || "Course"} (${basicInfo?.title || ""}) - Week ${mod.week}: ${mod.title || ""}`;
+
+                            const existingResource = await prisma.resource.findFirst({
+                                where: {
+                                    lecturerId: userId,
+                                    url: resItem.url
+                                }
+                            });
+
+                            if (!existingResource) {
+                                await prisma.resource.create({
+                                    data: {
+                                        title: resTitle,
+                                        description: resDesc,
+                                        url: resItem.url,
+                                        type: resourceType,
+                                        status: "APPROVED",
+                                        lecturerId: userId,
+                                        departmentId: lecturerUser?.departmentId || null
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+            } catch (syncError) {
+                console.error("Failed to auto-sync resources on syllabus save:", syncError);
+            }
+        }
+
         // Trigger notifications and audit logging if submitted
         if (submit) {
             const lecturerUser = await prisma.user.findUnique({

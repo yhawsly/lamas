@@ -9,19 +9,19 @@ const DeadlinesSkeleton = () => (
         {[1, 2, 3, 4].map((i) => (
             <div key={i} className="rounded-3xl border p-5 flex flex-col justify-between h-48 bg-slate-50/50 dark:bg-slate-900/30" style={{ borderColor: "var(--bg-border)", backgroundColor: "var(--bg-surface)" }}>
                 <div className="space-y-4">
-                    <div className="h-4 w-20 bg-slate-205 dark:bg-slate-800 rounded-full" />
-                    <div className="h-5 w-44 bg-slate-205 dark:bg-slate-800 rounded" />
+                    <div className="h-4 w-20 bg-slate-205 dark:bg-slate-700/80 rounded-full" />
+                    <div className="h-5 w-44 bg-slate-205 dark:bg-slate-700/80 rounded" />
                     <div className="flex items-center gap-2.5">
                         <div className="w-9 h-9 rounded-xl bg-slate-205 dark:bg-slate-800" />
                         <div className="space-y-2">
-                            <div className="h-3.5 w-24 bg-slate-205 dark:bg-slate-800 rounded" />
-                            <div className="h-3 w-16 bg-slate-205 dark:bg-slate-800 rounded" />
+                            <div className="h-3.5 w-24 bg-slate-205 dark:bg-slate-700/80 rounded" />
+                            <div className="h-3 w-16 bg-slate-205 dark:bg-slate-700/80 rounded" />
                         </div>
                     </div>
                 </div>
                 <div className="pt-4 border-t flex justify-between items-center" style={{ borderColor: "var(--bg-border)" }}>
-                    <div className="h-3.5 w-16 bg-slate-205 dark:bg-slate-800 rounded" />
-                    <div className="h-5 w-20 bg-slate-205 dark:bg-slate-800 rounded-full" />
+                    <div className="h-3.5 w-16 bg-slate-205 dark:bg-slate-700/80 rounded" />
+                    <div className="h-5 w-20 bg-slate-205 dark:bg-slate-700/80 rounded-full" />
                 </div>
             </div>
         ))}

@@ -2,16 +2,16 @@
 import { useState, useEffect } from "react"; 
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
-import { AlertTriangle, AlertCircle } from "lucide-react";
+import { AlertTriangle, AlertCircle, Calendar } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 
 const DetailWorkspaceSkeleton = () => (
     <div className="max-w-4xl mx-auto space-y-8 animate-pulse pb-20 pt-6 px-4">
         {/* Header Skeleton */}
         <div className="space-y-3">
-            <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
-            <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
-            <div className="h-4 w-96 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+            <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700/80 rounded" />
+            <div className="h-8 w-64 bg-slate-200 dark:bg-slate-700/80 rounded-lg" />
+            <div className="h-4 w-96 bg-slate-200 dark:bg-slate-700/80 rounded-lg" />
         </div>
 
         {/* Info Card Skeleton */}
@@ -19,8 +19,8 @@ const DetailWorkspaceSkeleton = () => (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[1, 2, 3].map(i => (
                     <div key={i} className="space-y-2">
-                        <div className="h-3 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
-                        <div className="h-5 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-3 w-16 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                        <div className="h-5 w-32 bg-slate-200 dark:bg-slate-700/80 rounded" />
                     </div>
                 ))}
             </div>
@@ -28,25 +28,25 @@ const DetailWorkspaceSkeleton = () => (
 
         {/* Form Body Skeleton */}
         <div className="rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-6">
-            <div className="h-6 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="h-6 w-48 bg-slate-200 dark:bg-slate-700/80 rounded" />
             <div className="space-y-4">
                 {[1, 2, 3, 4].map(i => (
                     <div key={i} className="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
-                        <div className="h-4 w-72 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-4 w-72 bg-slate-200 dark:bg-slate-700/80 rounded" />
                         <div className="flex gap-2">
-                            <div className="h-5 w-12 bg-slate-200 dark:bg-slate-800 rounded" />
-                            <div className="h-5 w-12 bg-slate-200 dark:bg-slate-800 rounded" />
+                            <div className="h-5 w-12 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                            <div className="h-5 w-12 bg-slate-200 dark:bg-slate-700/80 rounded" />
                         </div>
                     </div>
                 ))}
             </div>
             <div className="space-y-2">
-                <div className="h-3.5 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
-                <div className="h-20 w-full bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+                <div className="h-3.5 w-24 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                <div className="h-20 w-full bg-slate-200 dark:bg-slate-700/80 rounded-2xl" />
             </div>
             <div className="flex justify-end gap-3">
-                <div className="h-10 w-24 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-                <div className="h-10 w-32 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                <div className="h-10 w-24 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
+                <div className="h-10 w-32 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
             </div>
         </div>
     </div>
@@ -450,7 +450,10 @@ export default function ConductTeachingObservationPage() {
             {/* Scheduling Card */}
             {(!data.sessionDate || !data.venue) && !isCompleted && !isBlocked && (
                 <div className="rounded-2xl shadow-sm border p-6 bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800">
-                    <h4 className="font-bold mb-4 text-blue-800 dark:text-blue-300">📅 Schedule Observation</h4>
+                    <h4 className="font-bold mb-4 text-blue-800 dark:text-blue-300 flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        <span>Schedule Observation</span>
+                    </h4>
                     <div className="flex flex-col md:flex-row gap-4 items-end">
                         <div className="flex-1">
                             <label className="block text-xs font-bold mb-1.5 text-blue-700/70 dark:text-blue-400/70 uppercase tracking-widest">Date</label>

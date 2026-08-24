@@ -7,14 +7,14 @@ import {
 } from "lucide-react";
 
 export default function AppearanceTab() {
-    const [theme, setThemeState] = useState<"light" | "dark">("dark");
+    const [theme, setThemeState] = useState<"light" | "dark">("light");
     const [mounted, setMounted] = useState(false);
     const [compactMode, setCompactMode] = useState(false);
     const [reduceMotion, setReduceMotion] = useState(false);
     const [savedMsg, setSavedMsg] = useState<string | null>(null);
 
     useEffect(() => {
-        const saved = (localStorage.getItem("lamas-theme") as "light" | "dark") || "dark";
+        const saved = (localStorage.getItem("lamas-theme") as "light" | "dark") || "light";
         const storedCompact = localStorage.getItem("lamas_compact_mode") === "true";
         const storedMotion = localStorage.getItem("lamas_reduce_motion") === "true";
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -88,15 +88,15 @@ export default function AppearanceTab() {
                         onClick={() => handleThemeChange("light")}
                         className={`p-3.5 sm:p-5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                             theme === "light"
-                                ? "bg-indigo-50/60 dark:bg-indigo-950/40 border-indigo-500 shadow-md ring-2 ring-indigo-500/20"
+                                ? "bg-amber-50/60 dark:bg-amber-950/20 border-amber-500 shadow-md ring-2 ring-amber-500/20"
                                 : "bg-slate-50/50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-700 hover:border-slate-300"
                         }`}
                     >
                         <div className="flex items-center justify-between">
-                            <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-amber-500 shadow-xs">
-                                <Sun className="w-4 h-4 sm:w-5 sm:h-5" />
+                            <div className="w-9 sm:w-11 h-9 sm:h-11 rounded-xl bg-amber-100/80 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700 flex items-center justify-center shadow-xs">
+                                <Sun className="w-5 h-5 text-amber-500 fill-amber-400/30 stroke-[2.2]" />
                             </div>
-                            {theme === "light" && <Check className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />}
+                            {theme === "light" && <Check className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 dark:text-amber-400" />}
                         </div>
                         <div className="mt-3 sm:mt-4">
                             <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate">Light Mode</div>
@@ -109,19 +109,19 @@ export default function AppearanceTab() {
                         onClick={() => handleThemeChange("dark")}
                         className={`p-3.5 sm:p-5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                             theme === "dark"
-                                ? "bg-indigo-50/60 dark:bg-indigo-950/40 border-indigo-500 shadow-md ring-2 ring-indigo-500/20"
+                                ? "bg-sky-50/60 dark:bg-sky-950/40 border-sky-500 shadow-md ring-2 ring-sky-500/20"
                                 : "bg-slate-50/50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-700 hover:border-slate-300"
                         }`}
                     >
                         <div className="flex items-center justify-between">
-                            <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-indigo-400 shadow-xs">
-                                <Moon className="w-4 h-4 sm:w-5 sm:h-5" />
+                            <div className="w-9 sm:w-11 h-9 sm:h-11 rounded-xl bg-sky-100/80 dark:bg-sky-950/60 border border-sky-300 dark:border-sky-700 flex items-center justify-center shadow-xs">
+                                <Moon className="w-5 h-5 text-sky-500 dark:text-sky-400 fill-sky-400/30 stroke-[2.2]" />
                             </div>
-                            {theme === "dark" && <Check className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400" />}
+                            {theme === "dark" && <Check className="w-4 h-4 sm:w-5 sm:h-5 text-sky-500 dark:text-sky-400" />}
                         </div>
                         <div className="mt-3 sm:mt-4">
                             <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate">Dark Mode</div>
-                            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 line-clamp-2">Deep slate low-light focus</p>
+                            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 line-clamp-2">Twitter Dim dark navy view</p>
                         </div>
                     </button>
                 </div>

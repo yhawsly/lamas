@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { 
-    Users, ShieldCheck, Mail, Sliders, CheckCircle2, 
-    AlertTriangle, Sparkles, Building2, Save, FileSignature 
+    ShieldCheck, Mail, Sliders, CheckCircle2, 
+    Building2, Save 
 } from "lucide-react";
 
 export default function DepartmentConfigTab() {

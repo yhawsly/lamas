@@ -11,21 +11,21 @@ const MyLecturersSkeleton = () => (
                     <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800" />
                 </div>
                 <div className="col-span-5 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 shrink-0" />
+                    <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-700/80 shrink-0" />
                     <div className="space-y-2 flex-1">
-                        <div className="h-4 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
-                        <div className="h-3 w-40 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                        <div className="h-3 w-40 bg-slate-200 dark:bg-slate-700/80 rounded" />
                     </div>
                 </div>
                 <div className="col-span-4 space-y-2">
                     <div className="flex justify-between">
-                        <div className="h-3.5 w-12 bg-slate-200 dark:bg-slate-800 rounded" />
-                        <div className="h-3.5 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-3.5 w-12 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                        <div className="h-3.5 w-20 bg-slate-200 dark:bg-slate-700/80 rounded" />
                     </div>
-                    <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full" />
+                    <div className="h-2 w-full bg-slate-200 dark:bg-slate-700/80 rounded-full" />
                 </div>
                 <div className="col-span-2 flex justify-end">
-                    <div className="h-6 w-20 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                    <div className="h-6 w-20 bg-slate-200 dark:bg-slate-700/80 rounded-full" />
                 </div>
             </div>
         ))}

@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
         const role = (session.user as any).role;
         const senderId = parseInt(session.user.id!);
         const body = await req.json();
-        const { message, targetRole, userId: targetUserId } = body;
+        const { message, targetRole, userId: targetUserId, attachmentUrl } = body;
 
         if (!message || !message.trim()) {
             return NextResponse.json(
@@ -183,8 +183,14 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "No recipients found" }, { status: 404 });
         }
 
+        const notificationData: { userId: number; message: string; attachmentUrl?: string }[] = users.map((u) => ({
+            userId: u.id,
+            message: message.trim(),
+            ...(attachmentUrl ? { attachmentUrl } : {})
+        }));
+
         await prisma.notification.createMany({
-            data: users.map((u) => ({ userId: u.id, message: message.trim() })),
+            data: notificationData,
         });
 
         // Trigger Resend Email Alerts — using allSettled to prevent failures from blocking API

@@ -54,10 +54,10 @@ const typeConfig: Record<string, { icon: React.ReactNode, bgClass: string, borde
 const TableSkeleton = () => (
     <div className="p-6 space-y-4">
         <div className="animate-pulse flex space-x-4 border-b border-slate-100 dark:border-slate-850 pb-4">
-            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/4"></div>
-            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/6"></div>
-            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/6"></div>
-            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/6"></div>
+            <div className="h-4 bg-slate-200 dark:bg-slate-700/80 rounded w-1/4"></div>
+            <div className="h-4 bg-slate-200 dark:bg-slate-700/80 rounded w-1/6"></div>
+            <div className="h-4 bg-slate-200 dark:bg-slate-700/80 rounded w-1/6"></div>
+            <div className="h-4 bg-slate-200 dark:bg-slate-700/80 rounded w-1/6"></div>
         </div>
         <div className="space-y-4">
             {[1, 2, 3].map((n) => (
@@ -65,14 +65,14 @@ const TableSkeleton = () => (
                     <div className="flex items-center space-x-3 w-1/3">
                         <div className="rounded-xl bg-slate-200 dark:bg-slate-800 h-10 w-10"></div>
                         <div className="flex-1 space-y-2">
-                            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-3/4"></div>
-                            <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded w-1/2"></div>
+                            <div className="h-4 bg-slate-200 dark:bg-slate-700/80 rounded w-3/4"></div>
+                            <div className="h-3 bg-slate-200 dark:bg-slate-700/80 rounded w-1/2"></div>
                         </div>
                     </div>
-                    <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-20"></div>
-                    <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-24"></div>
-                    <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-24"></div>
-                    <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded w-28"></div>
+                    <div className="h-4 bg-slate-200 dark:bg-slate-700/80 rounded w-20"></div>
+                    <div className="h-4 bg-slate-200 dark:bg-slate-700/80 rounded w-24"></div>
+                    <div className="h-4 bg-slate-200 dark:bg-slate-700/80 rounded w-24"></div>
+                    <div className="h-8 bg-slate-200 dark:bg-slate-700/80 rounded w-28"></div>
                 </div>
             ))}
         </div>
@@ -595,7 +595,7 @@ export default function LecturerResourcesPage() {
                                 <h3 className="text-slate-900 dark:text-white font-bold flex items-center gap-2 text-base">
                                     <Library className="w-5 h-5 text-slate-500" /> Attached Course Materials
                                 </h3>
-                                <span className="text-xs bg-slate-100 dark:bg-slate-800 rounded-full px-3 py-1 font-semibold text-slate-500 dark:text-slate-400 shrink-0">
+                                <span className="text-xs bg-slate-100 dark:bg-slate-700/80 rounded-full px-3 py-1 font-semibold text-slate-500 dark:text-slate-400 shrink-0">
                                     {myResources.length} Total Uploads
                                 </span>
                             </div>

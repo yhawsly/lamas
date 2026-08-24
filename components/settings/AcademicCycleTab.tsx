@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { 
-    Calendar, Clock, Lock, Archive, CheckCircle2, 
-    AlertCircle, Download, FileText, Sparkles, Save, ShieldCheck 
+    Calendar, Clock, Lock, CheckCircle2, 
+    Sparkles, Save, ShieldCheck 
 } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 
 export default function AcademicCycleTab() {
-    const { activeTerm, selectedTerm } = useTerm();
+    const { activeTerm } = useTerm();
     
     const [policy, setPolicy] = useState({
         allowLateSubmissions: true,
@@ -75,9 +75,15 @@ export default function AcademicCycleTab() {
                                 {activeTerm?.name || "Semester 1 2025/2026"}
                             </h3>
                             <div className="text-xs text-slate-600 dark:text-slate-300 mt-1 flex flex-wrap items-center gap-3">
-                                <span>📅 <strong>Date of Commencement:</strong> {formatDate(activeTerm?.startDate || "2026-05-12")}</span>
-                                <span>•</span>
-                                <span>🏁 <strong>Conclusion:</strong> {formatDate(activeTerm?.endDate || "2026-09-12")}</span>
+                                <span className="flex items-center gap-1.5">
+                                    <Calendar className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                    <span><strong>Date of Commencement:</strong> {formatDate(activeTerm?.startDate || "2026-05-12")}</span>
+                                </span>
+                                <span className="text-slate-300 dark:text-slate-600">•</span>
+                                <span className="flex items-center gap-1.5">
+                                    <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                    <span><strong>Conclusion:</strong> {formatDate(activeTerm?.endDate || "2026-09-12")}</span>
+                                </span>
                             </div>
                         </div>
                     </div>

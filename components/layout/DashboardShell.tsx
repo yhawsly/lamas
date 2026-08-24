@@ -11,7 +11,6 @@ import MobileActionDrawer from "@/components/layout/MobileActionDrawer";
 import NotificationBell from "@/components/ui/NotificationBell";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import TermSwitcher from "@/components/workspace/TermSwitcher";
-import ArchiveModeBanner from "@/components/workspace/ArchiveModeBanner";
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -211,9 +210,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                         </div>
                     </div>
                 </header>
-
-                {/* Sticky Archive Read-Only Warning Banner */}
-                <ArchiveModeBanner />
 
                 <main className="flex-1 overflow-x-hidden overflow-y-auto pb-28 lg:pb-8">
                     <div className="px-3.5 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8 w-full">{children}</div>

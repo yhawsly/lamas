@@ -8,7 +8,7 @@
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
 
-  /* Override standard blue with our professional Sapphire */
+  /* Academic Sapphire Blue Scale */
   --color-blue-50: #eff6ff;
   --color-blue-100: #dbeafe;
   --color-blue-200: #bfdbfe;
@@ -16,27 +16,39 @@
   --color-blue-400: #60a5fa;
   --color-blue-500: #3b82f6;
   --color-blue-600: #2563eb; /* Primary brand */
-  --color-blue-700: #1d4ed8;
-  --color-blue-800: #1e40af;
-  --color-blue-900: #1e3a8a;
+  --color-blue-700: #1d4ed8; /* Blue Hover */
 
-  /* Premium Green (Emerald/Teal hue for softer success states) */
-  --color-green-50: #ecfdf5;
-  --color-green-100: #d1fae5;
-  --color-green-500: #10b981;
-  --color-green-600: #059669;
+  /* Deep Midnight Slate Scale */
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-850: #141e33;
+  --color-slate-900: #0f172a;
+  --color-slate-950: #080d1a;
 
-  /* Premium Amber (Softer warning states) */
+  /* Status Emerald Green */
+  --color-emerald-50: #ecfdf5;
+  --color-emerald-100: #d1fae5;
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+
+  /* Status Amber / Gold */
   --color-amber-50: #fffbeb;
   --color-amber-100: #fef3c7;
   --color-amber-500: #f59e0b;
   --color-amber-600: #d97706;
 
-  /* Premium Red (Rose/Crimson hue for softer error states) */
-  --color-red-50: #fff1f2;
-  --color-red-100: #ffe4e6;
-  --color-red-500: #f43f5e;
-  --color-red-600: #e11d48;
+  /* Status Rose / Red */
+  --color-rose-50: #fff1f2;
+  --color-rose-100: #ffe4e6;
+  --color-rose-500: #f43f5e;
+  --color-rose-600: #e11d48;
 }
 
 /* ─── Design Tokens ─── */
@@ -60,38 +72,38 @@
   /* Accents */
   --accent-blue: #2563EB;
   --accent-green: #059669;
-  --accent-red: #e11d48;
-  --accent-amber: #d97706;
+  --accent-red: #E11D48;
+  --accent-amber: #D97706;
 
   --glass-bg: rgba(255, 255, 255, 0.85);
   --glass-border: rgba(15, 23, 42, 0.05);
 }
 
-/* ─── Premium Professional Dark Mode ─── */
+/* ─── Premium Midnight Dark Mode ─── */
 .dark {
-  --bg-base: #090d16; /* Deepest dark slate */
-  --bg-surface: #0f172a; /* Slate 900 */
-  --bg-border: rgba(148, 163, 184, 0.09); /* Soft slate border */
-  --bg-hover: rgba(148, 163, 184, 0.05); /* Subtle hover overlay */
-  --bg-sidebar: #090d16; /* Matches deepest dark base */
+  --bg-base: #080D1A; /* Deep midnight slate base */
+  --bg-surface: #0F172A; /* Slate 900 card surface */
+  --bg-border: #1E293B; /* Slate 800 subtle border */
+  --bg-hover: #1E293B; /* Slate 800 hover */
+  --bg-sidebar: #080D1A; /* Seamless dark sidebar */
 
   /* Text */
-  --text-primary: #f8fafc; /* Slate 50 */
-  --text-secondary: #94a3b8; /* Slate 400 */
-  --text-muted: #64748b; /* Slate 500 */
+  --text-primary: #F8FAFC; /* Slate 50 crisp text */
+  --text-secondary: #94A3B8; /* Slate 400 secondary text */
+  --text-muted: #64748B; /* Slate 500 muted text */
 
-  /* Primary Brand (Sapphire) */
-  --primary: #3b82f6; /* Blue 500 */
-  --primary-hover: #60a5fa; /* Blue 400 */
+  /* Primary Brand */
+  --primary: #3B82F6; /* Luminous Blue 500 */
+  --primary-hover: #2563EB; /* Blue 600 */
 
   /* Accents */
-  --accent-blue: #38bdf8;
-  --accent-green: #10b981;
-  --accent-red: #f43f5e;
-  --accent-amber: #f59e0b;
+  --accent-blue: #3B82F6;
+  --accent-green: #10B981;
+  --accent-red: #F43F5E;
+  --accent-amber: #F59E0B;
 
   --glass-bg: rgba(15, 23, 42, 0.85);
-  --glass-border: rgba(148, 163, 184, 0.08);
+  --glass-border: rgba(30, 41, 59, 0.8);
 }
 
 /* ─── Base ─── */

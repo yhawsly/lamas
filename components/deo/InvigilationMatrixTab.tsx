@@ -479,8 +479,9 @@ export default function InvigilationMatrixTab({
                                     Exam Date *
                                 </label>
                                 {formattedTermRange && (
-                                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold" title={formattedTermRange}>
-                                        📅 {formattedTermRange}
+                                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1" title={formattedTermRange}>
+                                        <Calendar className="w-3 h-3 text-emerald-500 shrink-0" />
+                                        <span>{formattedTermRange}</span>
                                     </span>
                                 )}
                             </div>
@@ -702,77 +703,94 @@ export default function InvigilationMatrixTab({
                                 {dateSlots.map(slot => (
                                     <div
                                         key={slot.id}
-                                        className="p-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+                                        className="p-5 lg:p-6 hover:bg-slate-50/70 dark:hover:bg-slate-850/50 transition-colors grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5 lg:gap-6 items-center"
                                     >
-                                        {/* Course & Time */}
-                                        <div className="space-y-1.5 md:w-1/4">
+                                        {/* 1. Course Code, Title & Time (lg:col-span-4) */}
+                                        <div className="lg:col-span-4 space-y-2">
                                             <div className="flex items-center gap-2 flex-wrap">
-                                                <span className="px-2.5 py-1 text-xs font-black bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 rounded-lg border border-blue-200 dark:border-blue-800">
+                                                <span className="px-2.5 py-1 text-xs font-black bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 rounded-lg border border-blue-200 dark:border-blue-800 shadow-2xs">
                                                     {slot.courseCode}
                                                 </span>
                                                 {slot.targetClass && (
-                                                    <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 rounded-md border border-amber-200 dark:border-amber-800/60">
+                                                    <span className="px-2.5 py-1 text-[11px] font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-750 dark:text-amber-300 rounded-lg border border-amber-200 dark:border-amber-800/60 truncate max-w-[220px]">
                                                         {slot.targetClass}
                                                     </span>
                                                 )}
                                             </div>
-                                            <div className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">
-                                                {slot.courseTitle || "Course Examination"}
-                                            </div>
-                                            <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                                                <Clock className="w-3.5 h-3.5 text-slate-400" />
-                                                <span>{slot.timeSlot}</span>
+
+                                            <div>
+                                                <h4 className="text-sm font-extrabold text-slate-900 dark:text-white leading-snug">
+                                                    {slot.courseTitle || "Course Examination"}
+                                                </h4>
+                                                <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1">
+                                                    <Clock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                                                    <span>{slot.timeSlot}</span>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        {/* Venue / Hall */}
-                                        <div className="space-y-1 md:w-1/4">
-                                            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
-                                                <Building2 className="w-3.5 h-3.5 text-emerald-500" />
-                                                <span>{slot.hall.name}</span>
+                                        {/* 2. Exam Venue & Capacity (lg:col-span-3) */}
+                                        <div className="lg:col-span-3 flex items-start gap-3">
+                                            <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
+                                                <Building2 className="w-5 h-5" />
                                             </div>
-                                            <div className="text-[11px] text-slate-400">
-                                                Hall Cap: {slot.hall.capacity} seats {slot.targetClass ? `• Class: ${slot.targetClass}` : ""}
+                                            <div>
+                                                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Exam Venue</div>
+                                                <div className="text-sm font-extrabold text-slate-800 dark:text-slate-100 mt-0.5">
+                                                    {slot.hall.name}
+                                                </div>
+                                                <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
+                                                    <Users className="w-3 h-3 text-slate-400" />
+                                                    <span>{slot.hall.capacity} Seat Capacity</span>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        {/* Invigilators Roster */}
-                                        <div className="space-y-1.5 flex-1">
-                                            <div className="flex items-center gap-1.5 text-xs">
-                                                <UserCheck className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                                                <span className="text-slate-500">Chief:</span>
-                                                <strong className="text-slate-800 dark:text-slate-200">
-                                                    {slot.chiefInvigilator?.name || "Unassigned"}
-                                                </strong>
+                                        {/* 3. Invigilation Team Roster (lg:col-span-4) */}
+                                        <div className="lg:col-span-4 space-y-1.5">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-6 h-6 rounded-lg bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                                                    <UserCheck className="w-3.5 h-3.5" />
+                                                </div>
+                                                <div className="text-xs">
+                                                    <span className="text-slate-400 font-medium">Chief: </span>
+                                                    <strong className="text-slate-900 dark:text-white font-bold">
+                                                        {slot.chiefInvigilator?.name || "Unassigned"}
+                                                    </strong>
+                                                </div>
                                             </div>
 
-                                            {slot.assistantInvigilators && slot.assistantInvigilators.length > 0 && (
-                                                <div className="flex items-center gap-1.5 flex-wrap">
-                                                    <span className="text-[11px] text-slate-400">Proctors:</span>
+                                            {slot.assistantInvigilators && slot.assistantInvigilators.length > 0 ? (
+                                                <div className="flex items-center gap-1.5 flex-wrap pl-8">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Proctors:</span>
                                                     {slot.assistantInvigilators.map(ast => (
                                                         <span
                                                             key={ast.id}
-                                                            className="px-2 py-0.5 text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-md border border-slate-200 dark:border-slate-700/60"
+                                                            className="px-2 py-0.5 text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-md border border-slate-200 dark:border-slate-700/60 shadow-2xs"
                                                         >
                                                             {ast.name}
                                                         </span>
                                                     ))}
                                                 </div>
+                                            ) : (
+                                                <div className="pl-8 text-[11px] text-slate-400 italic">
+                                                    No assistant proctors assigned
+                                                </div>
                                             )}
                                         </div>
 
-                                        {/* Delete action */}
-                                        {!isArchiveMode && (
-                                            <div className="shrink-0 flex items-center gap-1">
+                                        {/* 4. Delete Action (lg:col-span-1) */}
+                                        <div className="lg:col-span-1 flex justify-start md:justify-end">
+                                            {!isArchiveMode && (
                                                 <button
                                                     onClick={() => handleDeleteSlot(slot.id, slot.courseCode)}
-                                                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition"
+                                                    className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-transparent hover:border-rose-200 dark:hover:border-rose-900/60 transition cursor-pointer"
                                                     title="Remove Session"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>

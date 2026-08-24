@@ -11,6 +11,7 @@ interface Notification {
     id: number;
     message: string;
     read: boolean;
+    attachmentUrl?: string;
     createdAt: string;
 }
 
@@ -63,9 +64,9 @@ export default function NotificationsPage() {
                 )}
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                 {loading ? (
-                    <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
                         {[1, 2, 3, 4, 5].map(i => (
                             <div key={i} className="p-5 flex gap-4">
                                 <div className="mt-1">
@@ -73,31 +74,36 @@ export default function NotificationsPage() {
                                 </div>
                                 <div className="flex-1 space-y-2.5">
                                     <div className="w-3/4 h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
-                                    <div className="w-1/4 h-3 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
+                                    <div className="w-1/4 h-3 bg-slate-100 dark:bg-slate-700/80 rounded animate-pulse" />
                                 </div>
                             </div>
                         ))}
                     </div>
                 ) : notifications.length === 0 ? (
                     <div className="p-12 text-center">
-                        <div className="w-16 h-16 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Inbox className="w-8 h-8 text-gray-400" />
+                        <div className="w-16 h-16 bg-slate-50 dark:bg-slate-700/80 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Inbox className="w-8 h-8 text-slate-400" />
                         </div>
-                        <h3 className="text-gray-900 dark:text-white font-semibold">You&apos;re all caught up!</h3>
-                        <p className="text-gray-500 text-sm mt-1">No new notifications.</p>
+                        <h3 className="text-slate-900 dark:text-white font-semibold">You&apos;re all caught up!</h3>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">No new notifications.</p>
                     </div>
                 ) : (
-                    <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
                         {notifications.map((n: Notification) => (
-                            <div key={n.id} className={`p-5 flex gap-4 transition-colors ${n.read ? 'bg-white dark:bg-gray-800' : 'bg-indigo-50/50 dark:bg-indigo-900/10'}`}>
+                            <div key={n.id} className={`p-5 flex gap-4 transition-colors ${n.read ? 'bg-white dark:bg-slate-900' : 'bg-blue-50/50 dark:bg-blue-950/30'}`}>
                                 <div className="mt-1">
-                                    <div className={`w-2.5 h-2.5 rounded-full ${n.read ? 'bg-transparent' : 'bg-indigo-500'}`} />
+                                    <div className={`w-2.5 h-2.5 rounded-full ${n.read ? 'bg-transparent' : 'bg-blue-500'}`} />
                                 </div>
                                 <div className="flex-1">
-                                    <p className={`text-sm ${n.read ? 'text-gray-600 dark:text-gray-300' : 'text-gray-900 dark:text-white font-medium'}`}>
+                                    <p className={`text-sm ${n.read ? 'text-slate-600 dark:text-slate-300' : 'text-slate-900 dark:text-white font-medium'}`}>
                                         {n.message}
                                     </p>
-                                    <p className="text-xs text-gray-400 mt-1.5">
+                                    {n.attachmentUrl && (
+                                        <a href={n.attachmentUrl} target="_blank" className="inline-block mt-2 text-sm text-blue-600 dark:text-blue-400 underline">
+                                            View Attachment
+                                        </a>
+                                    )}
+                                    <p className="text-xs text-slate-400 mt-1.5">
                                         {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
                                     </p>
                                 </div>

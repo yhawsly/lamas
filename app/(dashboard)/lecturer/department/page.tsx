@@ -139,7 +139,7 @@ export default function LecturerDepartmentPage() {
             </div>
 
             {/* Main Content */}
-            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm p-6 lg:p-8 min-h-[500px] flex flex-col">
+            <div className="bg-white dark:bg-slate-700/80 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm p-6 lg:p-8 min-h-[500px] flex flex-col">
                 
                 {loading ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -154,7 +154,7 @@ export default function LecturerDepartmentPage() {
                     </div>
                 ) : filteredColleagues.length === 0 ? (
                     <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
-                        <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                        <div className="w-20 h-20 bg-slate-50 dark:bg-slate-700/80 rounded-full flex items-center justify-center mb-4">
                             <Users className="w-8 h-8 text-slate-400" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">No colleagues found</h3>
@@ -203,7 +203,7 @@ export default function LecturerDepartmentPage() {
             {/* Messaging Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
+                    <div className="bg-white dark:bg-slate-700/80 rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
                         
                         <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50 sticky top-0 z-10">
                             <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">

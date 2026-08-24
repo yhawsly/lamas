@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 
 export default function ThemeToggle() {
-    const [theme, setTheme] = useState<"light" | "dark">("dark");
+    const [theme, setTheme] = useState<"light" | "dark">("light");
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        const saved = (localStorage.getItem("lamas-theme") as "light" | "dark") || "dark";
+        const saved = (localStorage.getItem("lamas-theme") as "light" | "dark") || "light";
         Promise.resolve().then(() => {
             setTheme(saved);
             setMounted(true);
@@ -41,7 +41,7 @@ export default function ThemeToggle() {
             onMouseEnter={(e) => {
                 e.currentTarget.style.background = theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(15, 23, 42, 0.12)";
                 e.currentTarget.style.color = theme === "dark" ? "rgba(255, 255, 255, 1)" : "rgba(15, 23, 42, 1)";
-                e.currentTarget.style.borderColor = theme === "dark" ? "rgba(99, 102, 241, 0.3)" : "rgba(79, 70, 229, 0.3)";
+                e.currentTarget.style.borderColor = theme === "dark" ? "rgba(29, 155, 240, 0.4)" : "rgba(37, 99, 235, 0.3)";
             }}
             onMouseLeave={(e) => {
                 e.currentTarget.style.background = theme === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(15, 23, 42, 0.08)";
@@ -96,8 +96,8 @@ export default function ThemeToggle() {
                 className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 style={{
                     background: theme === "dark"
-                        ? "radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%)"
-                        : "radial-gradient(circle, rgba(79, 70, 229, 0.1) 0%, transparent 70%)",
+                        ? "radial-gradient(circle, rgba(29, 155, 240, 0.15) 0%, transparent 70%)"
+                        : "radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%)",
                 }}
             />
         </button>

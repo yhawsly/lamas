@@ -12,28 +12,28 @@ const AppraisalsSkeleton = () => (
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
                     {/* Lecturer avatar + info skeleton */}
                     <div className="col-span-1 sm:col-span-3 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 shrink-0" />
+                        <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-700/80 shrink-0" />
                         <div className="space-y-2 flex-1">
-                            <div className="h-4 w-28 bg-slate-200 dark:bg-slate-800 rounded" />
-                            <div className="h-3 w-36 bg-slate-200 dark:bg-slate-800 rounded" />
+                            <div className="h-4 w-28 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                            <div className="h-3 w-36 bg-slate-200 dark:bg-slate-700/80 rounded" />
                         </div>
                     </div>
                     {/* Department skeleton */}
                     <div className="col-span-1 sm:col-span-3 space-y-2">
-                        <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
-                        <div className="h-3 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                        <div className="h-3 w-32 bg-slate-200 dark:bg-slate-700/80 rounded" />
                     </div>
                     {/* Submission Type skeleton */}
                     <div className="col-span-1 sm:col-span-2">
-                        <div className="h-5 w-20 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+                        <div className="h-5 w-20 bg-slate-200 dark:bg-slate-700/80 rounded-lg" />
                     </div>
                     {/* Date skeleton */}
                     <div className="col-span-1 sm:col-span-2">
-                        <div className="h-4 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-4 w-16 bg-slate-200 dark:bg-slate-700/80 rounded" />
                     </div>
                     {/* Status skeleton */}
                     <div className="col-span-1 sm:col-span-2 flex justify-end">
-                        <div className="h-6 w-20 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                        <div className="h-6 w-20 bg-slate-200 dark:bg-slate-700/80 rounded-full" />
                     </div>
                 </div>
             </div>

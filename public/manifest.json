@@ -4,7 +4,7 @@
   "description": "Academic accountability and monitoring platform for higher education",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
+  "background_color": "#15202b",
   "theme_color": "#2563eb",
   "orientation": "portrait-primary",
   "icons": [

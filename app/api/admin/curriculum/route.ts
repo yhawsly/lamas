@@ -2,12 +2,16 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
 
-export async function GET() {
+export async function GET(req: Request) {
     try {
         const session = await auth();
         if (!["ADMIN", "SUPER_ADMIN", "HOD"].includes((session?.user as any)?.role)) {
             return new NextResponse("Unauthorized", { status: 403 });
         }
+
+        const url = new URL(req.url);
+        const termIdParam = url.searchParams.get("termId");
+        const sectionWhere = termIdParam ? { termId: parseInt(termIdParam) } : {};
 
         const [programs, categories, courses] = await Promise.all([
             prisma.program.findMany({
@@ -27,6 +31,7 @@ export async function GET() {
                                         select: { id: true, name: true, code: true }
                                     },
                                     sections: {
+                                        where: sectionWhere,
                                         include: {
                                             lecturer: {
                                                 select: { id: true, name: true, email: true }
@@ -50,6 +55,7 @@ export async function GET() {
                     curriculumMaps: { include: { program: { select: { id: true, name: true, code: true } } } },
                     masterSyllabus: true,
                     sections: {
+                        where: sectionWhere,
                         include: {
                             lecturer: {
                                 select: { id: true, name: true, email: true }

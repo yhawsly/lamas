@@ -26,22 +26,22 @@ const RegistrySkeleton = () => (
             <div key={i} className="p-4 rounded-2xl border bg-slate-50/50 dark:bg-slate-900/30 border-slate-200 dark:border-slate-800/60">
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <div className="flex items-start gap-4 flex-1">
-                        <div className="w-12 h-12 rounded-xl bg-slate-200 dark:bg-slate-800 shrink-0" />
+                        <div className="w-12 h-12 rounded-xl bg-slate-200 dark:bg-slate-700/80 shrink-0" />
                         <div className="space-y-2 flex-1">
                             <div className="flex items-center gap-2">
-                                <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
-                                <div className="h-4.5 w-16 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                                <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                                <div className="h-4.5 w-16 bg-slate-200 dark:bg-slate-700/80 rounded-full" />
                             </div>
-                            <div className="h-3 w-40 bg-slate-200 dark:bg-slate-800 rounded" />
-                            <div className="h-3 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+                            <div className="h-3 w-40 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                            <div className="h-3 w-32 bg-slate-200 dark:bg-slate-700/80 rounded" />
                         </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                         <div className="text-right space-y-1">
-                            <div className="h-3 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
-                            <div className="h-3 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
+                            <div className="h-3 w-16 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                            <div className="h-3 w-20 bg-slate-200 dark:bg-slate-700/80 rounded" />
                         </div>
-                        <div className="h-8 w-24 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                        <div className="h-8 w-24 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
                     </div>
                 </div>
             </div>
@@ -187,7 +187,7 @@ export default function DeoDashboard() {
             });
             const data = await res.json();
             if (res.ok) {
-                setMsg("📢 Notification reminder sent to the assigned reviewer!");
+                setMsg("Notification reminder sent to the assigned reviewer!");
                 setTimeout(() => setMsg(""), 4000);
             } else {
                 alert(data.error || "Failed to send reminder");
@@ -214,7 +214,7 @@ export default function DeoDashboard() {
             });
             const data = await res.json();
             if (res.ok) {
-                setMsg(`📢 ${data.message || "Reminders sent successfully!"}`);
+                setMsg(data.message || "Reminders sent successfully!");
                 setTimeout(() => setMsg(""), 5000);
             } else {
                 alert(data.error || "Failed to send bulk reminders");

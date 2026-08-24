@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { 
     Home, BookOpen, ClipboardList, Eye, Users, 
-    BarChart2, Map, Bell, Menu, FileText, Calendar 
+    BarChart2, Map, Bell, Menu, FileText 
 } from "lucide-react";
 import useSWR from "swr";
 

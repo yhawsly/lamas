@@ -25,42 +25,42 @@ const ReviewCenterSkeleton = () => (
     <div className="space-y-8 animate-pulse">
         {/* Header Skeleton */}
         <div className="space-y-2">
-            <div className="h-7 w-48 bg-slate-200 dark:bg-slate-800 rounded-lg" />
-            <div className="h-4 w-96 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+            <div className="h-7 w-48 bg-slate-200 dark:bg-slate-700/80 rounded-lg" />
+            <div className="h-4 w-96 bg-slate-200 dark:bg-slate-700/80 rounded-lg" />
         </div>
         
         {/* Tabs Skeleton */}
-        <div className="h-12 w-64 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+        <div className="h-12 w-64 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
 
         {/* Table Skeleton */}
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800/60 overflow-hidden shadow-sm" style={{ backgroundColor: "var(--bg-surface)" }}>
             <div className="hidden sm:grid grid-cols-12 gap-4 p-4 border-b border-slate-200 dark:border-slate-800/60" style={{ backgroundColor: "var(--bg-hover)" }}>
-                <div className="col-span-3"><div className="h-3 w-16 bg-slate-200 dark:bg-slate-800 rounded" /></div>
-                <div className="col-span-3"><div className="h-3 w-28 bg-slate-200 dark:bg-slate-800 rounded" /></div>
-                <div className="col-span-2"><div className="h-3 w-10 bg-slate-200 dark:bg-slate-800 rounded" /></div>
-                <div className="col-span-2"><div className="h-3 w-16 bg-slate-200 dark:bg-slate-800 rounded" /></div>
-                <div className="col-span-2 text-right flex justify-end"><div className="h-3 w-20 bg-slate-200 dark:bg-slate-800 rounded" /></div>
+                <div className="col-span-2"><div className="h-3 w-16 bg-slate-200 dark:bg-slate-700 rounded" /></div>
+                <div className="col-span-5"><div className="h-3 w-40 bg-slate-200 dark:bg-slate-700 rounded" /></div>
+                <div className="col-span-2"><div className="h-3 w-10 bg-slate-200 dark:bg-slate-700 rounded" /></div>
+                <div className="col-span-1"><div className="h-3 w-16 bg-slate-200 dark:bg-slate-700 rounded" /></div>
+                <div className="col-span-2 text-right flex justify-end"><div className="h-3 w-20 bg-slate-200 dark:bg-slate-700 rounded" /></div>
             </div>
             
             <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
                 {[1, 2, 3, 4, 5].map((i) => (
                     <div key={i} className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 items-center">
-                        <div className="col-span-3 space-y-2">
-                            <div className="h-4 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
-                            <div className="h-3 w-40 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="col-span-2 space-y-2">
+                            <div className="h-4 w-28 bg-slate-200 dark:bg-slate-700 rounded" />
+                            <div className="h-3 w-36 bg-slate-200 dark:bg-slate-700 rounded" />
                         </div>
-                        <div className="col-span-3 space-y-2">
-                            <div className="h-4 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
-                            <div className="h-3.5 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
-                        </div>
-                        <div className="col-span-2">
-                            <div className="h-3.5 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="col-span-5 space-y-2">
+                            <div className="h-4 w-64 bg-slate-200 dark:bg-slate-700 rounded" />
+                            <div className="h-3.5 w-24 bg-slate-200 dark:bg-slate-700 rounded" />
                         </div>
                         <div className="col-span-2">
-                            <div className="h-6 w-20 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                            <div className="h-3.5 w-16 bg-slate-200 dark:bg-slate-700 rounded" />
+                        </div>
+                        <div className="col-span-1">
+                            <div className="h-6 w-16 bg-slate-200 dark:bg-slate-700 rounded-full" />
                         </div>
                         <div className="col-span-2 flex flex-col items-end">
-                            <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+                            <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded" />
                         </div>
                     </div>
                 ))}
@@ -164,10 +164,10 @@ export default function ReviewCenterTab() {
             {/* Submissions List - Professional UI */}
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800/60 overflow-hidden shadow-sm flex flex-col" style={{ backgroundColor: "var(--bg-surface)" }}>
                 <div className="hidden sm:grid grid-cols-12 gap-4 p-4 border-b border-slate-200 dark:border-slate-800/60 text-[10px] font-black uppercase tracking-widest" style={{ backgroundColor: "var(--bg-hover)", color: "var(--text-muted)" }}>
-                    <div className="col-span-3">Lecturer</div>
-                    <div className="col-span-3">Submission Details</div>
+                    <div className="col-span-2">Lecturer</div>
+                    <div className="col-span-5">Submission Details</div>
                     <div className="col-span-2">Date</div>
-                    <div className="col-span-2">Status</div>
+                    <div className="col-span-1">Status</div>
                     <div className="col-span-2 text-right">Action</div>
                 </div>
 
@@ -183,14 +183,14 @@ export default function ReviewCenterTab() {
                             <div key={s.id} className="group flex flex-col transition-colors hover:bg-[var(--bg-hover)]" style={{ backgroundColor: "var(--bg-base)" }}>
                                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 sm:p-5 items-center">
                                     {/* Lecturer */}
-                                    <div className="col-span-1 sm:col-span-3">
+                                    <div className="col-span-1 sm:col-span-2">
                                         <div className="font-bold text-sm truncate" style={{ color: "var(--text-primary)" }}>{s.lecturer.name}</div>
                                         <div className="text-[11px] font-semibold mt-0.5 truncate" style={{ color: "var(--text-muted)" }}>{s.lecturer.email}</div>
                                     </div>
 
                                     {/* Submission Details */}
-                                    <div className="col-span-1 sm:col-span-3">
-                                        <div className="text-sm font-bold truncate" style={{ color: "var(--text-primary)" }}>{s.title}</div>
+                                    <div className="col-span-1 sm:col-span-5">
+                                        <div className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{s.title}</div>
                                         <div className="inline-flex mt-1.5 px-2 py-0.5 rounded bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 text-[9px] font-black uppercase tracking-widest border border-slate-200 dark:border-slate-700">
                                             {s.type.replace(/_/g, ' ')}
                                         </div>
@@ -204,7 +204,7 @@ export default function ReviewCenterTab() {
                                     </div>
 
                                     {/* Status */}
-                                    <div className="col-span-1 sm:col-span-2">
+                                    <div className="col-span-1 sm:col-span-1">
                                         <span className={`inline-flex px-2.5 py-1 rounded-full text-[9px] font-black tracking-widest uppercase border ${
                                             s.status === 'APPROVED' || s.status === 'REVIEWED' || s.status === 'SUBMITTED' ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' :
                                             s.status === 'REJECTED' ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20' :

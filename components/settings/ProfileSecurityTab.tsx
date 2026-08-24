@@ -203,14 +203,14 @@ export default function ProfileSecurityTab({ user }: { user: UserProfile }) {
             {/* Two-column grid on md+ */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 {/* Left: Personal Info */}
-                <div className="lg:col-span-3 rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
-                            <User className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <div className="lg:col-span-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
+                            <User className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-gray-900 dark:text-white text-sm">Personal Details</h3>
-                            <p className="text-xs text-gray-400">Update your name and contact info</p>
+                            <h3 className="font-bold text-slate-900 dark:text-white text-sm">Personal Details</h3>
+                            <p className="text-xs text-slate-400">Update your name and contact info</p>
                         </div>
                     </div>
 
@@ -218,45 +218,45 @@ export default function ProfileSecurityTab({ user }: { user: UserProfile }) {
                         <StatusBanner status={profileStatus} />
 
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">
                                 Full Name
                             </label>
                             <input
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-sm"
+                                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
                             />
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">
                                     Email Address
                                 </label>
                                 <div className="relative">
-                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                     <input
                                         type="email"
                                         value={user.email}
                                         disabled
-                                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed text-sm"
+                                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed text-sm"
                                     />
                                 </div>
-                                <p className="text-[10px] text-gray-400 mt-1 font-semibold uppercase tracking-widest">Contact IT to change</p>
+                                <p className="text-[10px] text-slate-400 mt-1 font-semibold uppercase tracking-widest">Contact IT to change</p>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">
                                     Phone Number
                                 </label>
                                 <div className="relative">
-                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                     <input
                                         type="text"
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
                                         placeholder="+233 000 000 0000"
-                                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition text-sm"
+                                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
                                     />
                                 </div>
                             </div>
@@ -266,7 +266,7 @@ export default function ProfileSecurityTab({ user }: { user: UserProfile }) {
                             <button
                                 onClick={handleSaveProfile}
                                 disabled={isSaving}
-                                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold rounded-xl transition-all disabled:opacity-50 text-sm shadow-sm"
+                                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold rounded-xl transition-all disabled:opacity-50 text-sm shadow-sm shadow-blue-600/20"
                             >
                                 {isSaving ? (
                                     <span className="flex items-center gap-2">
@@ -280,14 +280,14 @@ export default function ProfileSecurityTab({ user }: { user: UserProfile }) {
                 </div>
 
                 {/* Right: Security */}
-                <div className="lg:col-span-2 rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
+                <div className="lg:col-span-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center">
                             <Lock className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-gray-900 dark:text-white text-sm">Change Password</h3>
-                            <p className="text-xs text-gray-400">Keep your account secure</p>
+                            <h3 className="font-bold text-slate-900 dark:text-white text-sm">Change Password</h3>
+                            <p className="text-xs text-slate-400">Keep your account secure</p>
                         </div>
                     </div>
 
@@ -295,7 +295,7 @@ export default function ProfileSecurityTab({ user }: { user: UserProfile }) {
                         <StatusBanner status={passwordStatus} />
                         <form onSubmit={handleChangePassword} className="space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">
                                     Current Password
                                 </label>
                                 <div className="relative">
@@ -304,16 +304,16 @@ export default function ProfileSecurityTab({ user }: { user: UserProfile }) {
                                         value={currentPassword}
                                         onChange={(e) => setCurrentPassword(e.target.value)}
                                         required
-                                        className="w-full px-4 py-2.5 pr-10 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-rose-400 focus:border-transparent outline-none transition text-sm"
+                                        className="w-full px-4 py-2.5 pr-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
                                     />
-                                    <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition">
+                                    <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition">
                                         {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                     </button>
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">
                                     New Password
                                 </label>
                                 <div className="relative">
@@ -323,9 +323,9 @@ export default function ProfileSecurityTab({ user }: { user: UserProfile }) {
                                         onChange={(e) => setNewPassword(e.target.value)}
                                         required
                                         minLength={8}
-                                        className="w-full px-4 py-2.5 pr-10 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-rose-400 focus:border-transparent outline-none transition text-sm"
+                                        className="w-full px-4 py-2.5 pr-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
                                     />
-                                    <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition">
+                                    <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition">
                                         {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                     </button>
                                 </div>
@@ -333,16 +333,16 @@ export default function ProfileSecurityTab({ user }: { user: UserProfile }) {
                                     <div className="mt-2 space-y-1">
                                         <div className="flex gap-1">
                                             {[1, 2, 3, 4].map((i) => (
-                                                <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i <= passwordStrength ? strengthColor : "bg-gray-200 dark:bg-gray-700"}`} />
+                                                <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i <= passwordStrength ? strengthColor : "bg-slate-200 dark:bg-slate-700"}`} />
                                             ))}
                                         </div>
-                                        <p className="text-[11px] text-gray-400 font-medium">{strengthLabel} password</p>
+                                        <p className="text-[11px] text-slate-400 font-medium">{strengthLabel} password</p>
                                     </div>
                                 )}
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5">
                                     Confirm Password
                                 </label>
                                 <div className="relative">
@@ -352,13 +352,13 @@ export default function ProfileSecurityTab({ user }: { user: UserProfile }) {
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         required
                                         minLength={8}
-                                        className={`w-full px-4 py-2.5 pr-10 rounded-xl border bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:border-transparent outline-none transition text-sm ${
+                                        className={`w-full px-4 py-2.5 pr-10 rounded-xl border bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white focus:ring-2 focus:border-transparent outline-none transition text-sm ${
                                             confirmPassword && confirmPassword !== newPassword
                                                 ? "border-red-400 focus:ring-red-400"
-                                                : "border-gray-200 dark:border-gray-600 focus:ring-rose-400"
+                                                : "border-slate-200 dark:border-slate-700 focus:ring-blue-500"
                                         }`}
                                     />
-                                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition">
+                                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition">
                                         {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                     </button>
                                 </div>
@@ -371,7 +371,7 @@ export default function ProfileSecurityTab({ user }: { user: UserProfile }) {
                                 <button
                                     type="submit"
                                     disabled={isChangingPassword}
-                                    className="w-full px-5 py-2.5 bg-gray-900 dark:bg-gray-700 hover:bg-gray-800 dark:hover:bg-gray-600 active:scale-95 text-white font-bold rounded-xl transition-all disabled:opacity-50 text-sm shadow-sm"
+                                    className="w-full px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold rounded-xl transition-all disabled:opacity-50 text-sm shadow-sm shadow-blue-600/20 cursor-pointer"
                                 >
                                     {isChangingPassword ? (
                                         <span className="flex items-center justify-center gap-2">

@@ -1,12 +1,12 @@
 "use client";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { 
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
     BarChart, Bar, Legend 
 } from "recharts";
 import { 
     TrendingUp, Users, AlertTriangle, CheckCircle2, Search, Filter, 
-    RefreshCw, Layers, ArrowUpRight, Sparkles, Building, Check 
+    RefreshCw, Layers, ArrowUpRight, Sparkles, Building, Check, X 
 } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 
@@ -21,8 +21,8 @@ export function LiveAnalyticsSkeleton() {
                             <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-xl sm:rounded-2xl bg-slate-200 dark:bg-slate-800" />
                             <div className="w-12 sm:w-16 h-4 sm:h-5 rounded-full bg-slate-200 dark:bg-slate-800" />
                         </div>
-                        <div className="h-6 sm:h-8 w-20 sm:w-24 bg-slate-200 dark:bg-slate-800 rounded-lg" />
-                        <div className="h-3 sm:h-4 w-28 sm:w-36 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-6 sm:h-8 w-20 sm:w-24 bg-slate-200 dark:bg-slate-700/80 rounded-lg" />
+                        <div className="h-3 sm:h-4 w-28 sm:w-36 bg-slate-200 dark:bg-slate-700/80 rounded" />
                     </div>
                 ))}
             </div>
@@ -31,10 +31,10 @@ export function LiveAnalyticsSkeleton() {
             <div className="p-4 rounded-2xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 flex flex-col sm:flex-row gap-4 justify-between">
                 <div className="flex gap-2">
                     {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="h-9 w-28 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                        <div key={i} className="h-9 w-28 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
                     ))}
                 </div>
-                <div className="h-9 w-64 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                <div className="h-9 w-64 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
             </div>
 
             {/* Two Main Chart Cards Shimmer */}
@@ -42,14 +42,14 @@ export function LiveAnalyticsSkeleton() {
                 <div className="rounded-3xl p-7 bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 h-96 flex flex-col justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800" />
-                        <div className="h-6 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-6 w-48 bg-slate-200 dark:bg-slate-700/80 rounded" />
                     </div>
                     <div className="h-64 bg-slate-200/70 dark:bg-slate-800/50 rounded-2xl" />
                 </div>
                 <div className="rounded-3xl p-7 bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 h-96 flex flex-col justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800" />
-                        <div className="h-6 w-52 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-6 w-52 bg-slate-200 dark:bg-slate-700/80 rounded" />
                     </div>
                     <div className="h-64 bg-slate-200/70 dark:bg-slate-800/50 rounded-2xl" />
                 </div>
@@ -57,7 +57,7 @@ export function LiveAnalyticsSkeleton() {
 
             {/* Faculty Compliance Matrix Shimmer */}
             <div className="rounded-3xl p-7 bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 space-y-4">
-                <div className="h-6 w-56 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-6 w-56 bg-slate-200 dark:bg-slate-700/80 rounded" />
                 <div className="space-y-3">
                     {[1, 2, 3, 4].map(i => (
                         <div key={i} className="h-16 bg-slate-200/60 dark:bg-slate-800/40 rounded-2xl" />
@@ -79,7 +79,7 @@ export default function AnalyticsTab() {
     const [searchQuery, setSearchQuery] = useState("");
     const [sortBy, setSortBy] = useState<"score_desc" | "score_asc" | "missing_desc" | "name">("score_desc");
 
-    const fetchAnalytics = async () => {
+    const fetchAnalytics = useCallback(async () => {
         setLoading(true);
         try {
             const url = selectedTermId 
@@ -95,11 +95,11 @@ export default function AnalyticsTab() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [selectedTermId]);
 
     useEffect(() => {
         fetchAnalytics();
-    }, [selectedTermId]);
+    }, [fetchAnalytics]);
 
     // Compute unique departments for filter
     const departments = useMemo(() => {
@@ -180,7 +180,7 @@ export default function AnalyticsTab() {
                         <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mt-1 truncate">Average Compliance</p>
                     </div>
                     {/* Progress Bar */}
-                    <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 mt-3 sm:mt-4 overflow-hidden">
+                    <div className="w-full bg-slate-100 dark:bg-slate-700/80 rounded-full h-1.5 mt-3 sm:mt-4 overflow-hidden">
                         <div className="bg-blue-600 h-full rounded-full transition-all duration-700" style={{ width: `${summary.avgScore}%` }} />
                     </div>
                 </div>
@@ -331,9 +331,10 @@ export default function AnalyticsTab() {
                             <button
                                 type="button"
                                 onClick={() => setSearchQuery("")}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer"
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 rounded-md transition cursor-pointer"
+                                aria-label="Clear search query"
                             >
-                                ✕
+                                <X className="w-3.5 h-3.5" />
                             </button>
                         )}
                     </div>
@@ -499,7 +500,7 @@ export default function AnalyticsTab() {
                                                 {lec.score}%
                                             </span>
                                         </div>
-                                        <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                                        <div className="w-full bg-slate-200 dark:bg-slate-700/80 rounded-full h-2 overflow-hidden">
                                             <div
                                                 className={`h-full rounded-full transition-all duration-500 ${
                                                     isAtRisk ? "bg-rose-500" : isOptimal ? "bg-emerald-500" : "bg-amber-500"

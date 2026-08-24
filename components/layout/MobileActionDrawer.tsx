@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { 
-    User, Settings, LogOut, Moon, Sun, Building, Library, 
-    Bell, Shield, X, ChevronRight, Sparkles 
+    Settings, LogOut, Moon, Sun, Building, Library, 
+    Bell, X, ChevronRight 
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import TermSwitcher from "@/components/workspace/TermSwitcher";
@@ -38,8 +38,10 @@ export default function MobileActionDrawer({ isOpen, onClose }: MobileActionDraw
 
     // Close on route change
     useEffect(() => {
-        onClose();
-    }, [pathname]);
+        if (isOpen) {
+            onClose();
+        }
+    }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (!isOpen) return null;
 
@@ -56,8 +58,6 @@ export default function MobileActionDrawer({ isOpen, onClose }: MobileActionDraw
 
     const isLecturer = role === "LECTURER";
     const isHOD = role === "HOD";
-    const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN";
-    const isDEO = role === "DEO";
 
     return (
         <div className="fixed inset-0 z-50 lg:hidden animate-in fade-in duration-200">
@@ -130,8 +130,12 @@ export default function MobileActionDrawer({ isOpen, onClose }: MobileActionDraw
                     {/* Theme & Display Options */}
                     <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                                {theme === "dark" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                                theme === "dark" 
+                                    ? "bg-sky-500/15 text-sky-400 border border-sky-500/30" 
+                                    : "bg-amber-500/15 text-amber-600 border border-amber-500/30"
+                            }`}>
+                                {theme === "dark" ? <Moon className="w-4 h-4 fill-sky-400/30 stroke-[2.2]" /> : <Sun className="w-4 h-4 fill-amber-400/30 stroke-[2.2]" />}
                             </div>
                             <div>
                                 <div className="text-xs font-extrabold text-slate-900 dark:text-white">Interface Theme</div>

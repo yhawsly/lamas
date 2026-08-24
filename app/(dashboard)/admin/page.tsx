@@ -24,8 +24,8 @@ const AdminSkeleton = () => (
     <div className="max-w-7xl mx-auto space-y-8 animate-pulse pb-20">
         {/* Header */}
         <div className="space-y-2">
-            <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
-            <div className="h-4 w-96 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+            <div className="h-8 w-64 bg-slate-200 dark:bg-slate-700/80 rounded-lg" />
+            <div className="h-4 w-96 bg-slate-200 dark:bg-slate-700/80 rounded-lg" />
         </div>
 
         {/* KPI Strip */}
@@ -36,12 +36,12 @@ const AdminSkeleton = () => (
         </div>
 
         {/* Tabs */}
-        <div className="h-10 w-80 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+        <div className="h-10 w-80 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
-            <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+            <div className="h-96 bg-slate-200 dark:bg-slate-700/80 rounded-2xl" />
+            <div className="h-96 bg-slate-200 dark:bg-slate-700/80 rounded-2xl" />
         </div>
     </div>
 );

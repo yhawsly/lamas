@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
                 const taskSummary = tasks.slice(0, 3).join(", ") + (tasks.length > 3 ? ` and ${tasks.length - 3} more` : "");
                 notificationsToCreate.push({
                     userId: observerId,
-                    message: `📢 DEO Reminder: You have ${tasks.length} pending academic peer review(s) awaiting completion: ${taskSummary}. Please review on your portal.`
+                    message: `DEO Reminder: You have ${tasks.length} pending academic peer review(s) awaiting completion: ${taskSummary}. Please review on your portal.`
                 });
             });
 
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
                 if (record && record.observerId) {
                     notificationsToCreate.push({
                         userId: record.observerId,
-                        message: `📢 DEO Nudge: Please complete the Course Outline review (Form A) for ${record.courseCode} (Lecturer: ${record.lecturer?.name || 'Assigned Staff'}).`
+                        message: `DEO Nudge: Please complete the Course Outline review (Form A) for ${record.courseCode} (Lecturer: ${record.lecturer?.name || 'Assigned Staff'}).`
                     });
                 }
             } else if (formType === "B") {
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
                 if (record && record.observerId) {
                     notificationsToCreate.push({
                         userId: record.observerId,
-                        message: `📢 DEO Nudge: Please complete the Classroom Teaching Observation (Form B) for ${record.courseCode} (Lecturer: ${record.lecturer?.name || 'Assigned Staff'}).`
+                        message: `DEO Nudge: Please complete the Classroom Teaching Observation (Form B) for ${record.courseCode} (Lecturer: ${record.lecturer?.name || 'Assigned Staff'}).`
                     });
                 }
             } else if (formType === "C") {
@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
                 if (record && record.moderatorId) {
                     notificationsToCreate.push({
                         userId: record.moderatorId,
-                        message: `📢 DEO Nudge: Urgent exam paper moderation (Form C) for ${record.courseCode} is pending your evaluation.`
+                        message: `DEO Nudge: Urgent exam paper moderation (Form C) for ${record.courseCode} is pending your evaluation.`
                     });
                 }
             }

@@ -47,26 +47,49 @@ export async function computeComplianceScores(
 
 
     const now = new Date();
-    const deadlines = await prisma.deadline.findMany({
-        where: {
-            AND: [
-                currentTermId ? { termId: currentTermId } : {},
-                { dueDate: { lte: now } }
-            ]
-        }
+    const termDeadlines = await prisma.deadline.findMany({
+        where: currentTermId ? { termId: currentTermId } : {},
+        orderBy: { dueDate: "asc" }
     });
-    const totalRequired = deadlines.length;
+
+    const pastDeadlines = termDeadlines.filter(d => d.dueDate <= now);
+    const evaluatedDeadlines = pastDeadlines.length > 0 ? pastDeadlines : termDeadlines;
+    const totalRequired = evaluatedDeadlines.length;
+
+    const onTimeStatuses: SubmissionStatus[] = [
+        SubmissionStatus.SUBMITTED,
+        SubmissionStatus.APPROVED,
+        SubmissionStatus.REVIEWED,
+    ];
 
     return lecturers.map((l) => {
-        const submittedOnTime = l.submissions.filter((s) => s.status === SubmissionStatus.SUBMITTED).length;
-        const submittedLate = l.submissions.filter((s) => s.status === SubmissionStatus.LATE).length;
-        const totalSubmitted = submittedOnTime + submittedLate;
+        let fulfilledOnTime = 0;
+        let fulfilledLate = 0;
 
-        const missing = Math.max(0, totalRequired - totalSubmitted);
+        for (const d of evaluatedDeadlines) {
+            const subsForDeadline = l.submissions.filter(
+                s => s.deadlineId === d.id || (s.type === d.type && s.termId === d.termId)
+            );
+            const hasOnTime = subsForDeadline.some(s => onTimeStatuses.includes(s.status));
+            const hasLate = subsForDeadline.some(s => s.status === SubmissionStatus.LATE);
 
-        // Score is based on on-time submissions relative to requirements
+            if (hasOnTime) {
+                fulfilledOnTime++;
+            } else if (hasLate) {
+                fulfilledLate++;
+            }
+        }
+
+        const totalSubmittedSubs = l.submissions.filter(s =>
+            onTimeStatuses.includes(s.status) || s.status === SubmissionStatus.LATE
+        ).length;
+        const totalLateSubs = l.submissions.filter(s => s.status === SubmissionStatus.LATE).length;
+
+        const missing = Math.max(0, totalRequired - (fulfilledOnTime + fulfilledLate));
+
+        // Score is based on on-time deadline fulfillment percentage, strictly clamped to [0, 100]
         const score = totalRequired > 0
-            ? Math.round((submittedOnTime / totalRequired) * 100)
+            ? Math.min(100, Math.max(0, Math.round((fulfilledOnTime / totalRequired) * 100)))
             : 100;
 
         const isAtRisk =
@@ -74,8 +97,8 @@ export async function computeComplianceScores(
             l.submissions.some(
                 (s) =>
                     s.deadline &&
-                    s.deadline.dueDate < new Date() &&
-                    (s.status === SubmissionStatus.PENDING || s.status === SubmissionStatus.DRAFT)
+                    s.deadline.dueDate < now &&
+                    (s.status === SubmissionStatus.PENDING || s.status === SubmissionStatus.DRAFT || s.status === SubmissionStatus.REJECTED)
             );
 
         return {
@@ -85,8 +108,8 @@ export async function computeComplianceScores(
             department: l.department?.name ?? "N/A",
             score,
             totalRequired,
-            submitted: totalSubmitted,
-            late: submittedLate,
+            submitted: totalSubmittedSubs,
+            late: totalLateSubs,
             missing,
             isAtRisk,
         };
@@ -117,17 +140,19 @@ export async function getDepartmentHeatmap(termId?: number, departmentId?: numbe
                         whereType = { in: [SubmissionType.COURSE_TOPICS, SubmissionType.WEEKLY_TOPICS] };
                     }
 
-                    const count = await prisma.submission.count({
+                    const distinctSubmissions = await prisma.submission.findMany({
                         where: {
                             lecturerId: { in: lecturerIds },
                             type: whereType,
                             status: { in: [SubmissionStatus.SUBMITTED, SubmissionStatus.LATE, SubmissionStatus.APPROVED, SubmissionStatus.REVIEWED] },
                             termId: termId || undefined,
                         },
+                        select: { lecturerId: true },
+                        distinct: ['lecturerId'],
                     });
                     
                     const total = lecturerIds.length;
-                    const value = total > 0 ? Math.round((count / total) * 100) : 0;
+                    const value = total > 0 ? Math.min(100, Math.round((distinctSubmissions.length / total) * 100)) : 0;
                     
                     // Map back to the keys the frontend expects
                     if (type === "TOPICS") heatRow["COURSE_TOPICS"] = value;

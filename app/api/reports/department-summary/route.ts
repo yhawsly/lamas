@@ -88,7 +88,7 @@ export async function GET(req: NextRequest) {
                     peerObservation: `${peerCompleted}/${peerTotal}`,
                     teachingObservation: `${teachCompleted}/${teachTotal}`,
                     moderation: `${modCompleted}/${modTotal}`,
-                    complianceScore: Math.round(((peerCompleted + teachCompleted + modCompleted) / Math.max(1, (peerTotal + teachTotal + modTotal))) * 100)
+                    complianceScore: Math.min(100, Math.max(0, Math.round(((peerCompleted + teachCompleted + modCompleted) / Math.max(1, (peerTotal + teachTotal + modTotal))) * 100)))
                 }
             };
         });

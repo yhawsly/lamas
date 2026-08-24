@@ -2,9 +2,9 @@
 
 import { useState, useRef } from "react";
 import { 
-    User, Camera, Mail, Phone, Shield, Lock, Eye, EyeOff, 
+    User, Camera, Mail, Lock, Eye, EyeOff, 
     CheckCircle2, AlertCircle, Building2, BadgeCheck, FileSignature, 
-    Sparkles, KeyRound, Save 
+    KeyRound, Save 
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 
@@ -45,11 +45,6 @@ export default function ProfileClient({ user }: { user: UserProfile }) {
 
     const [name, setName] = useState(user.name);
     const [phone, setPhone] = useState(user.phone || "");
-    const [academicTitle, setAcademicTitle] = useState(
-        user.name.startsWith("Dr.") ? "Dr." : 
-        user.name.startsWith("Prof.") ? "Prof." : 
-        user.name.startsWith("Ing.") ? "Ing." : "Mr."
-    );
 
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
@@ -177,7 +172,7 @@ export default function ProfileClient({ user }: { user: UserProfile }) {
                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
                     {/* Avatar with Camera Overlay */}
                     <div className="relative group shrink-0">
-                        <div className="w-24 h-24 rounded-2xl overflow-hidden bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-3xl shadow-lg border-2 border-white dark:border-slate-700">
+                        <div className={`w-24 h-24 rounded-2xl overflow-hidden bg-gradient-to-tr ${roleColor} text-white flex items-center justify-center font-black text-3xl shadow-lg border-2 border-white dark:border-slate-700`}>
                             {previewUrl ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={previewUrl} alt={name} className="w-full h-full object-cover" />

@@ -21,6 +21,8 @@ interface AuditLog {
 const ACTION_COLORS: Record<string, string> = {
     SUBMISSION_CREATED: "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20",
     SUBMISSION_UPDATED: "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20",
+    SUBMISSION_REVIEWED: "bg-teal-50 text-teal-600 border-teal-200 dark:bg-teal-500/10 dark:text-teal-400 dark:border-teal-500/20",
+    RESOURCE_UPLOADED: "bg-sky-50 text-sky-600 border-sky-200 dark:bg-sky-500/10 dark:text-sky-400 dark:border-sky-500/20",
     OBSERVATION_ASSIGNED: "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20",
     OBSERVATION_COMPLETED: "bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20",
     DEPARTMENT_BROADCAST: "bg-pink-50 text-pink-600 border-pink-200 dark:bg-pink-500/10 dark:text-pink-400 dark:border-pink-500/20",
@@ -30,6 +32,31 @@ const ACTION_COLORS: Record<string, string> = {
     ADMIN_ACTION: "bg-red-50 text-red-600 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20",
 };
 
+function getLogDetailText(log: AuditLog): string {
+    if (log.details && typeof log.details === "string" && log.details.trim()) {
+        return log.details;
+    }
+    if (typeof log.details === "object" && log.details !== null) {
+        const d = log.details as Record<string, any>;
+        return d.message || d.details || d.description || d.title || d.note || JSON.stringify(log.details);
+    }
+    // Action-specific intelligent fallbacks
+    const actionFallbacks: Record<string, string> = {
+        SUBMISSION_CREATED: "Created new course syllabus / lecture outline",
+        SUBMISSION_UPDATED: "Updated syllabus content & module schedule",
+        SUBMISSION_REVIEWED: "Completed submission review & assessment scoring",
+        RESOURCE_UPLOADED: "Uploaded institutional teaching resource",
+        OBSERVATION_ASSIGNED: "Scheduled peer teaching observation session",
+        OBSERVATION_COMPLETED: "Submitted completed Form B peer observation rubric",
+        DEPARTMENT_BROADCAST: "Sent notice broadcast to departmental faculty",
+        DIRECT_NOTIFICATION: "Sent direct priority communication",
+        LOGIN: "Authenticated user session started",
+        LOGOUT: "User session terminated / signed out",
+        ADMIN_ACTION: "Administrative system configuration updated",
+    };
+    return actionFallbacks[log.action] || log.action.replace(/_/g, " ").toLowerCase();
+}
+
 const AuditLogsSkeleton = () => (
     <div className="divide-y divide-slate-100 dark:divide-slate-800/60 animate-pulse">
         {[1, 2, 3, 4, 5].map((i) => (
@@ -37,21 +64,21 @@ const AuditLogsSkeleton = () => (
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
                     {/* Timestamp */}
                     <div className="col-span-1 sm:col-span-2 space-y-1.5">
-                        <div className="h-3.5 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
-                        <div className="h-3 w-14 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-3.5 w-20 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                        <div className="h-3 w-14 bg-slate-200 dark:bg-slate-700/80 rounded" />
                     </div>
                     {/* User */}
                     <div className="col-span-1 sm:col-span-3 space-y-1.5">
-                        <div className="h-3.5 w-28 bg-slate-200 dark:bg-slate-800 rounded" />
-                        <div className="h-3 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-3.5 w-28 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                        <div className="h-3 w-20 bg-slate-200 dark:bg-slate-700/80 rounded" />
                     </div>
                     {/* Action */}
                     <div className="col-span-1 sm:col-span-3">
-                        <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                        <div className="h-6 w-32 bg-slate-200 dark:bg-slate-700/80 rounded-full" />
                     </div>
                     {/* Details */}
                     <div className="col-span-1 sm:col-span-4">
-                        <div className="h-4 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-4 w-48 bg-slate-200 dark:bg-slate-700/80 rounded" />
                     </div>
                 </div>
             </div>
@@ -182,8 +209,8 @@ export default function AuditLogTab() {
 
                                     {/* Details */}
                                     <div className="col-span-1 sm:col-span-4">
-                                        <div className="text-xs font-semibold leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                                            {log.details}
+                                        <div className="text-xs font-semibold leading-relaxed text-slate-700 dark:text-slate-300">
+                                            {getLogDetailText(log)}
                                         </div>
                                     </div>
                                 </div>

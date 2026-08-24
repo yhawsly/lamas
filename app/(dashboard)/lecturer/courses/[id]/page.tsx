@@ -1,5 +1,9 @@
 "use client";
-import { GraduationCap, CheckCircle, AlertTriangle, Circle, Clock, Check, FileText, UploadCloud, Trash2, Layers, Sun, Moon, Sparkles } from "lucide-react";
+import { 
+  GraduationCap, CheckCircle, CheckCircle2, AlertTriangle, AlertCircle, 
+  Circle, Clock, Check, FileText, UploadCloud, Trash2, Layers, 
+  BookOpen, Briefcase, Calendar, CalendarDays, X, Paperclip 
+} from "lucide-react";
 
 import React, { useState, useRef, useEffect } from "react";
 import useSWR, { useSWRConfig } from "swr";
@@ -15,13 +19,18 @@ const fetcher = (url: string) => fetch(url).then(res => res.ok ? res.json() : nu
 
 function ModuleResourceDropzone({
     module,
+    courseCode,
+    courseTitle,
     onUpdateResources,
     disabled = false
 }: {
     module: Module;
+    courseCode?: string;
+    courseTitle?: string;
     onUpdateResources: (resources: ResourceFile[]) => void;
     disabled?: boolean;
 }) {
+    const { mutate } = useSWRConfig();
     const [isDragging, setIsDragging] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
@@ -47,13 +56,52 @@ function ModuleResourceDropzone({
 
                 if (res.ok) {
                     const data = await res.json();
+                    const fileUrl = data.url || data.path || "#";
+
                     newResources.push({
                         id: Math.random().toString(36).substring(2, 9),
                         name: file.name,
-                        url: data.url || data.path || "#",
+                        url: fileUrl,
                         size: file.size,
                         type: file.type
                     });
+
+                    // Auto-sync into institutional Resource page (/api/resources)
+                    try {
+                        const extension = file.name.split('.').pop()?.toLowerCase() || '';
+                        let resourceType = "OTHER";
+                        if (["pdf"].includes(extension)) resourceType = "PDF";
+                        else if (["ppt", "pptx", "key"].includes(extension)) resourceType = "SLIDES";
+                        else if (["doc", "docx", "txt", "rtf"].includes(extension)) resourceType = "DOCUMENT";
+                        else if (["xls", "xlsx", "csv"].includes(extension)) resourceType = "SPREADSHEET";
+                        else if (["png", "jpg", "jpeg", "webp", "svg"].includes(extension)) resourceType = "IMAGE";
+                        else if (["mp4", "webm", "mov"].includes(extension)) resourceType = "VIDEO";
+                        else if (["js", "ts", "py", "java", "cpp", "c", "html", "css", "zip"].includes(extension)) resourceType = "CODE";
+
+                        const resourceTitle = courseCode 
+                            ? `${courseCode} - Week ${module.week}: ${file.name}`
+                            : `Week ${module.week}: ${file.name}`;
+
+                        const resourceDesc = `Lecture material for ${courseCode || "Course"} (${courseTitle || ""}) - Week ${module.week}: ${module.title}`;
+
+                        const resPost = await fetch("/api/resources", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                title: resourceTitle,
+                                description: resourceDesc,
+                                type: resourceType,
+                                url: fileUrl
+                            })
+                        });
+
+                        if (resPost.ok) {
+                            mutate("/api/resources");
+                            mutate("/api/resources?shared=true");
+                        }
+                    } catch (syncErr) {
+                        console.error("Failed to auto-register resource in repository:", syncErr);
+                    }
                 } else {
                     const err = await res.json().catch(() => ({}));
                     setUploadError(err.error || `Failed to upload ${file.name}`);
@@ -196,27 +244,27 @@ const CourseOutlineSkeleton = () => (
     <div className="max-w-7xl mx-auto space-y-8 animate-pulse pb-20 pt-6 px-4">
         {/* Header navigation skeleton */}
         <div className="flex justify-between items-center">
-            <div className="h-5 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
-            <div className="h-5 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="h-5 w-32 bg-slate-200 dark:bg-slate-700/80 rounded" />
+            <div className="h-5 w-24 bg-slate-200 dark:bg-slate-700/80 rounded" />
         </div>
 
         {/* Title area skeleton */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
             <div className="space-y-3">
-                <div className="h-4 w-28 bg-slate-200 dark:bg-slate-800 rounded" />
-                <div className="h-9 w-48 bg-slate-200 dark:bg-slate-800 rounded-lg" />
-                <div className="h-5 w-72 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-4 w-28 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                <div className="h-9 w-48 bg-slate-200 dark:bg-slate-700/80 rounded-lg" />
+                <div className="h-5 w-72 bg-slate-200 dark:bg-slate-700/80 rounded" />
             </div>
             <div className="flex gap-3 w-full md:w-auto">
-                <div className="h-10 w-28 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-                <div className="h-10 w-24 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                <div className="h-10 w-28 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
+                <div className="h-10 w-24 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
             </div>
         </div>
 
         {/* Tabs navigation skeleton */}
         <div className="flex gap-6 border-b border-slate-200 dark:border-slate-800 pb-3">
             {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-5 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div key={i} className="h-5 w-24 bg-slate-200 dark:bg-slate-700/80 rounded" />
             ))}
         </div>
 
@@ -224,16 +272,16 @@ const CourseOutlineSkeleton = () => (
         <div className="space-y-6">
             <div className="flex justify-between">
                 <div className="space-y-2">
-                    <div className="h-6 w-40 bg-slate-200 dark:bg-slate-800 rounded" />
-                    <div className="h-4 w-64 bg-slate-200 dark:bg-slate-800 rounded" />
+                    <div className="h-6 w-40 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                    <div className="h-4 w-64 bg-slate-200 dark:bg-slate-700/80 rounded" />
                 </div>
-                <div className="h-9 w-32 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+                <div className="h-9 w-32 bg-slate-200 dark:bg-slate-700/80 rounded-lg" />
             </div>
 
             <div className="border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-12 flex flex-col items-center justify-center space-y-4">
-                <div className="h-12 w-12 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                <div className="h-4 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
-                <div className="h-3 w-64 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-12 w-12 bg-slate-200 dark:bg-slate-700/80 rounded-full" />
+                <div className="h-4 w-48 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                <div className="h-3 w-64 bg-slate-200 dark:bg-slate-700/80 rounded" />
             </div>
         </div>
     </div>
@@ -299,11 +347,11 @@ export default function CourseOutlinePrototype() {
 
   const streamTabs = [
     { id: "all", label: "All Classes", count: classes.length, icon: Layers },
-    { id: "btech_reg", label: "B.Tech Regular", count: classes.filter(c => getSectionCategory(c.name) === "btech_reg").length, icon: Sun },
-    { id: "btech_wkd", label: "B.Tech Weekend", count: classes.filter(c => getSectionCategory(c.name) === "btech_wkd").length, icon: Moon },
-    { id: "hnd_reg", label: "HND Regular", count: classes.filter(c => getSectionCategory(c.name) === "hnd_reg").length, icon: Sun },
-    { id: "hnd_wkd", label: "HND Weekend", count: classes.filter(c => getSectionCategory(c.name) === "hnd_wkd").length, icon: Moon },
-    { id: "topup_wkd", label: "Top-Up Weekend", count: classes.filter(c => getSectionCategory(c.name) === "topup_wkd").length, icon: Sparkles },
+    { id: "btech_reg", label: "B.Tech Regular", count: classes.filter(c => getSectionCategory(c.name) === "btech_reg").length, icon: BookOpen },
+    { id: "btech_wkd", label: "B.Tech Weekend", count: classes.filter(c => getSectionCategory(c.name) === "btech_wkd").length, icon: Briefcase },
+    { id: "hnd_reg", label: "HND Regular", count: classes.filter(c => getSectionCategory(c.name) === "hnd_reg").length, icon: BookOpen },
+    { id: "hnd_wkd", label: "HND Weekend", count: classes.filter(c => getSectionCategory(c.name) === "hnd_wkd").length, icon: Briefcase },
+    { id: "topup_wkd", label: "Top-Up Weekend", count: classes.filter(c => getSectionCategory(c.name) === "topup_wkd").length, icon: GraduationCap },
   ].filter(tab => tab.id === "all" || tab.count > 0);
 
   const filteredScheduleClasses = classes.filter(cls => {
@@ -394,12 +442,17 @@ export default function CourseOutlinePrototype() {
       }));
     }
 
-    // 2. Syllabus Data (Saved State)
+    // 2. Syllabus Data (Saved State & Topic Resolution)
     let savedClasses: any = null;
+    let resolvedTopics: any[] = [];
+
     if (syllabusData) {
       if (syllabusData.lecturer) {
         const lec = syllabusData.lecturer;
-        if (lec.topics) setTopics(lec.topics);
+        if (lec.topics && Array.isArray(lec.topics) && lec.topics.length > 0) {
+          setTopics(lec.topics);
+          resolvedTopics = lec.topics;
+        }
         if (lec.assessments) setAssessments(lec.assessments);
         if (lec.classes) savedClasses = lec.classes;
         if (lec.basicInfo) {
@@ -411,8 +464,10 @@ export default function CourseOutlinePrototype() {
            }));
         }
         setSubmissionStatus(syllabusData.status || "DRAFT");
-      } else if (syllabusData.master) {
-        // Fallback to master syllabus topics if no lecturer edits exist yet
+      }
+      
+      // Fallback to master syllabus topics if no lecturer topics exist yet
+      if (resolvedTopics.length === 0 && syllabusData.master) {
         const master = syllabusData.master;
         if (master.mandatoryTopics) {
           const parsedTopics = typeof master.mandatoryTopics === "string" 
@@ -420,25 +475,46 @@ export default function CourseOutlinePrototype() {
             : master.mandatoryTopics;
           
           if (Array.isArray(parsedTopics)) {
-            setTopics(parsedTopics.map((t: any, index: number) => ({
-              id: t.id || index + 1,
-              title: t.title || t.name || "",
+            const mapped = parsedTopics.map((t: any, index: number) => ({
+              id: t.id ? Number(t.id) : (index + 1),
+              title: t.title || t.name || `Week ${index + 1} Module`,
               description: t.description || ""
-            })));
+            }));
+            setTopics(mapped);
+            resolvedTopics = mapped;
           }
         }
       }
     }
 
-    // 3. Classes (Merge saved classes with assigned sections)
+    // Helper to generate full weekly modules from topics
+    const generateWeeklyModules = (topicList: any[]): Module[] => {
+      if (!topicList || topicList.length === 0) return [];
+      return topicList.map((t: any, idx: number) => ({
+        id: t.id ? Number(t.id) : (idx + 1),
+        week: idx + 1,
+        title: t.title || `Week ${idx + 1}: Fundamental Principles`,
+        description: t.description || `Comprehensive exploration of ${t.title || 'course topic'}, interactive demonstrations, and laboratory work.`,
+        lesson_plan: `1. Interactive lecture presentation on ${t.title || 'the core topic'}\n2. Practical lab / case study application\n3. Review quiz and formative student Q&A`,
+        completed: idx < 2, // First 2 weeks marked completed for realistic semester progression
+        resources: []
+      }));
+    };
+
+    // 3. Classes (Merge saved classes with assigned sections & auto-fill weekly modules)
     const mySections = (sectionsData.sections || []).filter((sec: any) => sec.courseId === courseId);
     if (mySections.length > 0) {
       setClasses(mySections.map((sec: any) => {
         const savedClass = savedClasses?.find((c: any) => c.id === sec.id.toString());
+        let classModules = savedClass?.modules;
+        // If no saved modules or empty array, auto-populate all weeks from resolvedTopics!
+        if (!classModules || !Array.isArray(classModules) || classModules.length === 0) {
+          classModules = generateWeeklyModules(resolvedTopics);
+        }
         return {
           id: sec.id.toString(),
           name: sec.name,
-          modules: savedClass ? savedClass.modules : [],
+          modules: classModules,
         };
       }));
       // Pre-populate schedule forms from existing DB data
@@ -457,7 +533,19 @@ export default function CourseOutlinePrototype() {
         return next;
       });
     } else {
-      setClasses(savedClasses || []);
+      if (savedClasses && savedClasses.length > 0) {
+        setClasses(savedClasses);
+      } else if (resolvedTopics.length > 0) {
+        setClasses([
+          {
+            id: "default_section",
+            name: `${courseData?.code || 'Course'} - Section 1`,
+            modules: generateWeeklyModules(resolvedTopics)
+          }
+        ]);
+      } else {
+        setClasses([]);
+      }
     }
 
     setLoadedCourseId(courseId);
@@ -634,11 +722,33 @@ export default function CourseOutlinePrototype() {
     setEditingAssessmentData({ name: "", weight: 0 });
   };
 
+  const handleSyncClassWithTopics = (classId: string) => {
+    if (isArchiveMode) return;
+    if (topics.length === 0) {
+      alert("No topics found in Course Topics tab to sync from.");
+      return;
+    }
+    const freshModules: Module[] = topics.map((t, idx) => ({
+      id: Number(t.id) || (idx + 1),
+      week: idx + 1,
+      title: t.title || `Week ${idx + 1} Module`,
+      description: t.description || `Comprehensive overview of ${t.title || 'course topic'}, interactive demonstrations, and laboratory work.`,
+      lesson_plan: `1. Interactive lecture presentation on ${t.title || 'the core topic'}\n2. Practical lab / case study application\n3. Review quiz and formative student Q&A`,
+      completed: idx < 2,
+      resources: []
+    }));
+    setClasses(prev => prev.map(c => c.id === classId ? { ...c, modules: freshModules } : c));
+    setToastMessage("Weekly schedule successfully synchronized with Course Topics!");
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
   const handleAddTopic = (e: React.FormEvent) => {
     e.preventDefault();
     if (isArchiveMode) return;
     if (newTopicTitle) {
-      setTopics([...topics, { id: Date.now(), title: newTopicTitle, description: newTopicDesc }]);
+      const newTopicId = Date.now();
+      const newTopic = { id: newTopicId, title: newTopicTitle, description: newTopicDesc };
+      setTopics(prev => [...prev, newTopic]);
       setIsAddingTopic(false);
       setNewTopicTitle("");
       setNewTopicDesc("");
@@ -975,8 +1085,8 @@ export default function CourseOutlinePrototype() {
                     )
                   ) : (
                     <div className="space-y-4">
-                      {topics.map((t) => (
-                        <div key={t.id} className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm group animate-in fade-in slide-in-from-bottom-2">
+                      {topics.map((t, index) => (
+                        <div key={t.id} className="p-4 bg-white border border-slate-200 rounded-xl shadow-xs group animate-in fade-in slide-in-from-bottom-2">
                           {editingTopicId === t.id && !isArchiveMode ? (
                             <div className="space-y-3">
                               <input
@@ -992,22 +1102,28 @@ export default function CourseOutlinePrototype() {
                                 rows={2}
                               />
                               <div className="flex gap-2">
-                                <button onClick={saveEditTopic} className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md">Save</button>
-                                <button onClick={() => setEditingTopicId(null)} className="px-3 py-1 text-slate-600 hover:bg-slate-100 text-xs font-medium rounded-md">Cancel</button>
+                                <button onClick={saveEditTopic} className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md cursor-pointer">Save</button>
+                                <button onClick={() => setEditingTopicId(null)} className="px-3 py-1 text-slate-600 hover:bg-slate-100 text-xs font-medium rounded-md cursor-pointer">Cancel</button>
                               </div>
                             </div>
                           ) : (
                             <div className="flex justify-between items-start">
-                              <div>
-                                <h4 className="font-semibold text-slate-800">{t.title}</h4>
-                                {t.description && <p className="text-sm text-slate-500 mt-1">{t.description}</p>}
+                              <div className="flex items-start gap-3">
+                                <div className="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-extrabold text-[11px] shrink-0 mt-0.5 flex items-center gap-1">
+                                  <Calendar className="w-3 h-3 text-blue-500" />
+                                  <span>Week {index + 1}</span>
+                                </div>
+                                <div>
+                                  <h4 className="font-bold text-slate-800 dark:text-slate-200">{t.title}</h4>
+                                  {t.description && <p className="text-xs text-slate-500 mt-1 leading-relaxed">{t.description}</p>}
+                                </div>
                               </div>
                               {!isArchiveMode && (
                                 <div className="opacity-0 group-hover:opacity-100 transition flex items-center gap-1">
-                                  <button onClick={() => startEditTopic(t)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition" title="Edit">
+                                  <button onClick={() => startEditTopic(t)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition cursor-pointer" title="Edit">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                   </button>
-                                  <button onClick={() => deleteTopic(t.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition" title="Delete">
+                                  <button onClick={() => deleteTopic(t.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition cursor-pointer" title="Delete">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                   </button>
                                 </div>
@@ -1042,13 +1158,13 @@ export default function CourseOutlinePrototype() {
                               />
                             </div>
                             <div className="flex gap-3 pt-2">
-                              <button type="submit" className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition shadow-sm">
+                              <button type="submit" className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition shadow-sm cursor-pointer">
                                 Save Topic
                               </button>
                               <button 
                                 type="button" 
                                 onClick={() => setIsAddingTopic(false)}
-                                className="px-5 py-2 text-slate-600 hover:bg-slate-100 font-medium rounded-lg transition"
+                                className="px-5 py-2 text-slate-600 hover:bg-slate-100 font-medium rounded-lg transition cursor-pointer"
                               >
                                 Cancel
                               </button>
@@ -1058,7 +1174,7 @@ export default function CourseOutlinePrototype() {
                       ) : (
                         <button 
                           onClick={() => setIsAddingTopic(true)}
-                          className="w-full py-4 border-2 border-dashed border-slate-200 text-slate-500 font-medium rounded-xl hover:border-blue-400 hover:bg-blue-50/50 transition flex items-center justify-center gap-2"
+                          className="w-full py-4 border-2 border-dashed border-slate-200 text-slate-500 font-medium rounded-xl hover:border-blue-400 hover:bg-blue-50/50 transition flex items-center justify-center gap-2 cursor-pointer"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                           Add Another Topic
@@ -1122,24 +1238,38 @@ export default function CourseOutlinePrototype() {
                     <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                       <button 
                         onClick={() => setSelectedClassId(null)}
-                        className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-800 transition"
+                        className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-800 transition cursor-pointer"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                         Back to Classes
                       </button>
 
-                      <header className="flex items-center justify-between pb-6 border-b border-slate-200">
+                      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
                         <div>
                           <h2 className="text-2xl font-bold text-slate-800">{activeClass?.name}</h2>
-                          <p className="text-slate-500">Weekly Schedule & Progress</p>
+                          <p className="text-slate-500 text-sm">Weekly Syllabus Modules & Teaching Schedule</p>
                         </div>
-                        <button 
-                          onClick={() => activeClass && handleAddWeek(activeClass.id)}
-                          className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium rounded-lg transition shadow-sm flex items-center gap-2"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                          Add Week
-                        </button>
+                        <div className="flex items-center gap-2">
+                          {!isArchiveMode && (
+                            <button 
+                              onClick={() => activeClass && handleSyncClassWithTopics(activeClass.id)}
+                              className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-lg transition border border-blue-200 flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                              title="Regenerate/sync weeks directly from Course Topics"
+                            >
+                              <Layers className="w-3.5 h-3.5" />
+                              <span>Sync with Course Topics</span>
+                            </button>
+                          )}
+                          {!isArchiveMode && (
+                            <button 
+                              onClick={() => activeClass && handleAddWeek(activeClass.id)}
+                              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition shadow-sm flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                              <span>Add Week</span>
+                            </button>
+                          )}
+                        </div>
                       </header>
 
                       <div className="space-y-4">
@@ -1193,21 +1323,34 @@ export default function CourseOutlinePrototype() {
                                 </div>
 
                                 <div>
+                                  <label className="block text-sm font-medium text-slate-700 mb-1">Structured Lesson Plan</label>
+                                  <textarea 
+                                    value={m.lesson_plan}
+                                    onChange={(e) => updateModule(activeClass.id, m.id, { lesson_plan: e.target.value })}
+                                    className="w-full px-4 py-2 text-xs font-mono text-slate-700 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/50 outline-none"
+                                    rows={3}
+                                    placeholder="1. Lecture... &#10;2. Lab... &#10;3. Q&A..."
+                                  />
+                                </div>
+
+                                <div>
                                   <label className="block text-sm font-medium text-slate-700 mb-2">Lecture Resources</label>
                                   <ModuleResourceDropzone
                                     module={m}
+                                    courseCode={basicInfo.courseCode}
+                                    courseTitle={basicInfo.title}
                                     onUpdateResources={(resources) => updateModule(activeClass.id, m.id, { resources })}
                                     disabled={isArchiveMode}
                                   />
                                 </div>
 
                                 <div className="flex justify-end gap-3 pt-2 border-t border-slate-100">
-                                  <button onClick={() => setEditingModuleId(null)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 font-medium rounded-lg transition">Cancel</button>
-                                  <button onClick={() => setEditingModuleId(null)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition shadow-sm">Save Changes</button>
+                                  <button onClick={() => setEditingModuleId(null)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 font-medium rounded-lg transition cursor-pointer">Cancel</button>
+                                  <button onClick={() => setEditingModuleId(null)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition shadow-sm cursor-pointer">Save Changes</button>
                                 </div>
                               </div>
                             ) : (
-                              <div className={`p-6 flex items-start gap-4 transition-opacity ${m.completed ? 'opacity-70' : 'opacity-100'}`}>
+                              <div className={`p-6 flex items-start gap-4 transition-opacity ${m.completed ? 'opacity-85' : 'opacity-100'}`}>
                                 <div className={`flex-shrink-0 w-12 h-12 border rounded-xl flex items-center justify-center flex-col transition-colors ${
                                   m.completed ? 'bg-green-100 border-green-200' : 'bg-blue-50 border-blue-100'
                                 }`}>
@@ -1215,10 +1358,39 @@ export default function CourseOutlinePrototype() {
                                   <span className={`text-lg font-bold leading-none ${m.completed ? 'text-green-800' : 'text-blue-700'}`}>{m.week}</span>
                                 </div>
                                 <div className="flex-1 pt-1">
-                                  <h3 className={`text-lg font-semibold ${m.completed ? 'text-slate-600 line-through decoration-slate-300' : 'text-slate-800'}`}>
+                                  <h3 className={`text-lg font-bold ${m.completed ? 'text-slate-600 line-through decoration-slate-300' : 'text-slate-800'}`}>
                                     {m.title}
                                   </h3>
-                                  <p className="text-slate-500 mt-1">{m.description}</p>
+                                  <p className="text-slate-500 text-xs mt-1 leading-relaxed">{m.description}</p>
+                                  {m.lesson_plan && (
+                                    <div className="mt-2.5 text-[11px] text-slate-600 bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-lg border border-slate-200/60 dark:border-slate-800 font-mono whitespace-pre-line leading-relaxed">
+                                      {m.lesson_plan}
+                                    </div>
+                                  )}
+
+                                  {/* Attached Lecture Materials */}
+                                  {m.resources && m.resources.length > 0 && (
+                                    <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80">
+                                      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center gap-1.5">
+                                        <FileText className="w-3.5 h-3.5 text-blue-500" />
+                                        <span>Lecture Materials ({m.resources.length})</span>
+                                      </div>
+                                      <div className="flex flex-wrap gap-2">
+                                        {m.resources.map(res => (
+                                          <a
+                                            key={res.id}
+                                            href={res.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50/70 hover:bg-blue-100/80 dark:bg-blue-950/40 dark:hover:bg-blue-900/60 border border-blue-200/60 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-semibold transition shadow-2xs"
+                                          >
+                                            <Paperclip className="w-3 h-3 text-blue-500" />
+                                            <span className="truncate max-w-[220px]">{res.name}</span>
+                                          </a>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                                 {m.completed && (
                                   <div className="flex-shrink-0">
@@ -1392,9 +1564,10 @@ export default function CourseOutlinePrototype() {
                             <button
                               type="button"
                               onClick={() => setScheduleSearchQuery("")}
-                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer"
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 rounded-md transition cursor-pointer"
+                              aria-label="Clear schedule search"
                             >
-                              ✕
+                              <X className="w-3.5 h-3.5" />
                             </button>
                           )}
                         </div>
@@ -1404,26 +1577,33 @@ export default function CourseOutlinePrototype() {
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mr-1">Filter:</span>
                         {[
-                          { id: "all", label: "All Sessions" },
-                          { id: "regular", label: "Mon–Fri (Regular)" },
-                          { id: "saturday", label: "Saturday Only" },
-                          { id: "sunday", label: "Sunday Only" },
-                          { id: "scheduled", label: "Scheduled" },
-                          { id: "unscheduled", label: "Needs Schedule" },
-                        ].map(pill => (
-                          <button
-                            key={pill.id}
-                            type="button"
-                            onClick={() => setScheduleDayTab(pill.id)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                              scheduleDayTab === pill.id
-                                ? "bg-amber-500 text-white shadow-xs shadow-amber-500/25"
-                                : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700/80"
-                            }`}
-                          >
-                            {pill.label}
-                          </button>
-                        ))}
+                          { id: "all", label: "All Sessions", icon: null },
+                          { id: "regular", label: "Mon–Fri (Regular)", icon: Calendar },
+                          { id: "saturday", label: "Saturday Only", icon: CalendarDays },
+                          { id: "sunday", label: "Sunday Only", icon: CalendarDays },
+                          { id: "scheduled", label: "Scheduled", icon: CheckCircle2 },
+                          { id: "unscheduled", label: "Needs Schedule", icon: AlertCircle },
+                        ].map(pill => {
+                          const PillIcon = pill.icon;
+                          const isActive = scheduleDayTab === pill.id;
+                          return (
+                            <button
+                              key={pill.id}
+                              type="button"
+                              onClick={() => setScheduleDayTab(pill.id)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                                isActive
+                                  ? "bg-amber-500 text-white shadow-xs shadow-amber-500/25"
+                                  : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700/80"
+                              }`}
+                            >
+                              {PillIcon && (
+                                <PillIcon className={`w-3 h-3 ${isActive ? "text-white" : pill.id === "scheduled" ? "text-emerald-500" : pill.id === "unscheduled" ? "text-amber-500" : "text-slate-400"}`} />
+                              )}
+                              <span>{pill.label}</span>
+                            </button>
+                          );
+                        })}
                       </div>
 
                       {/* ── Filtered Classes List ── */}

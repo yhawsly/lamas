@@ -1,7 +1,7 @@
 "use client";
-import { Users, BarChart2, AlertTriangle, ClipboardList, BookOpen, CheckCircle, Palmtree, Megaphone, Rocket, AlertCircle, Send } from "lucide-react";
+import { Users, BarChart2, AlertTriangle, ClipboardList, BookOpen, CheckCircle, Palmtree, Megaphone, Rocket, AlertCircle, Send, FileText, X, Upload, RefreshCw } from "lucide-react";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import KPICard from "@/components/ui/KPICard";
 import useSWR from "swr";
 import dynamic from "next/dynamic";
@@ -20,36 +20,37 @@ interface LecturerScore {
 const HODDashboardSkeleton = () => (
     <div className="max-w-7xl mx-auto space-y-8 animate-pulse">
         <div className="space-y-2">
-            <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
-            <div className="h-4 w-96 bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="h-8 w-64 bg-slate-200 dark:bg-slate-700/80 rounded-lg" />
+            <div className="h-4 w-96 bg-slate-200 dark:bg-slate-700/80 rounded" />
         </div>
 
         {/* KPI Cards Skeletons */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-28 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+                <div key={i} className="h-28 bg-slate-200 dark:bg-slate-700/80 rounded-2xl" />
             ))}
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-28 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+                <div key={i} className="h-28 bg-slate-200 dark:bg-slate-700/80 rounded-2xl" />
             ))}
         </div>
 
         {/* Tab & Content Skeleton */}
-        <div className="h-11 w-64 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
-        <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-3xl" />
+        <div className="h-11 w-64 bg-slate-200 dark:bg-slate-700/80 rounded-2xl" />
+        <div className="h-64 bg-slate-200 dark:bg-slate-700/80 rounded-3xl" />
     </div>
 );
 
 export default function HoDDashboard() {
     const { selectedTermId } = useTerm();
     const analyticsUrl = selectedTermId ? `/api/admin/analytics?termId=${selectedTermId}` : "/api/admin/analytics";
+    const coursesUrl = selectedTermId ? `/api/courses?termId=${selectedTermId}` : "/api/courses";
 
     // Use SWR for client-side caching of all dashboard datasets
     const { data: analyticsData } = useSWR(analyticsUrl, fetcher);
-    const { data: coursesData } = useSWR("/api/courses", fetcher);
+    const { data: coursesData } = useSWR(coursesUrl, fetcher);
 
     const data = analyticsData;
     const courses = Array.isArray(coursesData) ? coursesData : [];
@@ -57,20 +58,61 @@ export default function HoDDashboard() {
 
     const [tab, setTab] = useState<"overview" | "notify">("overview");
     const [notify, setNotify] = useState({ message: "", sent: false });
+    const [attachmentUrl, setAttachmentUrl] = useState<string | null>(null);
+    const [attachmentName, setAttachmentName] = useState<string | null>(null);
+    const [uploading, setUploading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+    const ALLOWED_TYPES = [".pdf", ".pptx", ".ppt", ".doc", ".docx", ".zip", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".csv", ".xlsx", ".xls", ".txt"];
 
     async function sendBroadcast() {
         if (!notify.message.trim()) return;
-        const res = await fetch("/api/notifications", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: notify.message }),
+        // If there is an attachment, ensure it's uploaded before sending broadcast
+        let url = attachmentUrl;
+        if (!url && fileInputRef.current?.files?.[0]) {
+            // Upload file synchronously
+            const file = fileInputRef.current.files[0];
+            const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+            if (!ALLOWED_TYPES.includes(ext)) {
+                alert(`File type ${ext} not allowed.`);
+                return;
+            }
+            if (file.size > MAX_FILE_SIZE) {
+                alert(`File too large (${(file.size/1024/1024).toFixed(1)}MB). Max 20MB.`);
+                return;
+            }
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+                if (!uploadRes.ok) throw new Error('Upload failed');
+                const data = await uploadRes.json();
+                url = data.url;
+                setAttachmentUrl(url);
+                setAttachmentName(file.name);
+            } catch (e) {
+                console.error(e);
+                alert('Failed to upload attachment.');
+                return;
+            }
+        }
+
+        const res = await fetch('/api/notifications', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: notify.message,
+                ...(url ? { attachmentUrl: url } : {}),
+            }),
         });
         if (res.ok) {
             setNotify(n => ({ ...n, sent: true }));
-            setTimeout(() => setNotify({ message: "", sent: false }), 4000);
+            setTimeout(() => setNotify({ message: '', sent: false }), 4000);
         } else {
             const d = await res.json().catch(() => ({}));
-            alert(d.error || "Failed to send notification. Please try again later.");
+            alert(d.error || 'Failed to send notification. Please try again later.');
         }
     }
 
@@ -280,6 +322,61 @@ export default function HoDDashboard() {
                                                     rows={6}
                                                     className="w-full px-5 py-4 bg-transparent text-base text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none resize-none leading-relaxed"
                                                 />
+                                            </div>
+                                            {/* File Attachment UI */}
+                                            <div className="mt-4">
+                                                {attachmentUrl && attachmentName ? (
+                                                    <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 animate-in fade-in">
+                                                        <div className="w-9 h-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center shrink-0">
+                                                            <FileText className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="text-xs font-bold text-emerald-800 dark:text-emerald-300 truncate">{attachmentName}</div>
+                                                            <div className="text-[10px] text-emerald-600/70 dark:text-emerald-400/70 font-semibold">Uploaded – will be sent with broadcast</div>
+                                                        </div>
+                                                        <button type="button" onClick={() => { setAttachmentUrl(null); setAttachmentName(null); }} className="w-7 h-7 rounded-lg bg-emerald-200/60 dark:bg-emerald-800/60 hover:bg-red-100 dark:hover:bg-red-900/40 flex items-center justify-center transition-colors cursor-pointer group">
+                                                            <X className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 group-hover:text-red-500" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="w-full p-4 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 bg-slate-50/50 dark:bg-slate-900/40 hover:bg-blue-50/30 dark:hover:bg-blue-950/20 transition-all cursor-pointer flex flex-col items-center gap-2 group">
+                                                        {uploading ? (
+                                                            <><RefreshCw className="w-5 h-5 text-blue-500 animate-spin" /> <span className="text-xs font-bold text-blue-600 dark:text-blue-400">Uploading...</span></>
+                                                        ) : (
+                                                            <><Upload className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" /> <span className="text-xs font-bold text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Click to attach a document</span> <span className="text-[10px] text-slate-400">PDF, Word, PPT, Excel, Images, CSV, ZIP, TXT – up to 20MB</span></>
+                                                        )}
+                                                    </button>
+                                                )}
+                                                {error && (
+                                                    <p className="mt-2 text-xs font-semibold text-rose-500 flex items-center gap-1.5">
+                                                        <AlertCircle className="w-3.5 h-3.5" />
+                                                        {error}
+                                                    </p>
+                                                )}
+                                                <input ref={fileInputRef} type="file" hidden accept=".pdf,.pptx,.ppt,.doc,.docx,.zip,.jpg,.jpeg,.png,.gif,.webp,.csv,.xlsx,.xls,.txt" onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+                                                    setError(null);
+                                                    // validate
+                                                    const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+                                                    if (!ALLOWED_TYPES.includes(ext)) { setError(`File type ${ext} not allowed.`); return; }
+                                                    if (file.size > MAX_FILE_SIZE) { setError(`File too large (${(file.size/1024/1024).toFixed(1)}MB). Max 20MB.`); return; }
+                                                    setUploading(true);
+                                                    const formData = new FormData();
+                                                    formData.append('file', file);
+                                                    try {
+                                                        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                                                        if (!res.ok) throw new Error('Upload failed');
+                                                        const data = await res.json();
+                                                        setAttachmentUrl(data.url);
+                                                        setAttachmentName(file.name);
+                                                    } catch {
+                                                        setError('Failed to upload file.');
+                                                    } finally {
+                                                        setUploading(false);
+                                                        if (fileInputRef.current) fileInputRef.current.value = '';
+                                                    }
+                                                }} />
                                             </div>
                                         </div>
 

@@ -92,8 +92,63 @@ export async function GET(req: NextRequest) {
             prisma.activityLog.count({ where })
         ]);
 
+        const formattedLogs = logs.map(log => {
+            let detailText = "";
+            if (typeof log.detail === "string" && log.detail.trim()) {
+                detailText = log.detail;
+            } else if (log.detail && typeof log.detail === "object") {
+                const d = log.detail as Record<string, any>;
+                detailText = d.message || d.details || d.description || d.title || d.note || (d.courseCode ? `Course ${d.courseCode}` : "") || JSON.stringify(log.detail);
+            }
+
+            if (!detailText) {
+                switch (log.action) {
+                    case "SUBMISSION_CREATED":
+                        detailText = "Submitted new academic syllabus / course outline";
+                        break;
+                    case "SUBMISSION_UPDATED":
+                        detailText = "Updated course syllabus content & weekly topics";
+                        break;
+                    case "SUBMISSION_REVIEWED":
+                        detailText = "HOD completed submission review & grading";
+                        break;
+                    case "OBSERVATION_ASSIGNED":
+                        detailText = "Assigned peer teaching observation duty";
+                        break;
+                    case "OBSERVATION_COMPLETED":
+                        detailText = "Completed and submitted Form B observation rubric";
+                        break;
+                    case "RESOURCE_UPLOADED":
+                        detailText = "Uploaded departmental teaching resource";
+                        break;
+                    case "DEPARTMENT_BROADCAST":
+                        detailText = "Broadcasted priority notice to departmental faculty";
+                        break;
+                    case "DIRECT_NOTIFICATION":
+                        detailText = "Sent direct system communication";
+                        break;
+                    case "LOGIN":
+                        detailText = "Authenticated user session started";
+                        break;
+                    case "LOGOUT":
+                        detailText = "User session terminated / signed out";
+                        break;
+                    case "ADMIN_ACTION":
+                        detailText = "Applied administrative system configuration";
+                        break;
+                    default:
+                        detailText = log.action.replace(/_/g, " ").toLowerCase();
+                }
+            }
+
+            return {
+                ...log,
+                details: detailText,
+            };
+        });
+
         return NextResponse.json({
-            data: logs,
+            data: formattedLogs,
             meta: {
                 totalCount,
                 page,

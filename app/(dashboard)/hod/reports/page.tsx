@@ -8,44 +8,44 @@ const ReportsSkeleton = () => (
     <div className="max-w-7xl mx-auto space-y-8 animate-pulse">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="space-y-2">
-                <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
-                <div className="h-4 w-96 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-8 w-64 bg-slate-200 dark:bg-slate-700/80 rounded-lg" />
+                <div className="h-4 w-96 bg-slate-200 dark:bg-slate-700/80 rounded" />
             </div>
             <div className="flex items-center gap-3 shrink-0">
-                <div className="h-11 w-32 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-                <div className="h-11 w-32 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                <div className="h-11 w-32 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
+                <div className="h-11 w-32 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
             </div>
         </div>
 
         <div className="rounded-3xl border overflow-hidden shadow-sm" style={{ borderColor: "var(--bg-border)", backgroundColor: "var(--bg-surface)" }}>
             <div className="px-6 py-5 border-b" style={{ borderColor: "var(--bg-border)" }}>
-                <div className="h-5 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-5 w-48 bg-slate-200 dark:bg-slate-700/80 rounded" />
             </div>
             <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm whitespace-nowrap">
                     <thead style={{ backgroundColor: "var(--bg-hover)" }}>
                         <tr>
-                            <th className="px-6 py-4"><div className="h-3 w-16 bg-slate-200 dark:bg-slate-800 rounded" /></th>
-                            <th className="px-6 py-4"><div className="h-3 w-32 bg-slate-200 dark:bg-slate-800 rounded" /></th>
-                            <th className="px-6 py-4"><div className="h-3 w-32 bg-slate-200 dark:bg-slate-800 rounded" /></th>
-                            <th className="px-6 py-4"><div className="h-3 w-28 bg-slate-200 dark:bg-slate-800 rounded" /></th>
-                            <th className="px-6 py-4 text-right"><div className="h-3 w-28 bg-slate-200 dark:bg-slate-800 rounded ml-auto" /></th>
+                            <th className="px-6 py-4"><div className="h-3 w-16 bg-slate-200 dark:bg-slate-700/80 rounded" /></th>
+                            <th className="px-6 py-4"><div className="h-3 w-32 bg-slate-200 dark:bg-slate-700/80 rounded" /></th>
+                            <th className="px-6 py-4"><div className="h-3 w-32 bg-slate-200 dark:bg-slate-700/80 rounded" /></th>
+                            <th className="px-6 py-4"><div className="h-3 w-28 bg-slate-200 dark:bg-slate-700/80 rounded" /></th>
+                            <th className="px-6 py-4 text-right"><div className="h-3 w-28 bg-slate-200 dark:bg-slate-700/80 rounded ml-auto" /></th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[var(--bg-border)]">
                         {[1, 2, 3, 4, 5].map(i => (
                             <tr key={i}>
                                 <td className="px-6 py-4">
-                                    <div className="h-4 w-32 bg-slate-200 dark:bg-slate-800 rounded mb-1" />
-                                    <div className="h-3 w-40 bg-slate-200 dark:bg-slate-800 rounded" />
+                                    <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700/80 rounded mb-1" />
+                                    <div className="h-3 w-40 bg-slate-200 dark:bg-slate-700/80 rounded" />
                                 </td>
-                                <td className="px-6 py-4"><div className="h-4 w-12 bg-slate-200 dark:bg-slate-800 rounded" /></td>
-                                <td className="px-6 py-4"><div className="h-4 w-12 bg-slate-200 dark:bg-slate-800 rounded" /></td>
-                                <td className="px-6 py-4"><div className="h-4 w-12 bg-slate-200 dark:bg-slate-800 rounded" /></td>
+                                <td className="px-6 py-4"><div className="h-4 w-12 bg-slate-200 dark:bg-slate-700/80 rounded" /></td>
+                                <td className="px-6 py-4"><div className="h-4 w-12 bg-slate-200 dark:bg-slate-700/80 rounded" /></td>
+                                <td className="px-6 py-4"><div className="h-4 w-12 bg-slate-200 dark:bg-slate-700/80 rounded" /></td>
                                 <td className="px-6 py-4">
                                     <div className="flex items-center justify-end gap-3">
-                                        <div className="w-24 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                                        <div className="h-4 w-8 bg-slate-200 dark:bg-slate-800 rounded" />
+                                        <div className="w-24 h-1.5 bg-slate-200 dark:bg-slate-700/80 rounded-full" />
+                                        <div className="h-4 w-8 bg-slate-200 dark:bg-slate-700/80 rounded" />
                                     </div>
                                 </td>
                             </tr>

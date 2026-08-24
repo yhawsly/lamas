@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { FileText } from "lucide-react";
 
 interface ExportPDFButtonProps {
     targetRef?: React.RefObject<HTMLElement | null>;
@@ -27,7 +28,7 @@ export default function ExportPDFButton({}: ExportPDFButtonProps) {
                 onClick={handleExport}
                 type="button"
                 disabled={loading}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg disabled:opacity-50 cursor-pointer"
                 style={{
                     background: "rgb(37, 99, 235)",
                     color: "white",
@@ -37,7 +38,7 @@ export default function ExportPDFButton({}: ExportPDFButtonProps) {
                 {loading ? (
                     <div className="w-3 h-3 border-2 rounded-full animate-spin" style={{ borderColor: "white", borderTopColor: "transparent" }} />
                 ) : (
-                    <span>📄</span>
+                    <FileText className="w-4 h-4" />
                 )}
                 {loading ? "Exporting..." : "Export to PDF"}
             </button>

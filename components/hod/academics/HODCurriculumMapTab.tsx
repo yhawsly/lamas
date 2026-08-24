@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { ListPlus, User, AlertTriangle } from "lucide-react";
+import { ListPlus, User, AlertTriangle, Info } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 
 const LEVELS = [100, 200, 300, 400, 500];
@@ -58,7 +58,7 @@ type Lecturer = {
 
 const ALL_UNIVERSITY_CLASSES = [
     {
-        group: "🎓 B.Tech Computer Science",
+        group: "B.Tech Computer Science",
         options: [
             { name: "B.Tech Computer Science LVL 100 (Regular)", session: "REGULAR" as const },
             { name: "B.Tech Computer Science LVL 100 (Weekend)", session: "WEEKEND" as const },
@@ -71,7 +71,7 @@ const ALL_UNIVERSITY_CLASSES = [
         ]
     },
     {
-        group: "💻 B.Tech Information and Communication Tech (ICT)",
+        group: "B.Tech Information and Communication Tech (ICT)",
         options: [
             { name: "B.Tech ICT LVL 100 (Regular)", session: "REGULAR" as const },
             { name: "B.Tech ICT LVL 100 (Weekend)", session: "WEEKEND" as const },
@@ -84,7 +84,7 @@ const ALL_UNIVERSITY_CLASSES = [
         ]
     },
     {
-        group: "📜 HND Computer Science (LVL 100 - 300)",
+        group: "HND Computer Science (LVL 100 - 300)",
         options: [
             { name: "HND Computer Science LVL 100 (Regular)", session: "REGULAR" as const },
             { name: "HND Computer Science LVL 100 (Weekend)", session: "WEEKEND" as const },
@@ -95,7 +95,7 @@ const ALL_UNIVERSITY_CLASSES = [
         ]
     },
     {
-        group: "📜 HND Information & Communication Tech (ICT)",
+        group: "HND Information & Communication Tech (ICT)",
         options: [
             { name: "HND ICT LVL 100 (Regular)", session: "REGULAR" as const },
             { name: "HND ICT LVL 100 (Weekend)", session: "WEEKEND" as const },
@@ -148,7 +148,7 @@ const ALL_UNIVERSITY_CLASSES = [
 
 export default function HODCurriculumMapTab() {
     const { data: session } = useSession();
-    const { isArchiveMode } = useTerm();
+    const { isArchiveMode, selectedTermId } = useTerm();
     const userDeptId = (session?.user as any)?.departmentId;
 
     const [programs, setPrograms] = useState<Program[]>([]);
@@ -172,8 +172,9 @@ export default function HODCurriculumMapTab() {
     const showAlert = (title: string, message: string) => setCustomModal({ isOpen: true, title, message });
 
     useEffect(() => {
+        const curriculumUrl = selectedTermId ? `/api/admin/curriculum?termId=${selectedTermId}` : "/api/admin/curriculum";
         Promise.all([
-            fetch("/api/admin/curriculum").then(r => r.ok ? r.json() : null),
+            fetch(curriculumUrl).then(r => r.ok ? r.json() : null),
             fetch("/api/lecturers").then(r => r.ok ? r.json() : [])
         ]).then(([curriculumData, lecturersData]) => {
             if (curriculumData) {
@@ -194,7 +195,7 @@ export default function HODCurriculumMapTab() {
             setLecturers(Array.isArray(lecturersData) ? lecturersData : []);
             setLoading(false);
         }).catch(() => setLoading(false));
-    }, []);
+    }, [selectedTermId]);
 
     const selectedProgram = programs.find(p => p.id === selectedProgramId) || null;
 
@@ -535,8 +536,11 @@ export default function HODCurriculumMapTab() {
 
                             {/* Alert for Service/General courses */}
                             {activeCourse.departmentId !== userDeptId && (
-                                <div className="p-4 rounded-xl text-xs leading-relaxed border bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400" style={{ borderColor: "var(--bg-border)" }}>
-                                    📢 <strong className="text-slate-700 dark:text-slate-300">Read-Only View:</strong> This course is offered and staffed by the <strong className="text-slate-700 dark:text-slate-300">{activeCourse.department?.name || "another"} department</strong>. You can monitor the staffing assignments below, but changes must be made by the offering department HOD.
+                                <div className="p-4 rounded-xl text-xs leading-relaxed border bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 flex items-start gap-2" style={{ borderColor: "var(--bg-border)" }}>
+                                    <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                                    <div>
+                                        <strong className="text-slate-700 dark:text-slate-300">Read-Only View:</strong> This course is offered and staffed by the <strong className="text-slate-700 dark:text-slate-300">{activeCourse.department?.name || "another"} department</strong>. You can monitor the staffing assignments below, but changes must be made by the offering department HOD.
+                                    </div>
                                 </div>
                             )}
 

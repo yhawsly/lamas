@@ -9,21 +9,21 @@ const AssignmentsSkeleton = () => (
     <div className="w-full space-y-8 animate-pulse">
         {/* Title skeleton */}
         <div className="space-y-2">
-            <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
-            <div className="h-4 w-[420px] bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="h-8 w-64 bg-slate-200 dark:bg-slate-700/80 rounded-lg" />
+            <div className="h-4 w-[420px] bg-slate-200 dark:bg-slate-700/80 rounded" />
         </div>
 
         {/* KPI Cards Skeletons */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-24 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+                <div key={i} className="h-24 bg-slate-200 dark:bg-slate-700/80 rounded-2xl" />
             ))}
         </div>
 
         {/* Program Filter Skeletons */}
         <div className="flex gap-2 flex-wrap mb-4">
             {[1, 2, 3].map(i => (
-                <div key={i} className="h-9 w-28 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                <div key={i} className="h-9 w-28 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
             ))}
         </div>
 
@@ -33,10 +33,10 @@ const AssignmentsSkeleton = () => (
                 <div key={i} className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900 space-y-4">
                     <div className="flex justify-between items-center">
                         <div className="space-y-2">
-                            <div className="h-5 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
-                            <div className="h-3.5 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+                            <div className="h-5 w-48 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                            <div className="h-3.5 w-32 bg-slate-200 dark:bg-slate-700/80 rounded" />
                         </div>
-                        <div className="h-8 w-24 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                        <div className="h-8 w-24 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
                     </div>
                     <div className="h-20 bg-slate-100 dark:bg-slate-800/50 rounded-xl" />
                 </div>
@@ -47,7 +47,7 @@ const AssignmentsSkeleton = () => (
 
 const ALL_UNIVERSITY_CLASSES = [
     {
-        group: "🎓 B.Tech Computer Science",
+        group: "B.Tech Computer Science",
         options: [
             { name: "B.Tech Computer Science LVL 100 (Regular)", session: "REGULAR" as const },
             { name: "B.Tech Computer Science LVL 100 (Weekend)", session: "WEEKEND" as const },
@@ -60,7 +60,7 @@ const ALL_UNIVERSITY_CLASSES = [
         ]
     },
     {
-        group: "💻 B.Tech Information and Communication Tech (ICT)",
+        group: "B.Tech Information and Communication Tech (ICT)",
         options: [
             { name: "B.Tech ICT LVL 100 (Regular)", session: "REGULAR" as const },
             { name: "B.Tech ICT LVL 100 (Weekend)", session: "WEEKEND" as const },
@@ -73,7 +73,7 @@ const ALL_UNIVERSITY_CLASSES = [
         ]
     },
     {
-        group: "📜 HND Computer Science (LVL 100 - 300)",
+        group: "HND Computer Science (LVL 100 - 300)",
         options: [
             { name: "HND Computer Science LVL 100 (Regular)", session: "REGULAR" as const },
             { name: "HND Computer Science LVL 100 (Weekend)", session: "WEEKEND" as const },
@@ -84,7 +84,7 @@ const ALL_UNIVERSITY_CLASSES = [
         ]
     },
     {
-        group: "📜 HND Information & Communication Tech (ICT)",
+        group: "HND Information & Communication Tech (ICT)",
         options: [
             { name: "HND ICT LVL 100 (Regular)", session: "REGULAR" as const },
             { name: "HND ICT LVL 100 (Weekend)", session: "WEEKEND" as const },

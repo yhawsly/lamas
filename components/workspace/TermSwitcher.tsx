@@ -172,10 +172,11 @@ export default function TermSwitcher() {
                                                             </span>
                                                         </div>
                                                         <div className="text-[10px] text-slate-600 dark:text-slate-300 mt-1 flex flex-col gap-0.5">
-                                                            <span className="font-semibold text-emerald-700 dark:text-emerald-400">
-                                                                📅 Date of Commencement: {formatDate(liveTerm.startDate)}
+                                                            <span className="font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                                                                <Calendar className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                                                <span>Date of Commencement: {formatDate(liveTerm.startDate)}</span>
                                                             </span>
-                                                            <span className="text-slate-400 dark:text-slate-500">
+                                                            <span className="text-slate-400 dark:text-slate-500 pl-4">
                                                                 Semester Conclusion: {formatDate(liveTerm.endDate)}
                                                             </span>
                                                         </div>

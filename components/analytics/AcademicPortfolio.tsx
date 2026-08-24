@@ -4,7 +4,7 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
     RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend,
 } from "recharts";
-import { Compass, BarChart2, Shield, Eye, CheckCircle2 } from "lucide-react";
+import { Compass, BarChart2, Shield, Eye, CheckCircle2, Check, AlertTriangle } from "lucide-react";
 
 interface PortfolioData {
     stats: {
@@ -58,14 +58,14 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
                 {/* Header Skeleton */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
                     <div className="space-y-3">
-                        <div className="h-10 w-72 sm:w-96 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+                        <div className="h-10 w-72 sm:w-96 bg-slate-200 dark:bg-slate-700/80 rounded-xl animate-pulse" />
                         <div className="flex gap-2">
                             <div className="h-5 w-32 bg-slate-200 dark:bg-slate-800/80 rounded-md animate-pulse" />
                             <div className="h-5 w-24 bg-slate-100 dark:bg-slate-800/60 rounded-md animate-pulse" />
                         </div>
                     </div>
                     <div className="flex gap-2 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
-                        <div className="h-10 w-28 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+                        <div className="h-10 w-28 bg-slate-200 dark:bg-slate-700/80 rounded-xl animate-pulse" />
                         <div className="h-10 w-28 bg-transparent rounded-xl" />
                     </div>
                 </div>
@@ -264,28 +264,36 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
                             
                             <div className="space-y-4">
                                 <div className="flex items-center gap-4 p-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/5">
-                                    <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">✓</div>
+                                    <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                        <Check className="w-4 h-4 stroke-[2.5]" />
+                                    </div>
                                     <div>
                                         <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>Course Syllabuses Uploaded</p>
                                         <p className="text-xs opacity-70">All assigned courses have verified outlines.</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4 p-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/5">
-                                    <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">✓</div>
+                                    <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                        <Check className="w-4 h-4 stroke-[2.5]" />
+                                    </div>
                                     <div>
                                         <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>Teaching Observations Completed</p>
                                         <p className="text-xs opacity-70">Peer reviews have been finalized.</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4 p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5">
-                                    <div className="w-8 h-8 rounded-full border-2 border-amber-500 flex items-center justify-center shrink-0 text-amber-500 font-bold">!</div>
+                                    <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/40 flex items-center justify-center shrink-0 text-amber-500">
+                                        <AlertTriangle className="w-4 h-4" />
+                                    </div>
                                     <div>
                                         <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>Exam Moderations Finalized</p>
                                         <p className="text-xs opacity-70">Ensure all moderated exams are approved.</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4 p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5">
-                                    <div className="w-8 h-8 rounded-full border-2 border-amber-500 flex items-center justify-center shrink-0 text-amber-500 font-bold">!</div>
+                                    <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/40 flex items-center justify-center shrink-0 text-amber-500">
+                                        <AlertTriangle className="w-4 h-4" />
+                                    </div>
                                     <div>
                                         <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>Invigilation Duties Fulfilled</p>
                                         <p className="text-xs opacity-70">Attend all assigned examination sessions.</p>
@@ -351,7 +359,9 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
             {toast && (
                 <div className="fixed bottom-10 right-10 flex items-center gap-3 px-6 py-4 rounded-3xl shadow-3xl z-[200] border border-white/10 backdrop-blur-2xl animate-in slide-in-from-bottom-10"
                     style={{ backgroundColor: "rgba(15, 23, 42, 0.9)", color: "white" }}>
-                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl">✓</div>
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                        <Check className="w-5 h-5 stroke-[2.5]" />
+                    </div>
                     <div className="font-bold text-sm tracking-tight">{toast}</div>
                 </div>
             )}
