@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
 
-export type Theme = "light" | "dark" | "sage";
+export type Theme = "light" | "dark" | "glass";
 
 interface ThemeContextType {
     theme: Theme;
@@ -19,23 +19,24 @@ export function useTheme() {
     return useContext(ThemeContext);
 }
 
-const THEMES: Theme[] = ["light", "dark", "sage"];
+const THEMES: Theme[] = ["light", "dark", "glass"];
 
 const THEME_META_COLORS: Record<Theme, string> = {
     light: "#ffffff",
     dark:  "#15202B",
-    sage:  "#1A1E1A",
+    glass: "#EEF4FB",
 };
 
 function applyTheme(t: Theme) {
+    if (typeof document === "undefined") return;
     const html = document.documentElement;
     // Remove all theme classes first
-    html.classList.remove("light", "dark", "sage");
+    html.classList.remove("light", "dark", "glass", "sage");
     html.classList.add(t);
     // Update PWA / browser chrome theme-color
     const metaTheme = document.getElementById("theme-color-meta");
     if (metaTheme) {
-        metaTheme.setAttribute("content", THEME_META_COLORS[t]);
+        metaTheme.setAttribute("content", THEME_META_COLORS[t] || "#ffffff");
     }
 }
 
@@ -45,8 +46,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     // Initialize theme from localStorage on mount
     useEffect(() => {
-        const saved = localStorage.getItem("lamas-theme") as Theme | null;
-        const valid = THEMES.includes(saved as Theme) ? (saved as Theme) : "light";
+        const saved = localStorage.getItem("lamas-theme");
+        // Migrate any legacy 'sage' to 'glass'
+        const normalized = saved === "sage" ? "glass" : saved;
+        const valid = THEMES.includes(normalized as Theme) ? (normalized as Theme) : "light";
+        
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setThemeState(valid);
         applyTheme(valid);
@@ -63,10 +67,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         const next = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length];
         setTheme(next);
     };
-
-    if (!mounted) {
-        return <>{children}</>;
-    }
 
     return (
         <ThemeContext.Provider value={{ theme, setTheme, cycle }}>

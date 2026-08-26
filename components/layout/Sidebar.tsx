@@ -10,6 +10,8 @@ import {
     Map, 
     Users, 
     BarChart2,
+    BookOpen,
+    Calendar,
     PanelLeftClose,
     PanelLeftOpen
 } from "lucide-react";
@@ -42,7 +44,10 @@ const navByRole: Record<string, { label: string; href: string; icon: React.React
         { label: "Notifications", href: "/notifications", icon: <Bell className="w-5 h-5 shrink-0" /> },
     ],
     DEO: [
-        { label: "Dispatch Hub", href: "/deo", icon: <Home className="w-5 h-5 shrink-0" /> },
+        { label: "Course Allocations", href: "/deo/allocations", icon: <BookOpen className="w-5 h-5 shrink-0" /> },
+        { label: "Curriculum Vetting", href: "/deo/vetting", icon: <FileText className="w-5 h-5 shrink-0" /> },
+        { label: "Peer Review Hub", href: "/deo", icon: <ClipboardList className="w-5 h-5 shrink-0" /> },
+        { label: "Invigilation Matrix", href: "/deo/invigilation", icon: <Calendar className="w-5 h-5 shrink-0" /> },
         { label: "Notifications", href: "/notifications", icon: <Bell className="w-5 h-5 shrink-0" /> },
     ],
     ADMIN: [

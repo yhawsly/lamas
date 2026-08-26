@@ -80,19 +80,19 @@
   --glass-border: rgba(15, 23, 42, 0.05);
 }
 
-/* ─── Twitter Dim Dark Mode ─── */
+/* ─── Twitter Dim Dark Mode Palette (#15202B) ─── */
 .dark {
-  /* Twitter Dim — Navy base (NOT pitch black) */
-  --bg-base:    #15202B; /* Twitter Dim bg */
-  --bg-surface: #1E2732; /* Card surface */
-  --bg-border:  #253341; /* Subtle border */
-  --bg-hover:   #253341; /* Hover state */
-  --bg-sidebar: #15202B; /* Seamless sidebar */
+  /* Twitter Dim — Navy base */
+  --bg-base:    #15202B; /* Base canvas */
+  --bg-surface: #1E2732; /* Surface card */
+  --bg-border:  #253341; /* Border */
+  --bg-hover:   #253341; /* Hover / elevated */
+  --bg-sidebar: #15202B; /* Sidebar */
 
-  /* Text */
-  --text-primary:   #E7E9EA; /* Off-white, easy on the eyes */
-  --text-secondary: #8B98A5; /* Muted secondary */
-  --text-muted:     #536471; /* Twitter muted grey */
+  /* Text — Twitter Dim typography */
+  --text-primary:   #E7E9EA; /* Crisp Twitter off-white */
+  --text-secondary: #8B98A5; /* Twitter Dim secondary */
+  --text-muted:     #71767B; /* Twitter Dim muted */
 
   /* Primary Brand — Twitter Blue */
   --primary:       #1D9BF0; /* Twitter Blue */
@@ -104,36 +104,38 @@
   --accent-red:   #F4212E;
   --accent-amber: #FFD400;
 
-  --glass-bg:     rgba(21, 32, 43, 0.92);
-  --glass-border: rgba(37, 51, 65, 0.9);
+  --glass-bg:     rgba(21, 32, 43, 0.95);
+  --glass-border: #253341;
 }
 
-/* ─── Academic Sage — Professional Forest Theme ─── */
-.sage {
-  /* Warm forest base — deep, rich, scholarly */
-  --bg-base:    #1A1E1A; /* Deep forest night */
-  --bg-surface: #222822; /* Elevated surface */
-  --bg-border:  #2E3A2E; /* Muted green border */
-  --bg-hover:   #2A342A; /* Hover fill */
-  --bg-sidebar: #161A16; /* Deeper sidebar */
+@variant glass (&:where(.glass, .glass *));
 
-  /* Text — warm parchment tones */
-  --text-primary:   #E8E6D9; /* Warm off-white parchment */
-  --text-secondary: #9BA88D; /* Muted sage green */
-  --text-muted:     #5C6B52; /* Forest muted */
+/* ─── Frost Mode — iPhone Bright Frosted Glass & Acrylic UI Theme ─── */
+.glass {
+  /* Transparent canvas to expose atmospheric aurora wallpaper on body */
+  --bg-base:    transparent;
+  --bg-surface: rgba(255, 255, 255, 0.52); /* True translucent frosted glass */
+  --bg-border:  rgba(255, 255, 255, 0.78); /* Bright specular glass rim */
+  --bg-hover:   rgba(255, 255, 255, 0.72); /* Elevated frosted glass hover */
+  --bg-sidebar: rgba(255, 255, 255, 0.48); /* Translucent glass sidebar */
 
-  /* Primary Brand — Academic Jade */
-  --primary:       #4CAF78; /* Emerald Jade */
-  --primary-hover: #3D9B68; /* Deeper jade */
+  /* Text — Deep crystal slate contrast */
+  --text-primary:   #0F172A; /* Crisp deep slate 900 */
+  --text-secondary: #334155; /* Slate 700 */
+  --text-muted:     #64748B; /* Slate 500 */
 
-  /* Accents */
-  --accent-blue:  #5BA4CF;  /* Slate blue */
-  --accent-green: #4CAF78;  /* Jade green */
-  --accent-red:   #E06C75;  /* Muted rose */
-  --accent-amber: #E5C07B;  /* Warm gold */
+  /* Primary Brand — Apple iOS Liquid Blue */
+  --primary:       #0A84FF; /* Apple iOS Blue */
+  --primary-hover: #0071E3; /* Apple Deep Blue */
 
-  --glass-bg:     rgba(26, 30, 26, 0.93);
-  --glass-border: rgba(46, 58, 46, 0.9);
+  /* Accents — Apple Vibrant Colors */
+  --accent-blue:  #0A84FF;
+  --accent-green: #30D158;
+  --accent-red:   #FF453A;
+  --accent-amber: #FF9500;
+
+  --glass-bg:     rgba(255, 255, 255, 0.52);
+  --glass-border: rgba(255, 255, 255, 0.80);
 }
 
 /* ─── Base ─── */
@@ -256,49 +258,58 @@ textarea::-webkit-input-placeholder {
   color: var(--text-muted);
 }
 
-/* ─── Twitter Dim: Remap hardcoded Tailwind slate dark colours ─── */
+/* ─── Twitter Dim: Remap hardcoded Tailwind dark classes to #15202B / #1E2732 ─── */
 /* Backgrounds */
-.dark .dark\:bg-slate-950  { background-color: #0D1117 !important; }
+.dark .dark\:bg-slate-950,
+.dark .dark\:bg-black { background-color: #15202B !important; }
 .dark .dark\:bg-slate-900,
-.dark .dark\:bg-slate-900\/95 { background-color: var(--bg-surface) !important; }
+.dark .dark\:bg-slate-900\/95,
+.dark .dark\:bg-slate-900\/80,
+.dark .dark\:bg-slate-900\/60,
+.dark .dark\:bg-slate-900\/30 { background-color: #1E2732 !important; }
+.dark .dark\:bg-slate-850,
 .dark .dark\:bg-slate-800,
 .dark .dark\:bg-slate-800\/80,
 .dark .dark\:bg-slate-800\/50,
 .dark .dark\:bg-slate-800\/30,
-.dark .dark\:bg-slate-800\/60  { background-color: var(--bg-hover) !important; }
-.dark .dark\:bg-slate-700      { background-color: #2F3E50 !important; }
-.dark .dark\:bg-slate-700\/80  { background-color: rgba(47, 62, 80, 0.8) !important; }
+.dark .dark\:bg-slate-800\/60  { background-color: #253341 !important; }
+.dark .dark\:bg-slate-750,
+.dark .dark\:bg-slate-700      { background-color: #2C3A4A !important; }
+.dark .dark\:bg-slate-700\/80  { background-color: #2C3A4A !important; }
 
 /* Borders */
+.dark .dark\:border-slate-950,
 .dark .dark\:border-slate-900,
+.dark .dark\:border-slate-850,
 .dark .dark\:border-slate-800,
 .dark .dark\:border-slate-800\/60,
-.dark .dark\:border-slate-800\/80 { border-color: var(--bg-border) !important; }
+.dark .dark\:border-slate-800\/80,
 .dark .dark\:border-slate-700,
 .dark .dark\:border-slate-700\/60,
-.dark .dark\:border-slate-700\/80 { border-color: var(--bg-border) !important; }
+.dark .dark\:border-slate-700\/80 { border-color: #2F3E50 !important; }
 
 /* Text */
-.dark .dark\:text-slate-100  { color: var(--text-primary) !important; }
-.dark .dark\:text-slate-200  { color: var(--text-primary) !important; }
-.dark .dark\:text-slate-300  { color: var(--text-secondary) !important; }
-.dark .dark\:text-slate-400  { color: var(--text-secondary) !important; }
-.dark .dark\:text-white      { color: var(--text-primary) !important; }
+.dark .dark\:text-slate-100  { color: #E7E9EA !important; }
+.dark .dark\:text-slate-200  { color: #E7E9EA !important; }
+.dark .dark\:text-slate-300  { color: #8B98A5 !important; }
+.dark .dark\:text-slate-400  { color: #8B98A5 !important; }
+.dark .dark\:text-slate-500  { color: #71767B !important; }
+.dark .dark\:text-white      { color: #FFFFFF !important; }
 
 /* Hover states */
 .dark .dark\:hover\:bg-slate-800:hover,
 .dark .dark\:hover\:bg-slate-800\/50:hover,
-.dark .dark\:hover\:bg-slate-800\/60:hover { background-color: var(--bg-hover) !important; }
-.dark .dark\:hover\:bg-slate-700:hover     { background-color: #2F3E50 !important; }
-.dark .dark\:hover\:bg-slate-900:hover     { background-color: var(--bg-surface) !important; }
+.dark .dark\:hover\:bg-slate-800\/60:hover { background-color: #253341 !important; }
+.dark .dark\:hover\:bg-slate-700:hover     { background-color: #2C3A4A !important; }
+.dark .dark\:hover\:bg-slate-900:hover     { background-color: #1E2732 !important; }
 
 /* Divide lines */
-.dark .dark\:divide-slate-800 > * + * { border-color: var(--bg-border) !important; }
-.dark .dark\:divide-slate-700 > * + * { border-color: var(--bg-border) !important; }
+.dark .dark\:divide-slate-800 > * + * { border-color: #2F3E50 !important; }
+.dark .dark\:divide-slate-700 > * + * { border-color: #2F3E50 !important; }
 
 /* Scrollbar in dark mode */
 .dark ::-webkit-scrollbar-thumb {
-  background: var(--bg-border);
+  background: #253341;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #2F3E50;
@@ -311,51 +322,231 @@ textarea::-webkit-input-placeholder {
   color: var(--text-secondary) !important;
 }
 
-/* ─── Academic Sage: Remap hardcoded Tailwind dark slate colours ─── */
-/* Sage piggybacks on the same dark: classes since it's also a dark theme */
-.sage .dark\:bg-slate-950  { background-color: #111511 !important; }
-.sage .dark\:bg-slate-900,
-.sage .dark\:bg-slate-900\/95 { background-color: var(--bg-surface) !important; }
-.sage .dark\:bg-slate-800,
-.sage .dark\:bg-slate-800\/80,
-.sage .dark\:bg-slate-800\/50,
-.sage .dark\:bg-slate-800\/30,
-.sage .dark\:bg-slate-800\/60 { background-color: var(--bg-hover) !important; }
-.sage .dark\:bg-slate-700     { background-color: #344034 !important; }
-.sage .dark\:bg-slate-700\/80 { background-color: rgba(52, 64, 52, 0.8) !important; }
-
-.sage .dark\:border-slate-900,
-.sage .dark\:border-slate-800,
-.sage .dark\:border-slate-800\/60,
-.sage .dark\:border-slate-800\/80 { border-color: var(--bg-border) !important; }
-.sage .dark\:border-slate-700,
-.sage .dark\:border-slate-700\/60,
-.sage .dark\:border-slate-700\/80 { border-color: var(--bg-border) !important; }
-
-.sage .dark\:text-slate-100  { color: var(--text-primary) !important; }
-.sage .dark\:text-slate-200  { color: var(--text-primary) !important; }
-.sage .dark\:text-slate-300  { color: var(--text-secondary) !important; }
-.sage .dark\:text-slate-400  { color: var(--text-secondary) !important; }
-.sage .dark\:text-white      { color: var(--text-primary) !important; }
-
-.sage .dark\:hover\:bg-slate-800:hover,
-.sage .dark\:hover\:bg-slate-800\/50:hover,
-.sage .dark\:hover\:bg-slate-800\/60:hover { background-color: var(--bg-hover) !important; }
-.sage .dark\:hover\:bg-slate-700:hover     { background-color: #344034 !important; }
-.sage .dark\:hover\:bg-slate-900:hover     { background-color: var(--bg-surface) !important; }
-
-.sage .dark\:divide-slate-800 > * + * { border-color: var(--bg-border) !important; }
-.sage .dark\:divide-slate-700 > * + * { border-color: var(--bg-border) !important; }
-
-.sage ::-webkit-scrollbar-thumb {
-  background: var(--bg-border);
-}
-.sage ::-webkit-scrollbar-thumb:hover {
-  background: #344034;
+/* ─── Frost Mode: Pure Frosted Glass & Acrylic UI Styling ─── */
+.glass html,
+.glass body {
+  background-color: #D6E4F0 !important;
+  background-image: 
+    radial-gradient(circle at 10% 10%, rgba(56, 189, 248, 0.45) 0%, transparent 45%),
+    radial-gradient(circle at 90% 10%, rgba(167, 139, 250, 0.45) 0%, transparent 45%),
+    radial-gradient(circle at 50% 40%, rgba(244, 114, 182, 0.35) 0%, transparent 50%),
+    radial-gradient(circle at 15% 85%, rgba(45, 212, 191, 0.40) 0%, transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(192, 132, 252, 0.40) 0%, transparent 45%),
+    linear-gradient(135deg, #E2EEFB 0%, #EAE6FE 50%, #FCE8F4 100%) !important;
+  background-attachment: fixed !important;
+  background-size: cover !important;
+  color: #0F172A !important;
+  min-height: 100vh;
 }
 
-.sage .recharts-cartesian-axis-tick text,
-.sage .recharts-legend-item-text {
+/* Make Dashboard Shell & Layout Transparent to Expose Aurora Wallpaper */
+.glass .min-h-screen,
+.glass main,
+.glass #__next,
+.glass [data-nextjs-scroll-focus-boundary] {
+  background-color: transparent !important;
+}
+
+/* Glass Header, Sidebar & Navigation Bars */
+.glass header {
+  background: rgba(255, 255, 255, 0.58) !important;
+  backdrop-filter: blur(28px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.85) !important;
+  box-shadow: 0 4px 20px 0 rgba(31, 38, 135, 0.05) !important;
+}
+
+.glass aside,
+.glass [style*="var(--bg-sidebar)"] {
+  background: rgba(255, 255, 255, 0.52) !important;
+  backdrop-filter: blur(32px) saturate(210%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(210%) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.85) !important;
+  box-shadow: 4px 0 30px 0 rgba(31, 38, 135, 0.06) !important;
+}
+
+.glass nav {
+  backdrop-filter: blur(24px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+}
+
+/* All Cards, Panels, Modals, Sections, and Elevated Surfaces */
+.glass .card,
+.glass .glass-card,
+.glass .bg-white,
+.glass [style*="var(--bg-surface)"],
+.glass [style*="--bg-surface"],
+.glass .dark\:bg-slate-900,
+.glass .dark\:bg-slate-900\/95,
+.glass .dark\:bg-slate-950,
+.glass [role="dialog"],
+.glass div[class*="rounded-2xl"]:not([class*="bg-blue-"]):not([class*="bg-amber-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-slate-100"]):not([class*="bg-slate-50"]):not([class*="bg-sky-"]),
+.glass div[class*="rounded-3xl"]:not([class*="bg-blue-"]):not([class*="bg-amber-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-slate-100"]):not([class*="bg-slate-50"]):not([class*="bg-sky-"]),
+.glass div[class*="rounded-xl"][class*="border"]:not([class*="bg-blue-"]):not([class*="bg-amber-"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-slate-100"]):not([class*="bg-slate-50"]):not([class*="bg-sky-"]) { 
+  background: rgba(255, 255, 255, 0.58) !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.85) !important;
+  box-shadow: 0 10px 32px 0 rgba(31, 38, 135, 0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 1px 0 rgba(255, 255, 255, 0.20) !important;
+}
+
+/* Secondary Panels, Lists, Sub-cards & Table Rows */
+.glass [style*="var(--bg-hover)"],
+.glass [style*="--bg-hover"],
+.glass .dark\:bg-slate-800,
+.glass .dark\:bg-slate-800\/80,
+.glass .dark\:bg-slate-800\/50,
+.glass .dark\:bg-slate-800\/30,
+.glass .dark\:bg-slate-800\/60,
+.glass .bg-slate-50,
+.glass .bg-slate-100,
+.glass .dark\:bg-slate-700,
+.glass div[class*="p-4"][class*="rounded-2xl"][class*="border"] { 
+  background: rgba(255, 255, 255, 0.44) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-color: rgba(255, 255, 255, 0.70) !important;
+}
+
+/* List Dividers & Separators */
+.glass .divide-y > *,
+.glass .divide-slate-200 > *,
+.glass .divide-slate-100 > *,
+.glass .dark\:divide-slate-800 > *,
+.glass .dark\:divide-slate-700 > * {
+  border-color: rgba(255, 255, 255, 0.65) !important;
+}
+
+/* Glass Buttons — Secondary & Action Outlines */
+.glass button.bg-white,
+.glass button.bg-slate-50,
+.glass button.bg-slate-100,
+.glass button.border-slate-200,
+.glass button[class*="bg-white"]:not([class*="bg-blue"]):not([class*="bg-amber"]):not([class*="bg-emerald"]):not([class*="bg-rose"]) {
+  background: rgba(255, 255, 255, 0.70) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.90) !important;
+  box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+}
+
+.glass button.bg-white:hover,
+.glass button.border-slate-200:hover {
+  background: rgba(255, 255, 255, 0.90) !important;
+  box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+}
+
+/* Glass Primary Buttons */
+.glass button.bg-blue-600,
+.glass button.bg-blue-700,
+.glass a.bg-blue-600 {
+  background: linear-gradient(135deg, #0A84FF 0%, #0071E3 100%) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.50) !important;
+  box-shadow: 0 6px 20px 0 rgba(10, 132, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.50) !important;
+}
+
+/* Borders */
+.glass .dark\:border-slate-900,
+.glass .dark\:border-slate-800,
+.glass .dark\:border-slate-800\/60,
+.glass .dark\:border-slate-800\/80,
+.glass .dark\:border-slate-700,
+.glass .dark\:border-slate-700\/60,
+.glass .dark\:border-slate-700\/80,
+.glass .border-slate-200,
+.glass .border-slate-100 { 
+  border-color: rgba(255, 255, 255, 0.78) !important; 
+}
+
+/* Text */
+.glass .dark\:text-slate-100,
+.glass .dark\:text-slate-200,
+.glass .dark\:text-white,
+.glass .text-slate-900,
+.glass .text-slate-800 { 
+  color: var(--text-primary) !important; 
+}
+
+.glass .dark\:text-slate-300,
+.glass .dark\:text-slate-400,
+.glass .text-slate-700,
+.glass .text-slate-600 { 
+  color: var(--text-secondary) !important; 
+}
+
+.glass .text-slate-500 {
+  color: var(--text-muted) !important;
+}
+
+/* Glass Form Inputs */
+.glass input,
+.glass select,
+.glass textarea {
+  background: rgba(255, 255, 255, 0.60) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.85) !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.90) !important;
+  color: #0F172A !important;
+}
+
+.glass input:focus,
+.glass select:focus,
+.glass textarea:focus {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-color: #0A84FF !important;
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+}
+
+.glass input::placeholder,
+.glass textarea::placeholder {
+  color: #64748B !important;
+}
+
+.glass ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+}
+.glass ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.glass .recharts-cartesian-axis-tick text,
+.glass .recharts-legend-item-text {
   fill: var(--text-secondary) !important;
   color: var(--text-secondary) !important;
+}
+
+/* ─── Global Safety Remaps: Catch unthemed white backgrounds and dark text in Dark mode ─── */
+.dark body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+}
+
+.dark .bg-white {
+  background-color: var(--bg-surface) !important;
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-100 {
+  background-color: var(--bg-hover) !important;
+}
+
+.dark .text-slate-900,
+.dark .text-slate-800 {
+  color: var(--text-primary) !important;
+}
+
+.dark .text-slate-700,
+.dark .text-slate-600 {
+  color: var(--text-secondary) !important;
+}
+
+.dark .text-slate-500 {
+  color: var(--text-muted) !important;
+}
+
+.dark .border-slate-200,
+.dark .border-slate-100 {
+  border-color: var(--bg-border) !important;
 }

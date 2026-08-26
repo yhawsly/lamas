@@ -47,12 +47,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           (function() {
             try {
               var savedTheme = localStorage.getItem('lamas-theme');
-              var validThemes = ['light', 'dark', 'sage'];
+              if (savedTheme === 'sage') savedTheme = 'glass';
+              var validThemes = ['light', 'dark', 'glass'];
               var t = validThemes.includes(savedTheme) ? savedTheme : 'light';
-              document.documentElement.classList.remove('light', 'dark', 'sage');
+              document.documentElement.classList.remove('light', 'dark', 'glass', 'sage');
               document.documentElement.classList.add(t);
               // Update PWA / browser chrome theme-color
-              var colors = { light: '#ffffff', dark: '#15202B', sage: '#1A1E1A' };
+              var colors = { light: '#ffffff', dark: '#15202B', glass: '#EEF4FB' };
               var metaTheme = document.getElementById('theme-color-meta');
               if (metaTheme) {
                 metaTheme.setAttribute('content', colors[t] || '#ffffff');

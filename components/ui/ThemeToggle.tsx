@@ -17,7 +17,7 @@ const THEME_META: Record<Theme, {
 }> = {
     light: {
         label: "Light",
-        nextLabel: "Dark (Twitter Dim)",
+        nextLabel: "Dark Mode (Twitter Dim)",
         metaColor: "#ffffff",
         glowColor: "rgba(37, 99, 235, 0.10)",
         btnBg: "rgba(15, 23, 42, 0.08)",
@@ -36,7 +36,7 @@ const THEME_META: Record<Theme, {
     },
     dark: {
         label: "Dark",
-        nextLabel: "Academic Sage",
+        nextLabel: "Frost Mode",
         metaColor: "#15202B",
         glowColor: "rgba(29, 155, 240, 0.15)",
         btnBg: "rgba(255, 255, 255, 0.05)",
@@ -53,22 +53,22 @@ const THEME_META: Record<Theme, {
             </svg>
         ),
     },
-    sage: {
-        label: "Sage",
+    glass: {
+        label: "Frost",
         nextLabel: "Light Mode",
-        metaColor: "#1A1E1A",
-        glowColor: "rgba(76, 175, 120, 0.15)",
-        btnBg: "rgba(76, 175, 120, 0.08)",
-        btnBorder: "rgba(76, 175, 120, 0.20)",
-        btnColor: "rgba(155, 168, 141, 0.80)",
-        hoverBg: "rgba(76, 175, 120, 0.15)",
-        hoverColor: "#4CAF78",
-        hoverBorder: "rgba(76, 175, 120, 0.45)",
+        metaColor: "#EEF4FB",
+        glowColor: "rgba(10, 132, 255, 0.20)",
+        btnBg: "rgba(255, 255, 255, 0.65)",
+        btnBorder: "rgba(255, 255, 255, 0.85)",
+        btnColor: "#0F172A",
+        hoverBg: "rgba(255, 255, 255, 0.90)",
+        hoverColor: "#0A84FF",
+        hoverBorder: "rgba(10, 132, 255, 0.40)",
         icon: (
-            // Leaf / nature icon
+            // Sparkles / Glass diamond icon
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                    d="M5 3C5 3 5 13 12 16c0 0-1 3-4 4M19 3s0 10-7 13" />
+                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.286L13 21l-2.286-6.857L5 12l5.714-2.286L13 3z" />
             </svg>
         ),
     },
@@ -76,12 +76,12 @@ const THEME_META: Record<Theme, {
 
 export default function ThemeToggle() {
     const { theme, cycle } = useTheme();
-    const meta = THEME_META[theme];
+    const meta = THEME_META[theme] || THEME_META.light;
 
     return (
         <button
             onClick={cycle}
-            className="relative p-2.5 rounded-xl transition-all duration-300 group"
+            className="relative p-2.5 rounded-xl transition-all duration-300 group cursor-pointer backdrop-blur-md"
             style={{
                 background: meta.btnBg,
                 border: `1px solid ${meta.btnBorder}`,
@@ -106,14 +106,14 @@ export default function ThemeToggle() {
             </div>
 
             {/* Tooltip badge */}
-            <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-[10px] font-bold whitespace-nowrap px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none"
+            <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-[10px] font-bold whitespace-nowrap px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50 shadow-md"
                 style={{ background: "var(--bg-surface)", color: "var(--text-secondary)", border: "1px solid var(--bg-border)" }}>
                 {meta.label}
             </span>
 
             {/* Glow */}
             <div
-                className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                 style={{ background: `radial-gradient(circle, ${meta.glowColor} 0%, transparent 70%)` }}
             />
         </button>

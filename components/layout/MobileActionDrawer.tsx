@@ -6,7 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { 
     Settings, LogOut, Moon, Sun, Building, Library, 
-    Bell, X, ChevronRight, Leaf
+    Bell, X, ChevronRight, Sparkles
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import TermSwitcher from "@/components/workspace/TermSwitcher";
@@ -133,20 +133,20 @@ export default function MobileActionDrawer({ isOpen, onClose }: MobileActionDraw
                             <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
                                 theme === "dark"
                                     ? "bg-sky-500/15 text-sky-400 border border-sky-500/30"
-                                    : theme === "sage"
-                                    ? "bg-emerald-500/15 text-emerald-500 border border-emerald-500/30"
+                                    : theme === "glass"
+                                    ? "bg-blue-500/15 text-[#38BDF8] border border-blue-500/30"
                                     : "bg-amber-500/15 text-amber-600 border border-amber-500/30"
                             }`}>
                                 {theme === "dark"
                                     ? <Moon className="w-4 h-4 fill-sky-400/30 stroke-[2.2]" />
-                                    : theme === "sage"
-                                    ? <Leaf className="w-4 h-4 stroke-[2.2]" />
+                                    : theme === "glass"
+                                    ? <Sparkles className="w-4 h-4 stroke-[2.2]" />
                                     : <Sun className="w-4 h-4 fill-amber-400/30 stroke-[2.2]" />}
                             </div>
                             <div>
                                 <div className="text-xs font-extrabold text-slate-900 dark:text-white">Interface Theme</div>
                                 <div className="text-[11px] text-slate-400 font-semibold">
-                                    {theme === "dark" ? "Dark Mode (Twitter Dim)" : theme === "sage" ? "Academic Sage" : "Light Mode"}
+                                    {theme === "dark" ? "Dark Mode (Twitter Dim)" : theme === "glass" ? "Frost Mode" : "Light Mode"}
                                 </div>
                             </div>
                         </div>
@@ -158,10 +158,10 @@ export default function MobileActionDrawer({ isOpen, onClose }: MobileActionDraw
                         >
                             {theme === "dark" ? (
                                 <>
-                                    <Leaf className="w-3.5 h-3.5 text-emerald-500" />
-                                    <span>Sage</span>
+                                    <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+                                    <span>Frost</span>
                                 </>
-                            ) : theme === "sage" ? (
+                            ) : theme === "glass" ? (
                                 <>
                                     <Sun className="w-3.5 h-3.5 text-amber-400" />
                                     <span>Light</span>

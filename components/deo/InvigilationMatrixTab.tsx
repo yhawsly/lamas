@@ -45,6 +45,74 @@ interface InvigilationSlot {
     assistantInvigilators?: { id: number; name: string; email: string }[];
 }
 
+export const InvigilationMatrixSkeleton = () => (
+    <div className="w-full space-y-6 animate-pulse">
+        {/* Action bar skeleton */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-2 flex-1 max-w-md">
+                <div className="h-10 flex-1 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
+                <div className="h-10 w-28 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
+            </div>
+            <div className="flex items-center gap-2.5">
+                <div className="h-10 w-32 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
+                <div className="h-10 w-28 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
+                <div className="h-10 w-44 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
+            </div>
+        </div>
+
+        {/* Date groups skeletons */}
+        <div className="space-y-6">
+            {[1, 2].map((group) => (
+                <div
+                    key={group}
+                    className="rounded-3xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900 shadow-sm overflow-hidden"
+                >
+                    <div className="px-6 py-4 bg-slate-50/80 dark:bg-slate-850 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-4 h-4 rounded bg-slate-200 dark:bg-slate-700/80" />
+                            <div className="h-4 w-44 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                            <div className="h-4.5 w-24 bg-slate-200 dark:bg-slate-700/80 rounded-full" />
+                        </div>
+                    </div>
+
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                        {[1, 2, 3].map((item) => (
+                            <div
+                                key={item}
+                                className="p-5 lg:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5 lg:gap-6 items-center"
+                            >
+                                <div className="lg:col-span-4 space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-5 w-24 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                                        <div className="h-4 w-16 bg-slate-200 dark:bg-slate-700/80 rounded-full" />
+                                    </div>
+                                    <div className="h-4 w-48 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                                    <div className="h-3 w-32 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                                </div>
+
+                                <div className="lg:col-span-3 space-y-1.5">
+                                    <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                                    <div className="h-3 w-20 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                                </div>
+
+                                <div className="lg:col-span-3 space-y-1.5">
+                                    <div className="h-4 w-36 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                                    <div className="h-3 w-24 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                                </div>
+
+                                <div className="lg:col-span-2 flex justify-end gap-2">
+                                    <div className="h-8 w-8 bg-slate-200 dark:bg-slate-700/80 rounded-lg" />
+                                    <div className="h-8 w-8 bg-slate-200 dark:bg-slate-700/80 rounded-lg" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            ))}
+        </div>
+    </div>
+);
+
 export default function InvigilationMatrixTab({
     courses,
     lecturers,
@@ -662,10 +730,7 @@ export default function InvigilationMatrixTab({
 
             {/* Matrix Timetable Display */}
             {loading ? (
-                <div className="py-16 text-center text-slate-400 space-y-3">
-                    <div className="animate-spin w-8 h-8 border-3 border-emerald-500 border-t-transparent rounded-full mx-auto" />
-                    <p className="text-xs">Loading examination roster and venue assignments...</p>
-                </div>
+                <InvigilationMatrixSkeleton />
             ) : Object.keys(groupedByDate).length === 0 ? (
                 <div className="p-12 text-center rounded-3xl border border-dashed border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 space-y-3">
                     <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { hasHodPrivileges } from "@/lib/permissions";
+import { hasDeoPrivileges, hasHodPrivileges } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
@@ -10,8 +10,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
         const userRole = (session.user as any).role;
-        if (!hasHodPrivileges(userRole)) {
-            return NextResponse.json({ error: "Unauthorized. Only Admins and HODs can assign courses." }, { status: 403 });
+        if (!hasDeoPrivileges(userRole) && !hasHodPrivileges(userRole)) {
+            return NextResponse.json({ error: "Unauthorized. Only DEOs, Admins, and HODs can assign courses." }, { status: 403 });
         }
 
         const { sectionId, lecturerId } = await req.json();

@@ -8,7 +8,6 @@ import {
     Video,
     ShieldCheck,
     BellRing,
-    Calendar,
     CheckCircle2,
     AlertTriangle,
     Clock
@@ -17,12 +16,10 @@ import { useEffect, useState } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import { useRouter } from "next/navigation";
 import { useTerm } from "@/context/TermContext";
-import InvigilationMatrixTab from "@/components/deo/InvigilationMatrixTab";
-import HallsManagementModal from "@/components/deo/HallsManagementModal";
 
 const RegistrySkeleton = () => (
     <div className="space-y-3 animate-pulse">
-        {[1, 2, 3].map((i) => (
+        {[1, 2, 3, 4].map((i) => (
             <div key={i} className="p-4 rounded-2xl border bg-slate-50/50 dark:bg-slate-900/30 border-slate-200 dark:border-slate-800/60">
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <div className="flex items-start gap-4 flex-1">
@@ -49,6 +46,48 @@ const RegistrySkeleton = () => (
     </div>
 );
 
+const DeoDashboardSkeleton = () => (
+    <div className="w-full space-y-6 sm:space-y-8 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="space-y-2">
+            <div className="h-8 w-72 bg-slate-200 dark:bg-slate-700/80 rounded-lg" />
+            <div className="h-4 w-96 bg-slate-200 dark:bg-slate-700/80 rounded" />
+        </div>
+
+        {/* 3 Horizontal Dispatch Cards Skeleton */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
+            {[1, 2, 3].map(i => (
+                <div key={i} className="p-4 sm:p-5 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-slate-200 dark:bg-slate-700/80 shrink-0" />
+                    <div className="space-y-2 flex-1">
+                        <div className="h-3 w-20 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                        <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                    </div>
+                </div>
+            ))}
+        </div>
+
+        {/* Dispatch Form Skeleton */}
+        <div className="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-4">
+            <div className="h-5 w-40 bg-slate-200 dark:bg-slate-700/80 rounded" />
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="h-10 bg-slate-100 dark:bg-slate-800 rounded-xl" />
+                ))}
+            </div>
+        </div>
+
+        {/* Registry Skeleton */}
+        <div className="p-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-6">
+            <div className="flex justify-between items-center pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div className="h-5 w-48 bg-slate-200 dark:bg-slate-700/80 rounded" />
+                <div className="h-8 w-44 bg-slate-200 dark:bg-slate-700/80 rounded-xl" />
+            </div>
+            <RegistrySkeleton />
+        </div>
+    </div>
+);
+
 export default function DeoDashboard() {
     const router = useRouter();
     const { selectedTermId, isArchiveMode } = useTerm();
@@ -57,10 +96,6 @@ export default function DeoDashboard() {
     const [lecturers, setLecturers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     
-    // Top-Level Navigation Tabs: 'reviews' vs 'invigilation'
-    const [mainTab, setMainTab] = useState<"reviews" | "invigilation">("reviews");
-    const [hallsModalOpen, setHallsModalOpen] = useState(false);
-
     // Form State for Review Dispatching
     const [reviewType, setReviewType] = useState<"A" | "B" | "C">("A");
     const [form, setForm] = useState({ lecturerId: "", observerId: "", courseCode: "" });
@@ -251,6 +286,10 @@ export default function DeoDashboard() {
     const partnerLabel = reviewType === "C" ? "Assigned Moderator" : "Assigned Observer";
     const selectedCourseObj = courses.find(c => c.code === form.courseCode);
 
+    if (loading && assignments.length === 0 && courses.length === 0) {
+        return <DeoDashboardSkeleton />;
+    }
+
     return (
         <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in duration-500">
             {/* Header & Primary Navigation Tabs */}
@@ -258,40 +297,8 @@ export default function DeoDashboard() {
                 <div>
                     <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Department Examination Officer (DEO)</h1>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                        Centralized dispatch for peer reviews, overdue reviewer alerts, and exam invigilation scheduling.
+                        Centralized dispatch for peer reviews, overdue reviewer alerts, and moderation monitoring.
                     </p>
-                </div>
-
-                {/* Main Tab Switcher */}
-                <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-850 border border-slate-200 dark:border-slate-800">
-                    <button
-                        onClick={() => setMainTab("reviews")}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-                            mainTab === "reviews"
-                                ? "bg-white dark:bg-slate-750 text-blue-600 dark:text-blue-400 shadow-sm"
-                                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                        }`}
-                    >
-                        <ClipboardList className="w-4 h-4" />
-                        Peer Reviews & Nudges
-                        {pendingAssignments.length > 0 && (
-                            <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-amber-500 text-white font-black">
-                                {pendingAssignments.length}
-                            </span>
-                        )}
-                    </button>
-
-                    <button
-                        onClick={() => setMainTab("invigilation")}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-                            mainTab === "invigilation"
-                                ? "bg-white dark:bg-slate-750 text-emerald-600 dark:text-emerald-400 shadow-sm"
-                                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                        }`}
-                    >
-                        <Calendar className="w-4 h-4" />
-                        Invigilation Matrix
-                    </button>
                 </div>
             </div>
 
@@ -303,9 +310,8 @@ export default function DeoDashboard() {
                 </div>
             )}
 
-            {/* TAB 1: PEER REVIEWS & OVERDUE NUDGES */}
-            {mainTab === "reviews" && (
-                <div className="space-y-8 animate-in fade-in duration-300">
+            {/* PEER REVIEWS & OVERDUE NUDGES */}
+            <div className="space-y-8 animate-in fade-in duration-300">
                     {/* 3 Clickable Horizontal Dispatch Cards */}
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
                         {/* Card 1: Form A */}
@@ -616,29 +622,9 @@ export default function DeoDashboard() {
                                         })}
                                 </div>
                             )}
-
                         </div>
                     </div>
                 </div>
-            )}
-
-            {/* TAB 2: EXAM INVIGILATION & HALL ALLOCATION MATRIX */}
-            {mainTab === "invigilation" && (
-                <div className="animate-in fade-in duration-300">
-                    <InvigilationMatrixTab
-                        courses={courses}
-                        lecturers={lecturers}
-                        onOpenHallsModal={() => setHallsModalOpen(true)}
-                    />
-                </div>
-            )}
-
-            {/* Examination Halls Modal */}
-            <HallsManagementModal
-                isOpen={hallsModalOpen}
-                onClose={() => setHallsModalOpen(false)}
-                disabled={isArchiveMode}
-            />
-        </div>
+            </div>
     );
 }

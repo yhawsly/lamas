@@ -2,7 +2,8 @@
 import { 
   GraduationCap, CheckCircle, CheckCircle2, AlertTriangle, AlertCircle, 
   Circle, Clock, Check, FileText, UploadCloud, Trash2, Layers, 
-  BookOpen, Briefcase, Calendar, CalendarDays, X, Paperclip 
+  BookOpen, Briefcase, Calendar, CalendarDays, X, Paperclip,
+  History, Sparkles, Download, ArrowRight
 } from "lucide-react";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -332,6 +333,56 @@ export default function CourseOutlinePrototype() {
   const [scheduleStreamTab, setScheduleStreamTab] = useState<string>("all");
   const [scheduleDayTab, setScheduleDayTab] = useState<string>("all");
   const [scheduleSearchQuery, setScheduleSearchQuery] = useState<string>("");
+
+  // Historical Syllabus Import & Reuse State
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historicalList, setHistoricalList] = useState<any[]>([]);
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<any | null>(null);
+
+  const openHistoryModal = async () => {
+    setIsHistoryModalOpen(true);
+    setHistoryLoading(true);
+    try {
+      const res = await fetch(`/api/courses/${courseId}/syllabus/history`);
+      if (res.ok) {
+        const data = await res.json();
+        setHistoricalList(data.history || []);
+        if (data.history && data.history.length > 0) {
+          setSelectedHistoryItem(data.history[0]);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load historical syllabi:", e);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const handleApplyHistoricalOutline = (item: any) => {
+    if (!item || !item.content) return;
+    const parsed = item.content;
+    if (Array.isArray(parsed.topics) && parsed.topics.length > 0) {
+      setTopics(parsed.topics);
+    }
+    if (Array.isArray(parsed.classes) && parsed.classes.length > 0) {
+      setClasses(prevClasses => {
+        if (prevClasses.length === 0) return parsed.classes;
+        const sampleModules = parsed.classes[0]?.modules || [];
+        return prevClasses.map((cls, idx) => ({
+          ...cls,
+          modules: parsed.classes[idx]?.modules || sampleModules
+        }));
+      });
+    }
+    if (Array.isArray(parsed.assessments) && parsed.assessments.length > 0) {
+      setAssessments(parsed.assessments);
+    }
+    setIsDirty(true);
+    setIsHistoryModalOpen(false);
+    setToastMessage(`Imported outline from ${item.term?.name || 'past semester'}! You can now modify and save.`);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
 
   const getSectionCategory = (name: string) => {
     const upper = name.toUpperCase();
@@ -945,6 +996,16 @@ export default function CourseOutlinePrototype() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                        <button 
+                            type="button"
+                            onClick={openHistoryModal} 
+                            disabled={isArchiveMode} 
+                            className="flex-1 md:flex-none px-4 py-2.5 rounded-xl bg-blue-50/80 hover:bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:hover:bg-blue-900/60 dark:text-blue-300 transition-all font-bold flex items-center justify-center gap-2 shadow-xs text-sm border border-blue-200 dark:border-blue-800/80 disabled:opacity-50 cursor-pointer"
+                            title="Import approved topics and weekly outline from previous semesters"
+                        >
+                            <History className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            Import Past Outline
+                        </button>
                         <button 
                             onClick={() => handleSaveToDB(false)} 
                             disabled={isSaving || isArchiveMode} 
@@ -1751,6 +1812,170 @@ export default function CourseOutlinePrototype() {
             </div>
           </main>
         )}
+
+      {/* Historical Syllabus Import & Reuse Modal */}
+      {isHistoryModalOpen && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div 
+            className="w-full max-w-4xl max-h-[88vh] rounded-3xl border shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+            style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}
+          >
+            {/* Modal Header */}
+            <div className="p-6 border-b flex items-center justify-between" style={{ borderColor: "var(--bg-border)" }}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                  <History className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-lg" style={{ color: "var(--text-primary)" }}>
+                    Import Historical Syllabus & Outline
+                  </h3>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                    Reuse approved topics, weekly lesson plans, and resource links from previous semesters.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsHistoryModalOpen(false)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x" style={{ borderColor: "var(--bg-border)" }}>
+              {/* Left Pane: Historical Semesters List */}
+              <div className="w-full md:w-5/12 p-4 overflow-y-auto max-h-[50vh] md:max-h-none space-y-3">
+                <div className="text-xs font-bold uppercase tracking-wider px-2" style={{ color: "var(--text-muted)" }}>
+                  Available Previous Outlines ({historicalList.length})
+                </div>
+
+                {historyLoading ? (
+                  <div className="p-8 text-center text-xs text-slate-400">Loading historical archives...</div>
+                ) : historicalList.length === 0 ? (
+                  <div className="p-8 text-center text-xs text-slate-400 border border-dashed rounded-2xl" style={{ borderColor: "var(--bg-border)" }}>
+                    No historical outlines found for this course.
+                  </div>
+                ) : (
+                  historicalList.map((item, idx) => {
+                    const isSelected = selectedHistoryItem?.submissionId === item.submissionId;
+                    return (
+                      <button
+                        key={item.submissionId || idx}
+                        type="button"
+                        onClick={() => setSelectedHistoryItem(item)}
+                        className={`w-full text-left p-4 rounded-2xl border transition-all cursor-pointer flex flex-col gap-2 ${
+                          isSelected
+                            ? "bg-blue-50/80 dark:bg-blue-950/40 border-blue-500 ring-2 ring-blue-500/20 shadow-xs"
+                            : "hover:border-slate-300"
+                        }`}
+                        style={!isSelected ? { backgroundColor: "var(--bg-hover)", borderColor: "var(--bg-border)" } : {}}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-extrabold text-xs" style={{ color: "var(--text-primary)" }}>
+                            {item.term?.name || `${item.term?.academicYear} Sem ${item.term?.semester}`}
+                          </span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                            item.status === "APPROVED" 
+                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200" 
+                              : "bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-200"
+                          }`}>
+                            {item.status}
+                          </span>
+                        </div>
+
+                        <div className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                          By {item.lecturer?.name || "Department Lecturer"}
+                        </div>
+
+                        <div className="flex items-center gap-3 text-[11px] font-semibold pt-1" style={{ color: "var(--text-secondary)" }}>
+                          <span className="flex items-center gap-1"><BookOpen className="w-3.5 h-3.5 text-blue-500 shrink-0" /> {item.metrics?.topicCount || 0} Topics</span>
+                          <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5 text-indigo-500 shrink-0" /> {item.metrics?.moduleCount || 0} Weeks</span>
+                          <span className="flex items-center gap-1"><Paperclip className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {item.metrics?.resourceCount || 0} Files</span>
+                        </div>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Right Pane: Preview & Import Action */}
+              <div className="w-full md:w-7/12 p-6 overflow-y-auto flex flex-col justify-between" style={{ backgroundColor: "var(--bg-hover)" }}>
+                {selectedHistoryItem ? (
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black tracking-widest text-blue-600 uppercase">Archive Preview</span>
+                        <span className="text-xs text-slate-400 font-semibold">
+                          Saved on {new Date(selectedHistoryItem.submittedAt || selectedHistoryItem.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <h4 className="font-extrabold text-base mt-1" style={{ color: "var(--text-primary)" }}>
+                        {selectedHistoryItem.term?.name} — {basicInfo.courseCode} Outline
+                      </h4>
+                    </div>
+
+                    {/* Topics Preview */}
+                    <div className="p-4 rounded-2xl border bg-white dark:bg-slate-900/60 shadow-2xs space-y-2" style={{ borderColor: "var(--bg-border)" }}>
+                      <div className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>
+                        Course Topics ({selectedHistoryItem.content?.topics?.length || 0})
+                      </div>
+                      <div className="max-h-40 overflow-y-auto divide-y" style={{ borderColor: "var(--bg-border)" }}>
+                        {Array.isArray(selectedHistoryItem.content?.topics) && selectedHistoryItem.content.topics.map((t: any, idx: number) => (
+                          <div key={idx} className="py-2 text-xs">
+                            <span className="font-bold mr-2 text-blue-600">{idx + 1}.</span>
+                            <span className="font-semibold" style={{ color: "var(--text-primary)" }}>{t.title}</span>
+                            {t.description && (
+                              <p className="text-[11px] mt-0.5 line-clamp-1" style={{ color: "var(--text-muted)" }}>{t.description}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Weekly Modules Preview */}
+                    <div className="p-4 rounded-2xl border bg-white dark:bg-slate-900/60 shadow-2xs space-y-2" style={{ borderColor: "var(--bg-border)" }}>
+                      <div className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>
+                        Weekly Lecture Modules ({selectedHistoryItem.metrics?.moduleCount || 0})
+                      </div>
+                      <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                        Includes week-by-week learning objectives, interactive lesson plans, and attached course lecture slides.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center text-xs text-slate-400">
+                    Select a historical semester to preview and import its syllabus.
+                  </div>
+                )}
+
+                {/* Footer Action */}
+                <div className="pt-6 border-t mt-6 flex items-center justify-end gap-3" style={{ borderColor: "var(--bg-border)" }}>
+                  <button
+                    type="button"
+                    onClick={() => setIsHistoryModalOpen(false)}
+                    className="px-4 py-2.5 rounded-xl border text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                    style={{ borderColor: "var(--bg-border)" }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleApplyHistoricalOutline(selectedHistoryItem)}
+                    disabled={!selectedHistoryItem}
+                    className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold shadow-sm shadow-blue-600/30 transition disabled:opacity-50 cursor-pointer flex items-center gap-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    Import & Apply to Draft
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

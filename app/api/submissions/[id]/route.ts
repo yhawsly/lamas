@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { logAction } from "@/lib/audit";
 import { SubmissionStatus } from "@prisma/client";
 import { handleApiError } from "@/lib/api-error";
-import { hasHodPrivileges, isAdmin } from "@/lib/permissions";
+import { hasDeoPrivileges, hasHodPrivileges, isAdmin } from "@/lib/permissions";
 import { z } from "zod";
 
 const ReviewSchema = z.object({
@@ -36,12 +36,20 @@ export async function PATCH(
             );
         }
 
-        const { status, feedback } = validation.data;
+        const { status: requestedStatus, feedback } = validation.data;
 
         // 1. Fetch submission to check ownership/permissions
         const submission = await prisma.submission.findUnique({
             where: { id: submissionId },
-            include: { lecturer: { select: { departmentId: true } } }
+            include: { 
+                lecturer: { 
+                    select: { 
+                        name: true,
+                        departmentId: true,
+                        department: { select: { name: true, hodId: true } }
+                    } 
+                } 
+            }
         });
 
         if (!submission) {
@@ -49,10 +57,10 @@ export async function PATCH(
         }
 
         // 2. Permission Check
-        // Admins can do anything. HODs can only review their department's submissions.
+        // Admins can do anything. DEO and HOD can only review their department's submissions.
         if (!isAdmin(role)) {
-            if (!hasHodPrivileges(role)) {
-                return NextResponse.json({ error: "Forbidden: Not an HOD" }, { status: 403 });
+            if (!hasDeoPrivileges(role) && !hasHodPrivileges(role)) {
+                return NextResponse.json({ error: "Forbidden: Reviewer privileges required" }, { status: 403 });
             }
 
             const currentUser = await prisma.user.findUnique({ 
@@ -65,11 +73,17 @@ export async function PATCH(
             }
         }
 
+        // Two-Stage Logic: If DEO approves, it moves to REVIEWED (Stage 1 Quality Vetted, ready for HOD)
+        let finalStatus = requestedStatus;
+        if (role === "DEO" && requestedStatus === SubmissionStatus.APPROVED) {
+            finalStatus = SubmissionStatus.REVIEWED;
+        }
+
         // 3. Update Submission
         const updatedSubmission = await prisma.submission.update({
             where: { id: submissionId },
             data: {
-                status,
+                status: finalStatus,
                 feedback: feedback || submission.feedback,
                 updatedAt: new Date(),
             },
@@ -78,25 +92,47 @@ export async function PATCH(
         await logAction({
             userId,
             action: 'SUBMISSION_REVIEWED',
-            details: `Reviewed submission ${submissionId}: ${status}. Feedback: ${feedback?.substring(0, 50) || 'None'}`,
+            details: `Reviewed submission ${submissionId}: ${finalStatus} (${role}). Feedback: ${feedback?.substring(0, 50) || 'None'}`,
         });
 
-        // 4. Notify Lecturer (In-App Notification & Email Delivery)
-        const notifyMsg = `Your submission "${submission.title}" has been ${status.toLowerCase()} by your HOD.${feedback ? ` Feedback: ${feedback}` : ''}`;
-        await prisma.notification.create({
-            data: {
-                userId: submission.lecturerId,
-                message: notifyMsg,
+        // 4. Notifications & Email Dispatch
+        if (role === "DEO" && finalStatus === SubmissionStatus.REVIEWED) {
+            // Notify HOD that DEO has vetted and approved the outline for final clearance
+            if (submission.lecturer?.department?.hodId) {
+                await prisma.notification.create({
+                    data: {
+                        userId: submission.lecturer.department.hodId,
+                        message: `DEO has vetted & approved Course Outline "${submission.title}" (Lecturer: ${submission.lecturer.name}). Ready for HOD Final Clearance.`,
+                    }
+                });
             }
-        });
+            // Also notify lecturer of Stage 1 DEO clearance
+            await prisma.notification.create({
+                data: {
+                    userId: submission.lecturerId,
+                    message: `Your Course Outline "${submission.title}" passed DEO Stage 1 Quality Vetting and has been forwarded to HOD for final approval.${feedback ? ` Notes: ${feedback}` : ''}`,
+                }
+            });
+        } else {
+            // Final decision by HOD/Admin or rejection
+            const reviewerTitle = role === "DEO" ? "DEO" : "HOD";
+            const notifyMsg = `Your submission "${submission.title}" has been ${finalStatus.toLowerCase()} by ${reviewerTitle}.${feedback ? ` Feedback: ${feedback}` : ''}`;
+            
+            await prisma.notification.create({
+                data: {
+                    userId: submission.lecturerId,
+                    message: notifyMsg,
+                }
+            });
 
-        const lecUser = await prisma.user.findUnique({
-            where: { id: submission.lecturerId },
-            select: { email: true }
-        });
-        if (lecUser?.email) {
-            const { sendNotificationEmail } = await import("@/lib/email");
-            sendNotificationEmail(lecUser.email, `Course Outline Submission ${status}`, notifyMsg).catch(console.error);
+            const lecUser = await prisma.user.findUnique({
+                where: { id: submission.lecturerId },
+                select: { email: true }
+            });
+            if (lecUser?.email) {
+                const { sendNotificationEmail } = await import("@/lib/email");
+                sendNotificationEmail(lecUser.email, `Course Outline ${finalStatus}`, notifyMsg).catch(console.error);
+            }
         }
 
         return NextResponse.json(updatedSubmission);

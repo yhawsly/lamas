@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { hasDeoPrivileges, hasHodPrivileges } from "@/lib/permissions";
 
 export async function POST(req: NextRequest) {
     try {
@@ -10,8 +11,8 @@ export async function POST(req: NextRequest) {
         }
         
         const userRole = (session.user as any).role;
-        if (userRole !== "HOD" && userRole !== "ADMIN" && userRole !== "SUPER_ADMIN") {
-            return NextResponse.json({ error: "Forbidden. Only HODs or Admins can create course sections." }, { status: 403 });
+        if (!hasDeoPrivileges(userRole) && !hasHodPrivileges(userRole)) {
+            return NextResponse.json({ error: "Forbidden. Only DEOs, HODs, or Admins can create course sections." }, { status: 403 });
         }
 
         const body = await req.json();
