@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @variant dark (&:where(.dark, .dark *));
+@variant sage (&:where(.sage, .sage *));
 
 /* ─── Global Tailwind Theme Overrides ─── */
 @theme {
@@ -79,31 +80,60 @@
   --glass-border: rgba(15, 23, 42, 0.05);
 }
 
-/* ─── Premium Midnight Dark Mode ─── */
+/* ─── Twitter Dim Dark Mode ─── */
 .dark {
-  --bg-base: #080D1A; /* Deep midnight slate base */
-  --bg-surface: #0F172A; /* Slate 900 card surface */
-  --bg-border: #1E293B; /* Slate 800 subtle border */
-  --bg-hover: #1E293B; /* Slate 800 hover */
-  --bg-sidebar: #080D1A; /* Seamless dark sidebar */
+  /* Twitter Dim — Navy base (NOT pitch black) */
+  --bg-base:    #15202B; /* Twitter Dim bg */
+  --bg-surface: #1E2732; /* Card surface */
+  --bg-border:  #253341; /* Subtle border */
+  --bg-hover:   #253341; /* Hover state */
+  --bg-sidebar: #15202B; /* Seamless sidebar */
 
   /* Text */
-  --text-primary: #F8FAFC; /* Slate 50 crisp text */
-  --text-secondary: #94A3B8; /* Slate 400 secondary text */
-  --text-muted: #64748B; /* Slate 500 muted text */
+  --text-primary:   #E7E9EA; /* Off-white, easy on the eyes */
+  --text-secondary: #8B98A5; /* Muted secondary */
+  --text-muted:     #536471; /* Twitter muted grey */
 
-  /* Primary Brand */
-  --primary: #3B82F6; /* Luminous Blue 500 */
-  --primary-hover: #2563EB; /* Blue 600 */
+  /* Primary Brand — Twitter Blue */
+  --primary:       #1D9BF0; /* Twitter Blue */
+  --primary-hover: #1A8CD8; /* Darker Twitter Blue */
 
   /* Accents */
-  --accent-blue: #3B82F6;
-  --accent-green: #10B981;
-  --accent-red: #F43F5E;
-  --accent-amber: #F59E0B;
+  --accent-blue:  #1D9BF0;
+  --accent-green: #00BA7C;
+  --accent-red:   #F4212E;
+  --accent-amber: #FFD400;
 
-  --glass-bg: rgba(15, 23, 42, 0.85);
-  --glass-border: rgba(30, 41, 59, 0.8);
+  --glass-bg:     rgba(21, 32, 43, 0.92);
+  --glass-border: rgba(37, 51, 65, 0.9);
+}
+
+/* ─── Academic Sage — Professional Forest Theme ─── */
+.sage {
+  /* Warm forest base — deep, rich, scholarly */
+  --bg-base:    #1A1E1A; /* Deep forest night */
+  --bg-surface: #222822; /* Elevated surface */
+  --bg-border:  #2E3A2E; /* Muted green border */
+  --bg-hover:   #2A342A; /* Hover fill */
+  --bg-sidebar: #161A16; /* Deeper sidebar */
+
+  /* Text — warm parchment tones */
+  --text-primary:   #E8E6D9; /* Warm off-white parchment */
+  --text-secondary: #9BA88D; /* Muted sage green */
+  --text-muted:     #5C6B52; /* Forest muted */
+
+  /* Primary Brand — Academic Jade */
+  --primary:       #4CAF78; /* Emerald Jade */
+  --primary-hover: #3D9B68; /* Deeper jade */
+
+  /* Accents */
+  --accent-blue:  #5BA4CF;  /* Slate blue */
+  --accent-green: #4CAF78;  /* Jade green */
+  --accent-red:   #E06C75;  /* Muted rose */
+  --accent-amber: #E5C07B;  /* Warm gold */
+
+  --glass-bg:     rgba(26, 30, 26, 0.93);
+  --glass-border: rgba(46, 58, 46, 0.9);
 }
 
 /* ─── Base ─── */
@@ -224,4 +254,108 @@ textarea::placeholder {
 input::-webkit-input-placeholder,
 textarea::-webkit-input-placeholder {
   color: var(--text-muted);
+}
+
+/* ─── Twitter Dim: Remap hardcoded Tailwind slate dark colours ─── */
+/* Backgrounds */
+.dark .dark\:bg-slate-950  { background-color: #0D1117 !important; }
+.dark .dark\:bg-slate-900,
+.dark .dark\:bg-slate-900\/95 { background-color: var(--bg-surface) !important; }
+.dark .dark\:bg-slate-800,
+.dark .dark\:bg-slate-800\/80,
+.dark .dark\:bg-slate-800\/50,
+.dark .dark\:bg-slate-800\/30,
+.dark .dark\:bg-slate-800\/60  { background-color: var(--bg-hover) !important; }
+.dark .dark\:bg-slate-700      { background-color: #2F3E50 !important; }
+.dark .dark\:bg-slate-700\/80  { background-color: rgba(47, 62, 80, 0.8) !important; }
+
+/* Borders */
+.dark .dark\:border-slate-900,
+.dark .dark\:border-slate-800,
+.dark .dark\:border-slate-800\/60,
+.dark .dark\:border-slate-800\/80 { border-color: var(--bg-border) !important; }
+.dark .dark\:border-slate-700,
+.dark .dark\:border-slate-700\/60,
+.dark .dark\:border-slate-700\/80 { border-color: var(--bg-border) !important; }
+
+/* Text */
+.dark .dark\:text-slate-100  { color: var(--text-primary) !important; }
+.dark .dark\:text-slate-200  { color: var(--text-primary) !important; }
+.dark .dark\:text-slate-300  { color: var(--text-secondary) !important; }
+.dark .dark\:text-slate-400  { color: var(--text-secondary) !important; }
+.dark .dark\:text-white      { color: var(--text-primary) !important; }
+
+/* Hover states */
+.dark .dark\:hover\:bg-slate-800:hover,
+.dark .dark\:hover\:bg-slate-800\/50:hover,
+.dark .dark\:hover\:bg-slate-800\/60:hover { background-color: var(--bg-hover) !important; }
+.dark .dark\:hover\:bg-slate-700:hover     { background-color: #2F3E50 !important; }
+.dark .dark\:hover\:bg-slate-900:hover     { background-color: var(--bg-surface) !important; }
+
+/* Divide lines */
+.dark .dark\:divide-slate-800 > * + * { border-color: var(--bg-border) !important; }
+.dark .dark\:divide-slate-700 > * + * { border-color: var(--bg-border) !important; }
+
+/* Scrollbar in dark mode */
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--bg-border);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #2F3E50;
+}
+
+/* Recharts chart text in dark mode */
+.dark .recharts-cartesian-axis-tick text,
+.dark .recharts-legend-item-text {
+  fill: var(--text-secondary) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* ─── Academic Sage: Remap hardcoded Tailwind dark slate colours ─── */
+/* Sage piggybacks on the same dark: classes since it's also a dark theme */
+.sage .dark\:bg-slate-950  { background-color: #111511 !important; }
+.sage .dark\:bg-slate-900,
+.sage .dark\:bg-slate-900\/95 { background-color: var(--bg-surface) !important; }
+.sage .dark\:bg-slate-800,
+.sage .dark\:bg-slate-800\/80,
+.sage .dark\:bg-slate-800\/50,
+.sage .dark\:bg-slate-800\/30,
+.sage .dark\:bg-slate-800\/60 { background-color: var(--bg-hover) !important; }
+.sage .dark\:bg-slate-700     { background-color: #344034 !important; }
+.sage .dark\:bg-slate-700\/80 { background-color: rgba(52, 64, 52, 0.8) !important; }
+
+.sage .dark\:border-slate-900,
+.sage .dark\:border-slate-800,
+.sage .dark\:border-slate-800\/60,
+.sage .dark\:border-slate-800\/80 { border-color: var(--bg-border) !important; }
+.sage .dark\:border-slate-700,
+.sage .dark\:border-slate-700\/60,
+.sage .dark\:border-slate-700\/80 { border-color: var(--bg-border) !important; }
+
+.sage .dark\:text-slate-100  { color: var(--text-primary) !important; }
+.sage .dark\:text-slate-200  { color: var(--text-primary) !important; }
+.sage .dark\:text-slate-300  { color: var(--text-secondary) !important; }
+.sage .dark\:text-slate-400  { color: var(--text-secondary) !important; }
+.sage .dark\:text-white      { color: var(--text-primary) !important; }
+
+.sage .dark\:hover\:bg-slate-800:hover,
+.sage .dark\:hover\:bg-slate-800\/50:hover,
+.sage .dark\:hover\:bg-slate-800\/60:hover { background-color: var(--bg-hover) !important; }
+.sage .dark\:hover\:bg-slate-700:hover     { background-color: #344034 !important; }
+.sage .dark\:hover\:bg-slate-900:hover     { background-color: var(--bg-surface) !important; }
+
+.sage .dark\:divide-slate-800 > * + * { border-color: var(--bg-border) !important; }
+.sage .dark\:divide-slate-700 > * + * { border-color: var(--bg-border) !important; }
+
+.sage ::-webkit-scrollbar-thumb {
+  background: var(--bg-border);
+}
+.sage ::-webkit-scrollbar-thumb:hover {
+  background: #344034;
+}
+
+.sage .recharts-cartesian-axis-tick text,
+.sage .recharts-legend-item-text {
+  fill: var(--text-secondary) !important;
+  color: var(--text-secondary) !important;
 }

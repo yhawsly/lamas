@@ -135,6 +135,99 @@ const ALL_UNIVERSITY_CLASSES = [
     }
 ];
 
+function isSectionMatchingProgram(sectionName: string, program: { name: string; code?: string }): boolean {
+    const s = sectionName.toLowerCase();
+    const pCode = (program.code || "").toUpperCase();
+    const pName = program.name.toLowerCase();
+
+    // 1. Top-Up Programs
+    const isTopUpSection = s.includes("top-up") || s.includes("top up") || s.includes("topup");
+    const isTopUpProgram = pCode.includes("TOPUP") || pCode.includes("TOP_UP") || pName.includes("top-up") || pName.includes("top up");
+
+    if (isTopUpProgram) {
+        if (!isTopUpSection) return false;
+        if (pCode.includes("CS") || pName.includes("computer science")) {
+            return (s.includes("computer science") || s.includes("cs")) && !s.includes("ict");
+        }
+        if (pCode.includes("ICT") || pName.includes("ict") || pName.includes("information")) {
+            return s.includes("ict") || s.includes("information");
+        }
+        return true;
+    } else if (isTopUpSection) {
+        return false;
+    }
+
+    // 2. HND Programs
+    const isHNDSection = s.includes("hnd");
+    const isHNDProgram = pCode.startsWith("HND") || pName.includes("hnd") || pName.includes("higher national diploma");
+
+    if (isHNDProgram) {
+        if (!isHNDSection) return false;
+        if (pCode.includes("CS") || pName.includes("computer science")) {
+            return (s.includes("computer science") || s.includes("cs")) && !s.includes("ict");
+        }
+        if (pCode.includes("ICT") || pName.includes("ict") || pName.includes("information")) {
+            return s.includes("ict") || s.includes("information");
+        }
+        return true;
+    } else if (isHNDSection) {
+        return false;
+    }
+
+    // 3. Regular B.Tech Degree Programs
+    const isBTechProgram = pCode.startsWith("BTECH") || pName.includes("b.tech") || pName.includes("btech");
+    if (isBTechProgram) {
+        if (pCode.includes("CS") || pName.includes("computer science")) {
+            return (s.includes("computer science") || s.includes("cs")) && !s.includes("ict");
+        }
+        if (pCode.includes("ICT") || pName.includes("ict") || pName.includes("information")) {
+            return s.includes("ict") || s.includes("information");
+        }
+        return s.includes("b.tech") || s.includes("btech");
+    }
+
+    // 4. Engineering Programs
+    if (pCode.includes("ENG") || pName.includes("engineering") || pName.includes("beng")) {
+        if (pCode.includes("EE") || pName.includes("electrical")) {
+            return s.includes("electrical");
+        }
+        if (pCode.includes("ME") || pName.includes("mechanical")) {
+            return s.includes("mechanical");
+        }
+        return s.includes("beng") || s.includes("engineering");
+    }
+
+    // 5. Business Programs
+    if (pCode.includes("BBA") || pCode.includes("BIZ") || pName.includes("business") || pName.includes("bba")) {
+        if (pCode.includes("ACC") || pName.includes("accounting")) {
+            return s.includes("accounting") || s.includes("acc");
+        }
+        if (pCode.includes("MKT") || pName.includes("marketing")) {
+            return s.includes("marketing") || s.includes("mkt");
+        }
+        return s.includes("bba") || s.includes("business");
+    }
+
+    // 6. Generic fallback
+    const cleanTokens = pName.replace(/b\.?tech|hnd|bba|beng|\(.*?\)/gi, "").trim().split(/\s+/).filter(t => t.length > 2);
+    if (cleanTokens.length > 0) {
+        return cleanTokens.some(token => s.includes(token));
+    }
+
+    return s.includes(pName) || pName.includes(s);
+}
+
+function isSectionMatchingLevel(sectionName: string, level: string): boolean {
+    if (level === "All") return true;
+    const s = sectionName.toUpperCase();
+    if (level === "Postgraduate") {
+        return s.includes("500") || s.includes("600") || s.includes("POSTGRADUATE") || s.includes("MASTERS") || s.includes("PHD");
+    }
+    const hasLevelMention = s.includes("LVL ") || s.includes("LEVEL ") || s.includes("L100") || s.includes("L200") || s.includes("L300") || s.includes("L400");
+    if (!hasLevelMention) return true;
+    return s.includes(`LVL ${level}`) || s.includes(`LEVEL ${level}`) || s.includes(`L${level}`);
+}
+
 export default function AssignmentsTab() {
     const { selectedTermId, isArchiveMode } = useTerm();
     const [courses, setCourses] = useState<any[]>([]);
@@ -241,8 +334,54 @@ export default function AssignmentsTab() {
         return <AssignmentsSkeleton />;
     }
 
-    const totalClasses = courses.reduce((acc, c) => acc + (c.sections?.length || 0), 0);
-    const assignedClasses = courses.reduce((acc, c) => acc + (c.sections?.filter((s: any) => s.lecturerId)?.length || 0), 0);
+    const availablePrograms = Array.from(new Map(
+        courses.flatMap(c => c.curriculumMaps?.map((m: any) => m.program) || [])
+        .filter(p => p)
+        .map(p => [p.id, p])
+    ).values());
+
+    const selectedProgram = programFilter !== "All"
+        ? availablePrograms.find((p: any) => Number(p.id) === Number(programFilter))
+        : null;
+
+    const filterSections = (sectionsList: any[]) => {
+        if (!sectionsList || sectionsList.length === 0) return [];
+        return sectionsList.filter(section => {
+            if (selectedProgram && !isSectionMatchingProgram(section.name, selectedProgram)) {
+                return false;
+            }
+            if (levelFilter !== "All" && !isSectionMatchingLevel(section.name, levelFilter)) {
+                return false;
+            }
+            return true;
+        });
+    };
+
+    const filteredCourses = courses.filter(c => {
+        // 1. Program Filter
+        if (programFilter !== "All") {
+            const belongsToProgram = c.curriculumMaps?.some(
+                (m: any) => Number(m.programId) === Number(programFilter)
+            );
+            if (!belongsToProgram) return false;
+        }
+
+        // 2. Level Filter
+        if (levelFilter === "All") return true;
+
+        const courseLevels = programFilter !== "All"
+            ? c.curriculumMaps?.filter((m: any) => Number(m.programId) === Number(programFilter)).map((m: any) => m.level) || []
+            : c.curriculumMaps?.map((m: any) => m.level) || [];
+
+        if (courseLevels.length === 0) return false;
+
+        if (levelFilter === "Postgraduate") return courseLevels.some((l: number) => Number(l) >= 500);
+        return courseLevels.some((l: number) => String(l) === levelFilter);
+    });
+
+    const allMatchingSections = filteredCourses.flatMap(c => filterSections(c.sections || []));
+    const totalClasses = allMatchingSections.length;
+    const assignedClasses = allMatchingSections.filter((s: any) => s.lecturerId).length;
     const pendingClasses = totalClasses - assignedClasses;
     const coverage = totalClasses > 0 ? Math.round((assignedClasses / totalClasses) * 100) : 0;
 
@@ -250,10 +389,14 @@ export default function AssignmentsTab() {
         <div className="w-full space-y-8 animate-in fade-in duration-500">
             <div>
                 <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ color: "var(--text-primary)" }}>Course Assignments</h1>
-                <p className="text-sm" style={{ color: "var(--text-muted)" }}>Manage department curriculum distribution and assign academic staff to specific class sections.</p>
+                <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                    {selectedProgram 
+                        ? `Curriculum distribution and staff workload for ${selectedProgram.name}.`
+                        : "Manage department curriculum distribution and assign academic staff to specific class sections."}
+                </p>
             </div>
 
-            {/* Department Stats */}
+            {/* Department / Program Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                 {[
                     { label: "Total Classes", value: totalClasses, icon: <BookOpen className="w-6 h-6" />, color: "#3b82f6" },
@@ -266,45 +409,35 @@ export default function AssignmentsTab() {
             </div>
 
             {/* Program Filter */}
-            {(() => {
-                const availablePrograms = Array.from(new Map(
-                    courses.flatMap(c => c.curriculumMaps?.map((m: any) => m.program) || [])
-                    .filter(p => p)
-                    .map(p => [p.id, p])
-                ).values());
-
-                if (availablePrograms.length === 0) return null;
-
-                return (
-                    <div className="flex gap-2 flex-wrap mb-4">
+            {availablePrograms.length > 0 && (
+                <div className="flex gap-2 flex-wrap mb-4">
+                    <button
+                        onClick={() => { setProgramFilter("All"); setLevelFilter("All"); }}
+                        className={`px-4 py-2 rounded-xl text-sm font-bold transition border ${
+                            programFilter === "All"
+                                ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20"
+                                : "border-transparent hover:bg-slate-500/10"
+                        }`}
+                        style={programFilter !== "All" ? { color: "var(--text-primary)", borderColor: "var(--bg-border)", backgroundColor: "var(--bg-surface)" } : {}}
+                    >
+                        All Programs
+                    </button>
+                    {availablePrograms.map((p: any) => (
                         <button
-                            onClick={() => setProgramFilter("All")}
+                            key={p.id}
+                            onClick={() => { setProgramFilter(Number(p.id)); setLevelFilter("All"); }}
                             className={`px-4 py-2 rounded-xl text-sm font-bold transition border ${
-                                programFilter === "All"
+                                Number(programFilter) === Number(p.id)
                                     ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20"
                                     : "border-transparent hover:bg-slate-500/10"
                             }`}
-                            style={programFilter !== "All" ? { color: "var(--text-primary)", borderColor: "var(--bg-border)", backgroundColor: "var(--bg-surface)" } : {}}
+                            style={Number(programFilter) !== Number(p.id) ? { color: "var(--text-primary)", borderColor: "var(--bg-border)", backgroundColor: "var(--bg-surface)" } : {}}
                         >
-                            All Programs
+                            {p.name}
                         </button>
-                        {availablePrograms.map((p: any) => (
-                            <button
-                                key={p.id}
-                                onClick={() => setProgramFilter(p.id)}
-                                className={`px-4 py-2 rounded-xl text-sm font-bold transition border ${
-                                    programFilter === p.id
-                                        ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20"
-                                        : "border-transparent hover:bg-slate-500/10"
-                                }`}
-                                style={programFilter !== p.id ? { color: "var(--text-primary)", borderColor: "var(--bg-border)", backgroundColor: "var(--bg-surface)" } : {}}
-                            >
-                                {p.name}
-                            </button>
-                        ))}
-                    </div>
-                );
-            })()}
+                    ))}
+                </div>
+            )}
 
             {/* Level Filter */}
             <div className="flex gap-2 flex-wrap">
@@ -335,28 +468,14 @@ export default function AssignmentsTab() {
                 </div>
 
                 <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                    {(() => {
-                        const filteredCourses = courses.filter(c => {
-                            // 1. Program Filter
-                            if (programFilter !== "All") {
-                                const belongsToProgram = c.curriculumMaps?.some((m: any) => m.programId === programFilter);
-                                if (!belongsToProgram) return false;
-                            }
+                    {filteredCourses.length > 0 ? filteredCourses.map(course => {
+                        const displayedSections = filterSections(course.sections || []);
+                        const activeMap = programFilter !== "All"
+                            ? course.curriculumMaps?.find((m: any) => Number(m.programId) === Number(programFilter))
+                            : course.curriculumMaps?.[0];
+                        const displayLevel = activeMap ? `Level ${activeMap.level}` : (course.curriculumMaps?.[0] ? `Level ${course.curriculumMaps[0].level}` : "Unmapped");
 
-                            // 2. Level Filter
-                            if (levelFilter === "All") return true;
-                            
-                            const courseLevels = programFilter !== "All"
-                                ? c.curriculumMaps?.filter((m: any) => m.programId === programFilter).map((m: any) => m.level) || []
-                                : c.curriculumMaps?.map((m: any) => m.level) || [];
-                            
-                            if (courseLevels.length === 0 && levelFilter !== "All") return false;
-
-                            if (levelFilter === "Postgraduate") return courseLevels.some((l: number) => l >= 500);
-                            return courseLevels.some((l: number) => l.toString() === levelFilter);
-                        });
-
-                        return filteredCourses.length > 0 ? filteredCourses.map(course => (
+                        return (
                         <div key={course.id} className="group flex flex-col transition-colors hover:bg-[var(--bg-hover)]" style={{ backgroundColor: "var(--bg-base)" }}>
                             {/* Main Course Row */}
                             <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 sm:p-5 items-start sm:items-center relative">
@@ -380,17 +499,19 @@ export default function AssignmentsTab() {
                                     </div>
                                     <div className="flex items-center gap-1.5">
                                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2" /></svg>
-                                        {course.curriculumMaps?.[0] ? `Level ${course.curriculumMaps[0].level}` : "Unmapped"}
+                                        {displayLevel}
                                     </div>
                                 </div>
 
                                 {/* Inline Stats */}
                                 <div className="col-span-1 sm:col-span-5 flex items-center text-xs">
                                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-slate-900 shadow-sm">
-                                        <span className="font-bold text-blue-600 dark:text-blue-400">{course.sections?.length || 0}</span>
-                                        <span className="font-medium" style={{ color: "var(--text-muted)" }}>Total Sections</span>
+                                        <span className="font-bold text-blue-600 dark:text-blue-400">{displayedSections.length}</span>
+                                        <span className="font-medium" style={{ color: "var(--text-muted)" }}>
+                                            {programFilter !== "All" || levelFilter !== "All" ? "Matching Sections" : "Total Sections"}
+                                        </span>
                                         <span className="mx-1 text-slate-300 dark:text-slate-700">|</span>
-                                        <span className="font-bold text-amber-600 dark:text-amber-500">{course.sections?.filter((s:any)=>!s.lecturerId).length || 0}</span>
+                                        <span className="font-bold text-amber-600 dark:text-amber-500">{displayedSections.filter((s: any) => !s.lecturerId).length}</span>
                                         <span className="font-medium" style={{ color: "var(--text-muted)" }}>Unassigned</span>
                                     </div>
                                 </div>
@@ -405,7 +526,7 @@ export default function AssignmentsTab() {
                                                 setNewClassName("");
                                                 setNewClassSession("REGULAR");
                                             }}
-                                            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800/60 text-xs font-bold transition flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800/60 text-xs font-bold transition flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                                             style={{ color: "var(--text-primary)" }}
                                         >
                                             <ListPlus className="w-4 h-4" />
@@ -454,14 +575,19 @@ export default function AssignmentsTab() {
                                                 >
                                                     <option value="">— Select a class from the list —</option>
                                                     
-                                                    {/* Course Level Matching Suggestions */}
+                                                    {/* Course Level & Program Matching Suggestions */}
                                                     {(() => {
-                                                        const courseLevel = course.curriculumMaps?.[0]?.level || (course.code.match(/\d/)?.[0] ? parseInt(course.code.match(/\d/)![0]) * 100 : null);
-                                                        if (!courseLevel) return null;
-                                                        const matching = ALL_UNIVERSITY_CLASSES.flatMap(g => g.options).filter(o => o.name.includes(`LVL ${courseLevel}`));
+                                                        const courseLevel = activeMap?.level || course.curriculumMaps?.[0]?.level || (course.code.match(/\d/)?.[0] ? parseInt(course.code.match(/\d/)![0]) * 100 : null);
+                                                        let matching = ALL_UNIVERSITY_CLASSES.flatMap(g => g.options);
+                                                        if (selectedProgram) {
+                                                            matching = matching.filter(o => isSectionMatchingProgram(o.name, selectedProgram));
+                                                        }
+                                                        if (courseLevel) {
+                                                            matching = matching.filter(o => o.name.includes(`LVL ${courseLevel}`));
+                                                        }
                                                         if (matching.length === 0) return null;
                                                         return (
-                                                            <optgroup label={`Recommended for Level ${courseLevel}`}>
+                                                            <optgroup label={`Recommended for ${selectedProgram ? selectedProgram.name : `Level ${courseLevel}`}`}>
                                                                 {matching.map(opt => (
                                                                     <option key={`rec-${opt.name}`} value={opt.name}>
                                                                         {opt.name}
@@ -538,7 +664,7 @@ export default function AssignmentsTab() {
 
                                 {/* Sections List */}
                                 <div className="space-y-2">
-                                    {course.sections?.length > 0 ? course.sections.map((section: any) => {
+                                    {displayedSections.length > 0 ? displayedSections.map((section: any) => {
                                         const currentLecturer = lecturers.find(l => l.id === section.lecturerId);
                                         
                                         return (
@@ -593,37 +719,37 @@ export default function AssignmentsTab() {
                                                                 <option value="" disabled>No staff available</option>
                                                             )}
                                                         </select>
-
-
                                                     </div>
                                                 </div>
-
-
                                             </div>
                                         );
                                     }) : (
                                         <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-sm font-medium italic" style={{ color: "var(--text-muted)" }}>
                                             <BookOpen className="w-4 h-4 opacity-50" />
-                                            No sections configured yet. Click &quot;Add Section&quot; to create one.
+                                            {course.sections?.length > 0
+                                                ? "No sections configured for the selected program/level. Click \"Add Section\" to create one."
+                                                : "No sections configured yet. Click \"Add Section\" to create one."
+                                            }
                                         </div>
                                     )}
                                 </div>
                             </div>
                         </div>
-                        )) : (
-                            <div className="p-16 text-center flex flex-col items-center justify-center">
-                                <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-inner" style={{ backgroundColor: "var(--bg-hover)" }}>
-                                    <BookOpen className="w-10 h-10 text-slate-400" />
-                                </div>
-                                <h3 className="text-xl font-extrabold mb-2" style={{ color: "var(--text-primary)" }}>No Courses Found</h3>
-                                <p className="text-sm max-w-sm" style={{ color: "var(--text-muted)" }}>
-                                    {courses.length === 0 ? "There are no courses assigned to this department curriculum yet." : "No courses match the selected filters."}
-                                </p>
-                            </div>
                         );
-                    })()}
+                    }) : (
+                        <div className="p-16 text-center flex flex-col items-center justify-center">
+                            <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-inner" style={{ backgroundColor: "var(--bg-hover)" }}>
+                                <BookOpen className="w-10 h-10 text-slate-400" />
+                            </div>
+                            <h3 className="text-xl font-extrabold mb-2" style={{ color: "var(--text-primary)" }}>No Courses Found</h3>
+                            <p className="text-sm max-w-sm" style={{ color: "var(--text-muted)" }}>
+                                {courses.length === 0 ? "There are no courses assigned to this department curriculum yet." : "No courses match the selected filters."}
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
+
             {/* Custom Alert Modal */}
             {customModal && (
                 <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">

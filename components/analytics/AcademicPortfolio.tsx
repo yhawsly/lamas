@@ -6,6 +6,12 @@ import {
 } from "recharts";
 import { Compass, BarChart2, Shield, Eye, CheckCircle2, Check, AlertTriangle } from "lucide-react";
 
+interface ClearanceItem {
+    done: boolean;
+    detail: string;
+    [key: string]: any;
+}
+
 interface PortfolioData {
     stats: {
         compliance: number;
@@ -25,6 +31,12 @@ interface PortfolioData {
         invigilations?: number;
         moderations?: number;
         userProfile?: any;
+    };
+    clearance?: {
+        syllabuses: ClearanceItem;
+        observations: ClearanceItem;
+        moderations: ClearanceItem;
+        invigilation: ClearanceItem;
     };
 }
 
@@ -259,46 +271,95 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
 
                         {/* Clearance Checklist */}
                         <div className="rounded-3xl p-8" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
-                            <h3 className="font-bold text-lg mb-1" style={{ color: "var(--text-primary)" }}>End of Semester Clearance</h3>
-                            <p className="text-xs mb-8" style={{ color: "var(--text-muted)" }}>Ensure all critical academic duties are completed.</p>
-                            
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-4 p-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/5">
-                                    <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
-                                        <Check className="w-4 h-4 stroke-[2.5]" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>Course Syllabuses Uploaded</p>
-                                        <p className="text-xs opacity-70">All assigned courses have verified outlines.</p>
-                                    </div>
+                            <div className="flex items-start justify-between mb-6">
+                                <div>
+                                    <h3 className="font-bold text-lg mb-1" style={{ color: "var(--text-primary)" }}>End of Semester Clearance</h3>
+                                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>Real-time status of critical academic duties.</p>
                                 </div>
-                                <div className="flex items-center gap-4 p-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/5">
-                                    <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
-                                        <Check className="w-4 h-4 stroke-[2.5]" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>Teaching Observations Completed</p>
-                                        <p className="text-xs opacity-70">Peer reviews have been finalized.</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-4 p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5">
-                                    <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/40 flex items-center justify-center shrink-0 text-amber-500">
-                                        <AlertTriangle className="w-4 h-4" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>Exam Moderations Finalized</p>
-                                        <p className="text-xs opacity-70">Ensure all moderated exams are approved.</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-4 p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5">
-                                    <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/40 flex items-center justify-center shrink-0 text-amber-500">
-                                        <AlertTriangle className="w-4 h-4" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>Invigilation Duties Fulfilled</p>
-                                        <p className="text-xs opacity-70">Attend all assigned examination sessions.</p>
-                                    </div>
-                                </div>
+                                {data?.clearance && (() => {
+                                    const items = Object.values(data.clearance);
+                                    const cleared = items.filter(i => i.done).length;
+                                    const allDone = cleared === items.length;
+                                    return (
+                                        <span className={`px-3 py-1 rounded-full text-xs font-black tracking-wide border ${
+                                            allDone
+                                                ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/25"
+                                                : "bg-amber-500/10 text-amber-600 border-amber-500/25"
+                                        }`}>
+                                            {cleared}/{items.length} Cleared
+                                        </span>
+                                    );
+                                })()}
+                            </div>
+
+                            <div className="space-y-3">
+                                {[
+                                    {
+                                        key: "syllabuses",
+                                        label: "Course Syllabuses Uploaded",
+                                        item: data?.clearance?.syllabuses,
+                                    },
+                                    {
+                                        key: "observations",
+                                        label: "Teaching Observations Completed",
+                                        item: data?.clearance?.observations,
+                                    },
+                                    {
+                                        key: "moderations",
+                                        label: "Exam Moderations Finalized",
+                                        item: data?.clearance?.moderations,
+                                    },
+                                    {
+                                        key: "invigilation",
+                                        label: "Invigilation Duties Fulfilled",
+                                        item: data?.clearance?.invigilation,
+                                    },
+                                ].map(({ key, label, item }) => {
+                                    const done = item?.done ?? false;
+                                    const naItem = !item || (item.total === 0);
+                                    return (
+                                        <div
+                                            key={key}
+                                            className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${
+                                                naItem
+                                                    ? "border-slate-200/30 bg-slate-500/5"
+                                                    : done
+                                                    ? "border-emerald-500/20 bg-emerald-500/5"
+                                                    : "border-amber-500/20 bg-amber-500/5"
+                                            }`}
+                                        >
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                                                naItem
+                                                    ? "bg-slate-400/10 border border-slate-400/30 text-slate-400"
+                                                    : done
+                                                    ? "bg-emerald-500 text-white shadow-xs"
+                                                    : "bg-amber-500/10 border border-amber-500/40 text-amber-500"
+                                            }`}>
+                                                {naItem
+                                                    ? <CheckCircle2 className="w-4 h-4 opacity-40" />
+                                                    : done
+                                                    ? <Check className="w-4 h-4 stroke-[2.5]" />
+                                                    : <AlertTriangle className="w-4 h-4" />
+                                                }
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{label}</p>
+                                                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                                                    {item?.detail ?? "Loading..."}
+                                                </p>
+                                            </div>
+                                            <span className={`text-[10px] font-black tracking-widest uppercase shrink-0 px-2 py-0.5 rounded-md ${
+                                                naItem
+                                                    ? "text-slate-400 bg-slate-500/10"
+                                                    : done
+                                                    ? "text-emerald-600 bg-emerald-500/10"
+                                                    : "text-amber-600 bg-amber-500/10"
+                                            }`}>
+                                                {naItem ? "N/A" : done ? "Done" : "Pending"}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>

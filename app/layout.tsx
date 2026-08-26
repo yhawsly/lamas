@@ -47,14 +47,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           (function() {
             try {
               var savedTheme = localStorage.getItem('lamas-theme');
-              if (savedTheme === 'dark') {
-                document.documentElement.classList.add('dark');
-                document.documentElement.classList.remove('light');
-              } else {
-                document.documentElement.classList.remove('dark');
-                document.documentElement.classList.add('light');
+              var validThemes = ['light', 'dark', 'sage'];
+              var t = validThemes.includes(savedTheme) ? savedTheme : 'light';
+              document.documentElement.classList.remove('light', 'dark', 'sage');
+              document.documentElement.classList.add(t);
+              // Update PWA / browser chrome theme-color
+              var colors = { light: '#ffffff', dark: '#15202B', sage: '#1A1E1A' };
+              var metaTheme = document.getElementById('theme-color-meta');
+              if (metaTheme) {
+                metaTheme.setAttribute('content', colors[t] || '#ffffff');
               }
             } catch(e) {}
+
             if (typeof window !== 'undefined' && window.performance && window.performance.measure) {
               var orig = window.performance.measure;
               window.performance.measure = function() {
@@ -69,7 +73,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-        <meta name="theme-color" content="#ffffff" />
+        <meta name="theme-color" content="#ffffff" id="theme-color-meta" />
       </head>
       <body style={{ fontFamily: "'Inter', sans-serif" }}>
         <PWARegister />

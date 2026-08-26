@@ -150,6 +150,14 @@ export async function GET() {
         let invigilationCount = 0;
         let moderationCount = 0;
 
+        // 8. End of Semester Clearance — real data per item
+        let clearance = {
+            syllabuses: { done: false, submitted: 0, total: 0, detail: "" },
+            observations: { done: false, completed: 0, total: 0, detail: "" },
+            moderations: { done: false, finalized: 0, total: 0, detail: "" },
+            invigilation: { done: false, attended: 0, total: 0, detail: "" },
+        };
+
         if (role === "LECTURER") {
             courseCount = await prisma.courseSection.count({
                 where: { lecturerId: userId, ...(termId ? { termId } : {}) }
@@ -174,16 +182,100 @@ export async function GET() {
                     ]
                 }
             });
+
+            // ── Clearance Item 1: Course Syllabuses / Outlines ──
+            const totalCourses = courseCount;
+            const approvedOutlines = await prisma.submission.count({
+                where: {
+                    lecturerId: userId,
+                    type: { in: [SubmissionType.COURSE_TOPICS, SubmissionType.WEEKLY_TOPICS] },
+                    status: { in: [SubmissionStatus.SUBMITTED, SubmissionStatus.LATE] },
+                    ...(termId ? { termId } : {}),
+                }
+            });
+            // One outline submission per course is sufficient
+            const syllabusSubmitted = Math.min(approvedOutlines, totalCourses);
+            clearance.syllabuses = {
+                done: totalCourses > 0 && syllabusSubmitted >= totalCourses,
+                submitted: syllabusSubmitted,
+                total: totalCourses,
+                detail: totalCourses === 0
+                    ? "No courses assigned this term"
+                    : `${syllabusSubmitted} of ${totalCourses} outlines submitted`,
+            };
+
+            // ── Clearance Item 2: Teaching Observations ──
+            const totalObs = await prisma.teachingObservation.count({
+                where: { lecturerId: userId, ...(termId ? { termId } : {}) }
+            });
+            const completedObs = await prisma.teachingObservation.count({
+                where: {
+                    lecturerId: userId,
+                    status: { in: ["COMPLETED", "REVIEWED"] },
+                    ...(termId ? { termId } : {})
+                }
+            });
+            clearance.observations = {
+                done: totalObs === 0 || completedObs >= totalObs,
+                completed: completedObs,
+                total: totalObs,
+                detail: totalObs === 0
+                    ? "No observations scheduled"
+                    : `${completedObs} of ${totalObs} observations completed`,
+            };
+
+            // ── Clearance Item 3: Exam Moderations ──
+            const totalMods = moderationCount;
+            const finalizedMods = await prisma.examModeration.count({
+                where: {
+                    status: { in: ["COMPLETED", "REVIEWED"] },
+                    ...(termId ? { termId } : {}),
+                    OR: [
+                        { moderatorId: userId },
+                        { lecturerId: userId }
+                    ]
+                }
+            });
+            clearance.moderations = {
+                done: totalMods === 0 || finalizedMods >= totalMods,
+                finalized: finalizedMods,
+                total: totalMods,
+                detail: totalMods === 0
+                    ? "No moderation duties assigned"
+                    : `${finalizedMods} of ${totalMods} exams moderated`,
+            };
+
+            // ── Clearance Item 4: Invigilation Duties ──
+            const totalInvig = invigilationCount;
+            // All past invigilation sessions (before today) count as "attended"
+            const pastInvig = await prisma.examSessionInvigilation.count({
+                where: {
+                    examDate: { lt: new Date() },
+                    ...(termId ? { termId } : {}),
+                    OR: [
+                        { chiefInvigilatorId: userId },
+                        { assistantInvigilatorIds: { has: userId } }
+                    ]
+                }
+            });
+            clearance.invigilation = {
+                done: totalInvig === 0 || pastInvig >= totalInvig,
+                attended: pastInvig,
+                total: totalInvig,
+                detail: totalInvig === 0
+                    ? "No invigilation sessions assigned"
+                    : `${pastInvig} of ${totalInvig} sessions attended`,
+            };
         }
 
         const metrics = {
-            outlines: weeklySubmissions.length, // approximation
+            outlines: weeklySubmissions.length,
             observations: observations.length,
             alerts: auditHistory.length,
             coursesTaught: courseCount,
             invigilations: invigilationCount,
             moderations: moderationCount,
-            userProfile: session.user // To display Name, Email, Role on the Dossier Header
+            userProfile: session.user
         };
 
         return NextResponse.json({
@@ -197,10 +289,12 @@ export async function GET() {
             auditHistory,
             auditArtifacts,
             leaderboard,
-            metrics
+            metrics,
+            clearance,
         });
     } catch (error) {
         console.error("Portfolio Data Fetch Error:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
+

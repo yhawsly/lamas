@@ -6,7 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { 
     Settings, LogOut, Moon, Sun, Building, Library, 
-    Bell, X, ChevronRight 
+    Bell, X, ChevronRight, Leaf
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import TermSwitcher from "@/components/workspace/TermSwitcher";
@@ -19,7 +19,7 @@ interface MobileActionDrawerProps {
 export default function MobileActionDrawer({ isOpen, onClose }: MobileActionDrawerProps) {
     const { data: session } = useSession();
     const pathname = usePathname();
-    const { theme, toggle } = useTheme();
+    const { theme, cycle } = useTheme();
 
     // Close on ESC
     useEffect(() => {
@@ -131,32 +131,45 @@ export default function MobileActionDrawer({ isOpen, onClose }: MobileActionDraw
                     <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                                theme === "dark" 
-                                    ? "bg-sky-500/15 text-sky-400 border border-sky-500/30" 
+                                theme === "dark"
+                                    ? "bg-sky-500/15 text-sky-400 border border-sky-500/30"
+                                    : theme === "sage"
+                                    ? "bg-emerald-500/15 text-emerald-500 border border-emerald-500/30"
                                     : "bg-amber-500/15 text-amber-600 border border-amber-500/30"
                             }`}>
-                                {theme === "dark" ? <Moon className="w-4 h-4 fill-sky-400/30 stroke-[2.2]" /> : <Sun className="w-4 h-4 fill-amber-400/30 stroke-[2.2]" />}
+                                {theme === "dark"
+                                    ? <Moon className="w-4 h-4 fill-sky-400/30 stroke-[2.2]" />
+                                    : theme === "sage"
+                                    ? <Leaf className="w-4 h-4 stroke-[2.2]" />
+                                    : <Sun className="w-4 h-4 fill-amber-400/30 stroke-[2.2]" />}
                             </div>
                             <div>
                                 <div className="text-xs font-extrabold text-slate-900 dark:text-white">Interface Theme</div>
-                                <div className="text-[11px] text-slate-400 font-semibold">{theme === "dark" ? "Dark Mode Active" : "Light Mode Active"}</div>
+                                <div className="text-[11px] text-slate-400 font-semibold">
+                                    {theme === "dark" ? "Dark Mode (Twitter Dim)" : theme === "sage" ? "Academic Sage" : "Light Mode"}
+                                </div>
                             </div>
                         </div>
 
                         <button
                             type="button"
-                            onClick={toggle}
+                            onClick={cycle}
                             className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-600 shadow-2xs cursor-pointer flex items-center gap-1.5"
                         >
                             {theme === "dark" ? (
                                 <>
+                                    <Leaf className="w-3.5 h-3.5 text-emerald-500" />
+                                    <span>Sage</span>
+                                </>
+                            ) : theme === "sage" ? (
+                                <>
                                     <Sun className="w-3.5 h-3.5 text-amber-400" />
-                                    <span>Light Mode</span>
+                                    <span>Light</span>
                                 </>
                             ) : (
                                 <>
                                     <Moon className="w-3.5 h-3.5 text-blue-500" />
-                                    <span>Dark Mode</span>
+                                    <span>Dark</span>
                                 </>
                             )}
                         </button>
