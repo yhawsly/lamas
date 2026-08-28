@@ -15,6 +15,24 @@ const nextConfig: NextConfig = {
         formats: ["image/avif", "image/webp"],
         deviceSizes: [640, 750, 828, 1080, 1200, 1920],
         minimumCacheTTL: 60,
+        remotePatterns: [
+            {
+                protocol: "https",
+                hostname: "*.public.blob.vercel-storage.com",
+            },
+            {
+                protocol: "https",
+                hostname: "vercel-storage.com",
+            },
+            {
+                protocol: "https",
+                hostname: "lh3.googleusercontent.com",
+            },
+            {
+                protocol: "https",
+                hostname: "avatars.githubusercontent.com",
+            },
+        ],
     },
 
     // Security headers on every response
@@ -24,11 +42,11 @@ const nextConfig: NextConfig = {
             default-src 'self';
             script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""};
             style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-            img-src 'self' blob: data:;
+            img-src 'self' blob: data: https: https://*.public.blob.vercel-storage.com https://lh3.googleusercontent.com https://avatars.githubusercontent.com;
             font-src 'self' https://fonts.gstatic.com;
-            frame-src 'self';
+            frame-src 'self' blob: data: https://*.public.blob.vercel-storage.com;
             worker-src 'self' blob:;
-            connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com ${isDev ? "http://localhost:3000 http://127.0.0.1:3000 ws://localhost:3000" : ""};
+            connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://*.public.blob.vercel-storage.com ${isDev ? "http://localhost:3000 http://127.0.0.1:3000 ws://localhost:3000" : ""};
         `.replace(/\s{2,}/g, ' ').trim();
 
         return [
@@ -49,8 +67,6 @@ const nextConfig: NextConfig = {
 
     // Strict mode for catching React issues early
     reactStrictMode: true,
-
-
 
     // Externalize problematic CommonJS packages so Turbopack doesn't break them
     serverExternalPackages: ["pdf-parse", "exceljs", "bcrypt", "nodemailer"],

@@ -3,15 +3,13 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { handleApiError } from "@/lib/api-error";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { writeFile, mkdir } from "fs/promises";
+import { saveUploadedFile, isAllowedFileType } from "@/lib/storage";
 import path from "path";
-import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
 
-const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+const ALLOWED_AVATAR_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg"];
+const MAX_AVATAR_SIZE = 4 * 1024 * 1024; // 4MB
 
 export async function POST(req: NextRequest) {
     try {
@@ -38,21 +36,19 @@ export async function POST(req: NextRequest) {
         let avatarUrl: string | undefined;
 
         if (file && file.size > 0) {
-            // 1. Verify file size before buffering to prevent memory/DoS attacks
-            if (file.size > MAX_FILE_SIZE) {
+            // 1. Verify file size before buffering
+            if (file.size > MAX_AVATAR_SIZE) {
                 return NextResponse.json(
-                    { error: "Avatar file size exceeds the 2MB limit" },
+                    { error: "Avatar file size exceeds the 4MB limit" },
                     { status: 400 }
                 );
             }
 
-            // 2. Enforce strict type/extension validation to prevent Stored XSS (.html uploads)
+            // 2. Enforce strict type/extension validation
             const ext = path.extname(file.name).toLowerCase();
-            const mimeType = file.type.toLowerCase();
-
-            if (!ALLOWED_EXTENSIONS.includes(ext) || !ALLOWED_MIME_TYPES.includes(mimeType)) {
+            if (!ALLOWED_AVATAR_EXTENSIONS.includes(ext) || !isAllowedFileType(file.name, file.type)) {
                 return NextResponse.json(
-                    { error: "Invalid file type. Only JPEG, PNG, WEBP, and GIF images are allowed." },
+                    { error: "Invalid file type. Only JPEG, PNG, WEBP, GIF, and SVG images are allowed." },
                     { status: 400 }
                 );
             }
@@ -60,18 +56,15 @@ export async function POST(req: NextRequest) {
             const bytes = await file.arrayBuffer();
             const buffer = Buffer.from(bytes);
             
-            // Generate a safe unique filename
-            const uniqueSuffix = crypto.randomBytes(16).toString("hex");
-            const filename = `avatar-${session.user.id}-${uniqueSuffix}${ext}`;
+            const uploadResult = await saveUploadedFile({
+                originalFilename: `avatar-${session.user.id}-${file.name}`,
+                buffer,
+                mimeType: file.type || "image/jpeg",
+                folder: "avatars",
+                maxBase64FallbackSize: 4 * 1024 * 1024,
+            });
             
-            // Save to public/uploads locally (for dev environment fallback)
-            const uploadDir = path.join(process.cwd(), "public", "uploads");
-            await mkdir(uploadDir, { recursive: true });
-            
-            const filepath = path.join(uploadDir, filename);
-            await writeFile(filepath, buffer);
-            
-            avatarUrl = `/uploads/${filename}`;
+            avatarUrl = uploadResult.url;
         }
 
         // Handle other fields
@@ -80,7 +73,7 @@ export async function POST(req: NextRequest) {
 
         const updateData: any = {};
         if (name) updateData.name = name;
-        if (phone !== null) updateData.phone = phone; // allow empty phone
+        if (phone !== null && phone !== undefined) updateData.phone = phone;
         if (avatarUrl) updateData.avatarUrl = avatarUrl;
 
         const updatedUser = await prisma.user.update({
