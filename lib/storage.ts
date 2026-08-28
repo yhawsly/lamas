@@ -36,12 +36,19 @@ export function isAllowedFileType(filename: string, mimeType?: string): boolean 
         return false;
     }
 
+    if (mimeType) {
+        const mt = mimeType.toLowerCase();
+        if (mt.includes("x-msdownload") || mt.includes("x-executable") || mt.includes("x-dosexec")) {
+            return false;
+        }
+    }
+
     // Accept any known allowed extension
     if (ALLOWED_EXTENSIONS.includes(ext)) {
         return true;
     }
 
-    // If extension is not in blacklist and has standard mime type, permit it
+    // If extension is not in blacklist, permit it
     if (ext && ext.length >= 2 && !DISALLOWED_EXTENSIONS.includes(ext)) {
         return true;
     }
