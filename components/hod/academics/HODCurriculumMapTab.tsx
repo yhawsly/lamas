@@ -174,8 +174,8 @@ export default function HODCurriculumMapTab() {
     useEffect(() => {
         const curriculumUrl = selectedTermId ? `/api/admin/curriculum?termId=${selectedTermId}` : "/api/admin/curriculum";
         Promise.all([
-            fetch(curriculumUrl).then(r => r.ok ? r.json() : null),
-            fetch("/api/lecturers").then(r => r.ok ? r.json() : [])
+            fetch(curriculumUrl, { cache: "no-store" }).then(r => r.ok ? r.json() : null),
+            fetch("/api/lecturers", { cache: "no-store" }).then(r => r.ok ? r.json() : [])
         ]).then(([curriculumData, lecturersData]) => {
             if (curriculumData) {
                 setPrograms(curriculumData.programs || []);
@@ -192,7 +192,8 @@ export default function HODCurriculumMapTab() {
                     setSelectedProgramId(bestProgram.id);
                 }
             }
-            setLecturers(Array.isArray(lecturersData) ? lecturersData : []);
+            const safeLecturers = Array.isArray(lecturersData) ? lecturersData : (lecturersData?.data || lecturersData?.lecturers || []);
+            setLecturers(safeLecturers);
             setLoading(false);
         }).catch(() => setLoading(false));
     }, [selectedTermId]);

@@ -152,9 +152,17 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        if (lecturerId === observerId) {
+        // Validate Department-Level Boundary (Approach 1) & Conflict of Interest
+        const { validateDepartmentBoundary } = await import("@/lib/pairing");
+        const deptValidation = await validateDepartmentBoundary({
+            courseCode,
+            lecturerId: Number(lecturerId),
+            reviewerId: Number(observerId)
+        });
+
+        if (!deptValidation.valid) {
             return NextResponse.json(
-                { error: "Lecturer and observer cannot be the same person" },
+                { error: deptValidation.error || "Department boundary validation failed" },
                 { status: 400 }
             );
         }

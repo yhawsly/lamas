@@ -7,22 +7,19 @@ async function main() {
     console.log("🌱 STARTING PROFESSIONAL COMPUTER SCIENCE DEPARTMENT DATABASE SEEDING...");
 
     // =========================================================================
-    // 1. DEPARTMENT SETUP (Focus: Computer Science Department)
+    // 1. DEPARTMENT SETUP
     // =========================================================================
-    console.log("   ➤ Setting up Computer Science Department...");
+    console.log("   ➤ Setting up Academic Department (Computer Science)...");
     const cs = await prisma.department.upsert({
         where: { code: "CS" },
         update: { name: "Department of Computer Science" },
         create: { name: "Department of Computer Science", code: "CS" },
     });
 
-    // Ensure clean foreign keys if any stale departments exist
-    await prisma.department.deleteMany({ where: { code: { notIn: ["CS"] } } }).catch(() => {});
-
     // =========================================================================
     // 2. USER ROLES & FACULTY ROSTER PROVISIONING
     // =========================================================================
-    console.log("   ➤ Provisioning verified Computer Science faculty & administrative accounts...");
+    console.log("   ➤ Provisioning verified faculty & administrative accounts...");
     const defaultPasswordHash = await hashPassword("password123");
 
     // 2a. Super Administrator
@@ -94,7 +91,14 @@ async function main() {
     // 2e. Computer Science Faculty Lecturers
     const lecturer1 = await prisma.user.upsert({
         where: { email: "slyyhaw@gmail.com" },
-        update: { name: "Sylvester Yhaw", role: "LECTURER", departmentId: cs.id, isActive: true, passwordHash: defaultPasswordHash },
+        update: { 
+            name: "Sylvester Yhaw", 
+            role: "LECTURER", 
+            departmentId: cs.id, 
+            isActive: true, 
+            passwordHash: defaultPasswordHash,
+            specializations: ["Web Development & Cloud Computing", "Artificial Intelligence & Machine Learning", "Computer Networks & Distributed Systems"]
+        },
         create: {
             name: "Sylvester Yhaw",
             email: "slyyhaw@gmail.com",
@@ -103,12 +107,20 @@ async function main() {
             departmentId: cs.id,
             isActive: true,
             phone: "+233 20 123 4567",
+            specializations: ["Web Development & Cloud Computing", "Artificial Intelligence & Machine Learning", "Computer Networks & Distributed Systems"]
         },
     });
 
     const lecturer2 = await prisma.user.upsert({
         where: { email: "dherlharlhi20@gmail.com" },
-        update: { name: "Dr. Redeemer", role: "LECTURER", departmentId: cs.id, isActive: true, passwordHash: defaultPasswordHash },
+        update: { 
+            name: "Dr. Redeemer", 
+            role: "LECTURER", 
+            departmentId: cs.id, 
+            isActive: true, 
+            passwordHash: defaultPasswordHash,
+            specializations: ["Data Structures & Algorithms", "Operating Systems & Systems Programming", "Discrete Mathematics & Logic"]
+        },
         create: {
             name: "Dr. Redeemer",
             email: "dherlharlhi20@gmail.com",
@@ -117,12 +129,20 @@ async function main() {
             departmentId: cs.id,
             isActive: true,
             phone: "+233 20 987 6543",
+            specializations: ["Data Structures & Algorithms", "Operating Systems & Systems Programming", "Discrete Mathematics & Logic"]
         },
     });
 
     const lecturer3 = await prisma.user.upsert({
         where: { email: "slycrypto1@gmail.com" },
-        update: { name: "Dr. Sarah Lim", role: "LECTURER", departmentId: cs.id, isActive: true, passwordHash: defaultPasswordHash },
+        update: { 
+            name: "Dr. Sarah Lim", 
+            role: "LECTURER", 
+            departmentId: cs.id, 
+            isActive: true, 
+            passwordHash: defaultPasswordHash,
+            specializations: ["Database Systems & SQL", "Object-Oriented Programming & Java", "Software Engineering & DevOps"]
+        },
         create: {
             name: "Dr. Sarah Lim",
             email: "slycrypto1@gmail.com",
@@ -131,6 +151,7 @@ async function main() {
             departmentId: cs.id,
             isActive: true,
             phone: "+233 20 456 7890",
+            specializations: ["Database Systems & SQL", "Object-Oriented Programming & Java", "Software Engineering & DevOps"]
         },
     });
 
@@ -145,26 +166,10 @@ async function main() {
         "slycrypto1@gmail.com",
     ];
 
-    const oldUsers = await prisma.user.findMany({
+    await prisma.user.updateMany({
         where: { email: { notIn: validEmails } },
-        select: { id: true }
+        data: { isActive: false }
     });
-    const oldIds = oldUsers.map(u => u.id);
-    if (oldIds.length > 0) {
-        console.log(`   ➤ Purging ${oldIds.length} obsolete records outside CS roster...`);
-        await prisma.submissionVersion.deleteMany({ where: { submission: { lecturerId: { in: oldIds } } } }).catch(() => {});
-        await prisma.submission.deleteMany({ where: { lecturerId: { in: oldIds } } }).catch(() => {});
-        await prisma.notification.deleteMany({ where: { userId: { in: oldIds } } }).catch(() => {});
-        await prisma.activityLog.deleteMany({ where: { userId: { in: oldIds } } }).catch(() => {});
-        await prisma.passwordReset.deleteMany({ where: { userId: { in: oldIds } } }).catch(() => {});
-        await prisma.resource.deleteMany({ where: { lecturerId: { in: oldIds } } }).catch(() => {});
-        await prisma.observation.deleteMany({ where: { OR: [{ lecturerId: { in: oldIds } }, { observerId: { in: oldIds } }] } }).catch(() => {});
-        await prisma.teachingObservation.deleteMany({ where: { OR: [{ lecturerId: { in: oldIds } }, { observerId: { in: oldIds } }, { deoId: { in: oldIds } }] } }).catch(() => {});
-        await prisma.examModeration.deleteMany({ where: { OR: [{ lecturerId: { in: oldIds } }, { moderatorId: { in: oldIds } }, { deoId: { in: oldIds } }] } }).catch(() => {});
-        await prisma.examSessionInvigilation.deleteMany({ where: { chiefInvigilatorId: { in: oldIds } } }).catch(() => {});
-        await prisma.courseSection.updateMany({ where: { lecturerId: { in: oldIds } }, data: { lecturerId: null } }).catch(() => {});
-        await prisma.user.deleteMany({ where: { id: { in: oldIds } } }).catch(() => {});
-    }
 
     // =========================================================================
     // 3. COMPUTER SCIENCE DEGREE PROGRAMS
@@ -173,7 +178,7 @@ async function main() {
     const btechCS = await prisma.program.upsert({
         where: { code: "BTECH_CS" },
         update: { name: "B.Tech Computer Science" },
-        create: { name: "B.Tech Computer Science", code: "BTECH_CS", description: "Bachelor of Technology in Computer Science (Levels 100-400, Regular & Weekend Streams)" }
+        create: { name: "B.Tech Computer Science", code: "BTECH_CS", description: "B.Tech in Computer Science (Levels 100-400, Regular & Weekend Streams)" }
     });
     const btechICT = await prisma.program.upsert({
         where: { code: "BTECH_ICT" },
@@ -206,17 +211,17 @@ async function main() {
     // =========================================================================
     console.log("   ➤ Syncing 11 Computer Science courses...");
     const csCoursesList = [
-        { code: "CS101", title: "Introduction to Computer Science & Systems", credits: 3, level: 100, semester: 1 },
-        { code: "CS102", title: "Programming Fundamentals in C/C++", credits: 3, level: 100, semester: 2 },
-        { code: "CS201", title: "Data Structures & Algorithms", credits: 4, level: 200, semester: 1 },
-        { code: "CS202", title: "Object-Oriented Programming with Java", credits: 3, level: 200, semester: 2 },
-        { code: "CS203", title: "Discrete Mathematics & Logic", credits: 3, level: 200, semester: 1 },
-        { code: "CS301", title: "Web Development & Cloud Architecture", credits: 3, level: 300, semester: 1 },
-        { code: "CS302", title: "Database Systems & SQL Programmability", credits: 3, level: 300, semester: 2 },
-        { code: "CS303", title: "Operating Systems & Systems Programming", credits: 3, level: 300, semester: 1 },
-        { code: "CS401", title: "Artificial Intelligence & Neural Networks", credits: 4, level: 400, semester: 1 },
-        { code: "CS402", title: "Software Engineering & DevOps Practices", credits: 3, level: 400, semester: 2 },
-        { code: "CS403", title: "Computer Networks & Distributed Systems", credits: 3, level: 400, semester: 1 },
+        { code: "CS101", title: "Introduction to Computer Science & Systems", domain: "Computer Foundations & Architecture", credits: 3, level: 100, semester: 1 },
+        { code: "CS102", title: "Programming Fundamentals in C/C++", domain: "Programming Fundamentals & C/C++", credits: 3, level: 100, semester: 2 },
+        { code: "CS201", title: "Data Structures & Algorithms", domain: "Data Structures & Algorithms", credits: 4, level: 200, semester: 1 },
+        { code: "CS202", title: "Object-Oriented Programming with Java", domain: "Object-Oriented Programming & Java", credits: 3, level: 200, semester: 2 },
+        { code: "CS203", title: "Discrete Mathematics & Logic", domain: "Discrete Mathematics & Logic", credits: 3, level: 200, semester: 1 },
+        { code: "CS301", title: "Web Development & Cloud Architecture", domain: "Web Development & Cloud Computing", credits: 3, level: 300, semester: 1 },
+        { code: "CS302", title: "Database Systems & SQL Programmability", domain: "Database Systems & SQL", credits: 3, level: 300, semester: 2 },
+        { code: "CS303", title: "Operating Systems & Systems Programming", domain: "Operating Systems & Systems Programming", credits: 3, level: 300, semester: 1 },
+        { code: "CS401", title: "Artificial Intelligence & Neural Networks", domain: "Artificial Intelligence & Machine Learning", credits: 4, level: 400, semester: 1 },
+        { code: "CS402", title: "Software Engineering & DevOps Practices", domain: "Software Engineering & DevOps", credits: 3, level: 400, semester: 2 },
+        { code: "CS403", title: "Computer Networks & Distributed Systems", domain: "Computer Networks & Distributed Systems", credits: 3, level: 400, semester: 1 },
     ];
 
     // Clean non-CS courses if needed
@@ -228,10 +233,11 @@ async function main() {
     for (const c of csCoursesList) {
         await prisma.course.upsert({
             where: { code: c.code },
-            update: { title: c.title, credits: c.credits, departmentId: cs.id },
+            update: { title: c.title, domain: c.domain, credits: c.credits, departmentId: cs.id },
             create: {
                 code: c.code,
                 title: c.title,
+                domain: c.domain,
                 credits: c.credits,
                 departmentId: cs.id,
             },
@@ -983,8 +989,8 @@ async function main() {
                     classes: mappedClasses,
                     assessments: [
                         { id: 1, name: "Continuous Assessment / Quizzes", weight: 20 },
-                        { id: 2, name: "Mid-Semester Examination & Labs", weight: 30 },
-                        { id: 3, name: "Final Semester Examination", weight: 50 }
+                        { id: 2, name: "Mid-Semester Examination & Labs", weight: 20 },
+                        { id: 3, name: "End of Semester Examination", weight: 60 }
                     ]
                 },
                 deadlineId: dlTopicsTerm2.id,

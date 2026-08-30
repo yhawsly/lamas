@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Calendar } from "lucide-react";
+import ReviewDossierViewer from "@/components/workspace/ReviewDossierViewer";
 
 const DetailWorkspaceSkeleton = () => (
     <div className="max-w-4xl mx-auto space-y-8 animate-pulse pb-20 pt-6 px-4">
@@ -258,6 +259,14 @@ export default function ConductTeachingObservationPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Target Lecturer Course Dossier & Educational Materials Viewer */}
+            <ReviewDossierViewer
+                courseCode={data.courseCode}
+                lecturerId={data.lecturerId}
+                lecturerName={lecturer}
+                reviewType="B"
+            />
 
             {/* Metadata Section */}
             <div className="rounded-2xl shadow-sm border p-6" style={{ borderColor: "var(--bg-border)", backgroundColor: "var(--bg-surface)" }}>

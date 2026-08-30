@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
+import ReviewDossierViewer from "@/components/workspace/ReviewDossierViewer";
 
 const DetailWorkspaceSkeleton = () => (
     <div className="max-w-4xl mx-auto space-y-8 animate-pulse pb-20 pt-6 px-4">
@@ -300,6 +301,14 @@ export default function ConductObservationPage() {
                     {data.status}
                 </div>
             </div>
+
+            {/* Target Lecturer Course Dossier & Educational Materials Viewer */}
+            <ReviewDossierViewer
+                courseCode={data.courseCode}
+                lecturerId={data.lecturerId}
+                lecturerName={lecturer}
+                reviewType="A"
+            />
 
             {/* Materials Reviewed Checkboxes */}
             <div className="rounded-2xl p-6 shadow-sm" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>

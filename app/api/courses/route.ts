@@ -11,6 +11,7 @@ export const fetchCache = "force-no-store";
 const CourseSchema = z.object({
     code: z.string().min(2).max(20).toUpperCase(),
     title: z.string().min(3).max(255),
+    domain: z.string().optional(),
     credits: z.union([z.number(), z.string().transform(v => parseInt(v))]).optional().default(3),
     departmentId: z.union([z.number(), z.string().transform(v => parseInt(v))]),
 });
@@ -141,7 +142,7 @@ export async function POST(req: Request) {
             );
         }
 
-        const { code, title, credits, departmentId } = validation.data;
+        const { code, title, domain, credits, departmentId } = validation.data;
 
         // Enforce HODs can only create courses for their own department
         if (role === "HOD") {
@@ -160,6 +161,7 @@ export async function POST(req: Request) {
             data: {
                 code,
                 title,
+                domain: domain || null,
                 credits: credits || 3,
                 departmentId: departmentId
             }

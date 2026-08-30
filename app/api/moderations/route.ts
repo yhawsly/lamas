@@ -73,6 +73,21 @@ export async function POST(req: Request) {
             );
         }
 
+        // Validate Department-Level Boundary (Approach 1) & Conflict of Interest
+        const { validateDepartmentBoundary } = await import("@/lib/pairing");
+        const deptValidation = await validateDepartmentBoundary({
+            courseCode,
+            lecturerId: Number(lecturerId),
+            reviewerId: Number(moderatorId)
+        });
+
+        if (!deptValidation.valid) {
+            return NextResponse.json(
+                { error: deptValidation.error || "Department boundary validation failed" },
+                { status: 400 }
+            );
+        }
+
         // Validate that the lecturer is assigned to the course
         const isAssigned = await prisma.courseSection.findFirst({
             where: {

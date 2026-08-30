@@ -44,9 +44,9 @@ export default function MobileBottomNav({ onOpenDrawer }: MobileBottomNavProps) 
                 ];
             case "DEO":
                 return [
-                    { id: "allocations", label: "Allocations", href: "/deo/allocations", icon: BookOpen },
+                    { id: "allocations", label: "Allocations", href: "/deo", icon: BookOpen },
                     { id: "vetting", label: "Vetting", href: "/deo/vetting", icon: FileText },
-                    { id: "reviews", label: "Reviews", href: "/deo", icon: ClipboardList },
+                    { id: "reviews", label: "Reviews", href: "/deo/reviews", icon: ClipboardList },
                     { id: "alerts", label: "Alerts", href: "/notifications", icon: Bell, badge: unreadCount },
                     { id: "more", label: "More", action: onOpenDrawer, icon: Menu },
                 ];

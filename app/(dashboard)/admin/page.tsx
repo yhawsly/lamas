@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import KPICard from "@/components/ui/KPICard";
 import useSWR from "swr";
 import { useTerm } from "@/context/TermContext";
+import { useModal } from "@/context/ModalContext";
 
 const ComplianceChart = dynamic(() => import("@/components/analytics/ComplianceChart"), { ssr: false });
 const ObservationRadar = dynamic(() => import("@/components/analytics/ObservationRadar"), { ssr: false });
@@ -56,6 +57,7 @@ export default function AdminDashboard() {
     const data = analyticsData;
     const loading = !analyticsData;
 
+    const { showError } = useModal();
     const [tab, setTab] = useState<"overview" | "lecturers" | "atRisk" | "trend">("overview");
     const [notify, setNotify] = useState({ message: "", show: false, sent: false });
     const [sending, setSending] = useState(false);
@@ -73,7 +75,7 @@ export default function AdminDashboard() {
             setNotify(n => ({ ...n, sent: true, message: "" }));
         } else {
             const d = await res.json().catch(() => ({}));
-            alert(d.error || "Failed to send notification. Please try again later.");
+            showError("Broadcast Failed", d.error || "Failed to send notification. Please try again later.");
         }
     }
 

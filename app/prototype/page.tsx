@@ -3,11 +3,13 @@
 
 import React, { useState, useRef } from "react";
 import { BookOpen, CheckCircle2, AlertTriangle, BarChart2 } from "lucide-react";
+import { useModal } from "@/context/ModalContext";
 
 type Module = { id: number, week: number, title: string, description: string, lesson_plan: string, completed?: boolean };
 type Class = { id: string, name: string, students: number, modules: Module[] };
 
 export default function CourseOutlinePrototype() {
+  const { showError } = useModal();
   const [activeRole, setActiveRole] = useState<"LECTURER" | "HOD">("LECTURER");
   const [activeLecturerId, setActiveLecturerId] = useState<string>("l1");
   const [lecturers] = useState([
@@ -144,7 +146,7 @@ export default function CourseOutlinePrototype() {
       setActiveTab("topics"); // Switch to topics after a successful upload
     } catch (error: any) {
       console.error(error);
-      alert(error.message || "Failed to extract syllabus. Please try again.");
+      showError("Extraction Failed", error.message || "Failed to extract syllabus. Please try again.");
     } finally {
       setIsExtracting(false);
     }
@@ -182,7 +184,7 @@ export default function CourseOutlinePrototype() {
       a.remove();
     } catch (err) {
       console.error(err);
-      alert("Failed to export Excel file.");
+      showError("Export Failed", "Failed to export Excel file.");
     } finally {
       setIsExporting(false);
     }

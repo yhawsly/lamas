@@ -14,6 +14,7 @@ model User {
   passwordHash   String
   phone          String?
   avatarUrl      String?
+  specializations String[]      @default([])
   isActive             Boolean        @default(true)
   requirePasswordReset Boolean        @default(false)
   lastLogin            DateTime?
@@ -117,6 +118,7 @@ model Course {
   id              Int             @id @default(autoincrement())
   code            String          @unique
   title           String
+  domain          String?
   credits         Int             @default(3)
   departmentId    Int?
   isInstitutional Boolean         @default(false)
@@ -132,6 +134,7 @@ model Course {
 
   @@index([departmentId])
   @@index([categoryId])
+  @@index([domain])
 }
 
 /// Academic programs (e.g., BSc Computer Science, BEng Electrical)

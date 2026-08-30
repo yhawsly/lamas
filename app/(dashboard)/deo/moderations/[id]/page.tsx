@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import ReviewDossierViewer from "@/components/workspace/ReviewDossierViewer";
 
 const DetailWorkspaceSkeleton = () => (
     <div className="max-w-4xl mx-auto space-y-8 animate-pulse pb-20 pt-6 px-4">
@@ -247,6 +248,14 @@ export default function ConductModerationPage() {
                     {data.status}
                 </div>
             </div>
+
+            {/* Target Lecturer Course Dossier & Exam Materials Viewer */}
+            <ReviewDossierViewer
+                courseCode={data.courseCode}
+                lecturerId={data.lecturerId}
+                lecturerName={lecturer}
+                reviewType="C"
+            />
 
             {/* Checkboxes Row */}
             <div className="grid md:grid-cols-2 gap-6">

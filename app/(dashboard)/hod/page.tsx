@@ -6,6 +6,7 @@ import KPICard from "@/components/ui/KPICard";
 import useSWR from "swr";
 import dynamic from "next/dynamic";
 import { useTerm } from "@/context/TermContext";
+import { useModal } from "@/context/ModalContext";
 
 const ComplianceChart = dynamic(() => import("@/components/analytics/ComplianceChart"), { ssr: false });
 const ObservationRadar = dynamic(() => import("@/components/analytics/ObservationRadar"), { ssr: false });
@@ -56,6 +57,7 @@ export default function HoDDashboard() {
     const courses = Array.isArray(coursesData) ? coursesData : [];
     const loading = !analyticsData || !coursesData;
 
+    const { showWarning, showError } = useModal();
     const [tab, setTab] = useState<"overview" | "notify">("overview");
     const [notify, setNotify] = useState({ message: "", sent: false });
     const [attachmentUrl, setAttachmentUrl] = useState<string | null>(null);
@@ -76,11 +78,11 @@ export default function HoDDashboard() {
             const file = fileInputRef.current.files[0];
             const ext = '.' + file.name.split('.').pop()?.toLowerCase();
             if (!ALLOWED_TYPES.includes(ext)) {
-                alert(`File type ${ext} not allowed.`);
+                showWarning("File Type Not Allowed", `File type ${ext} is not allowed.`);
                 return;
             }
             if (file.size > MAX_FILE_SIZE) {
-                alert(`File too large (${(file.size/1024/1024).toFixed(1)}MB). Max 20MB.`);
+                showWarning("File Too Large", `File too large (${(file.size/1024/1024).toFixed(1)}MB). Maximum allowed size is 20MB.`);
                 return;
             }
             const formData = new FormData();
@@ -94,7 +96,7 @@ export default function HoDDashboard() {
                 setAttachmentName(file.name);
             } catch (e) {
                 console.error(e);
-                alert('Failed to upload attachment.');
+                showError("Upload Failed", "Failed to upload attachment.");
                 return;
             }
         }
@@ -112,7 +114,7 @@ export default function HoDDashboard() {
             setTimeout(() => setNotify({ message: '', sent: false }), 4000);
         } else {
             const d = await res.json().catch(() => ({}));
-            alert(d.error || 'Failed to send notification. Please try again later.');
+            showError("Broadcast Failed", d.error || 'Failed to send notification. Please try again later.');
         }
     }
 

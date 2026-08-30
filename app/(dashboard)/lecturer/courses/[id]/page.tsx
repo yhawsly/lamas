@@ -3,7 +3,7 @@ import {
   GraduationCap, CheckCircle, CheckCircle2, AlertTriangle, AlertCircle, 
   Circle, Clock, Check, FileText, UploadCloud, Trash2, Layers, 
   BookOpen, Briefcase, Calendar, CalendarDays, X, Paperclip,
-  History, Sparkles, Download, ArrowRight
+  History, Download
 } from "lucide-react";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -15,6 +15,7 @@ type Class = { id: string, name: string, modules: Module[] };
 
 import { useParams, useRouter } from "next/navigation";
 import { useTerm } from "@/context/TermContext";
+import { useModal } from "@/context/ModalContext";
 
 const fetcher = (url: string) => fetch(url).then(res => res.ok ? res.json() : null);
 
@@ -291,6 +292,7 @@ const CourseOutlineSkeleton = () => (
 export default function CourseOutlinePrototype() {
   const params = useParams();
   const router = useRouter();
+  const { showWarning, showError, showSuccess } = useModal();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const [selectedCourseId] = useState<string | null>((params?.id as string) || "c1");
@@ -313,9 +315,9 @@ export default function CourseOutlinePrototype() {
   });
 
   const [assessments, setAssessments] = useState([
-    { id: 1, name: "Midterm Exam", weight: 20 },
-    { id: 2, name: "Final Exam", weight: 60 },
-    { id: 3, name: "Assignments", weight: 20 },
+    { id: 1, name: "Continuous Assessment / Quizzes", weight: 20 },
+    { id: 2, name: "Mid-Semester Examination & Labs", weight: 20 },
+    { id: 3, name: "End of Semester Examination", weight: 60 },
   ]);
 
   // Classes State — starts empty; populated from /api/courses/my-sections
@@ -700,7 +702,7 @@ export default function CourseOutlinePrototype() {
         }
       } else {
         if (submit) {
-          alert("Failed to submit. Please try again.");
+          showError("Submission Failed", "Failed to submit course syllabus. Please verify all sections and try again.");
         } else {
           setSaveIndicator("error");
         }
@@ -708,7 +710,7 @@ export default function CourseOutlinePrototype() {
     } catch (e) {
       console.error(e);
       if (submit) {
-        alert("Error saving data.");
+        showError("Save Error", "Error saving data. Please check your network connection.");
       } else {
         setSaveIndicator("error");
       }
@@ -776,7 +778,7 @@ export default function CourseOutlinePrototype() {
   const handleSyncClassWithTopics = (classId: string) => {
     if (isArchiveMode) return;
     if (topics.length === 0) {
-      alert("No topics found in Course Topics tab to sync from.");
+      showWarning("No Topics Found", "No topics found in Course Topics tab to sync from.");
       return;
     }
     const freshModules: Module[] = topics.map((t, idx) => ({
@@ -789,8 +791,7 @@ export default function CourseOutlinePrototype() {
       resources: []
     }));
     setClasses(prev => prev.map(c => c.id === classId ? { ...c, modules: freshModules } : c));
-    setToastMessage("Weekly schedule successfully synchronized with Course Topics!");
-    setTimeout(() => setToastMessage(null), 3000);
+    showSuccess("Synchronized", "Weekly schedule successfully synchronized with Course Topics!");
   };
 
   const handleAddTopic = (e: React.FormEvent) => {
@@ -809,7 +810,7 @@ export default function CourseOutlinePrototype() {
   const handleFileUpload = async (file: File) => {
     if (!file) return;
     if (isArchiveMode) {
-      alert("Action Disabled: File uploads are disabled in Read-Only Archive Mode.");
+      showWarning("Action Disabled", "File uploads are disabled in Read-Only Archive Mode.");
       return;
     }
     setIsExtracting(true);
@@ -846,7 +847,7 @@ export default function CourseOutlinePrototype() {
       setActiveTab("topics"); // Switch to topics after a successful upload
     } catch (error: any) {
       console.error(error);
-      alert(error.message || "Failed to extract syllabus. Please try again.");
+      showError("Extraction Failed", error.message || "Failed to extract syllabus. Please try again.");
     } finally {
       setIsExtracting(false);
     }
@@ -884,7 +885,7 @@ export default function CourseOutlinePrototype() {
       a.remove();
     } catch (err) {
       console.error(err);
-      alert("Failed to export Excel file.");
+      showError("Export Failed", "Failed to export Excel file.");
     } finally {
       setIsExporting(false);
     }

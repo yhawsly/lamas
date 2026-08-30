@@ -6,6 +6,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { auth } from "@/auth";
 import PWARegister from "@/components/PWARegister";
 import SWRProvider from "@/lib/swr-config";
+import { ModalProvider } from "@/context/ModalContext";
 
 export const dynamic = "force-dynamic";
 
@@ -81,7 +82,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <ErrorBoundary>
           <SessionProvider session={session}>
             <SWRProvider>
-              <ThemeProvider>{children}</ThemeProvider>
+              <ThemeProvider>
+                <ModalProvider>{children}</ModalProvider>
+              </ThemeProvider>
             </SWRProvider>
           </SessionProvider>
         </ErrorBoundary>

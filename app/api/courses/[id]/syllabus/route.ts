@@ -152,11 +152,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         const targetStatus = submit ? "SUBMITTED" : (existing?.status === "REJECTED" ? "DRAFT" : existing?.status || "DRAFT");
         const targetSubmittedAt = submit ? new Date() : (existing?.submittedAt || null);
 
+        const course = await prisma.course.findUnique({ where: { id: courseId } });
+        const submissionTitle = course 
+            ? `[${course.code}] ${course.title} — Course Outline & Syllabus` 
+            : `Course Outline for Course #${courseId}`;
+
         let result;
         if (existing) {
             result = await prisma.submission.update({
                 where: { id: existing.id },
                 data: { 
+                    title: submissionTitle,
                     content: contentToSave as any,
                     status: targetStatus,
                     submittedAt: targetSubmittedAt
@@ -166,7 +172,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             result = await prisma.submission.create({
                 data: {
                     lecturerId: userId,
-                    title: `Course Outline for Course #${courseId}`,
+                    title: submissionTitle,
                     type: "COURSE_TOPICS",
                     termId: termId ? parseInt(termId) : undefined,
                     content: contentToSave as any,

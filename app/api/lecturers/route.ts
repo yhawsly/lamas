@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
 
-export async function GET() {
+export async function GET(req: Request) {
     await headers();
     await cookies();
     try {
@@ -24,22 +24,59 @@ export async function GET() {
 
         if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-        // Admins see all users capable of being observed/observing
-        // HODs see everyone in their department
+        const url = new URL(req.url, "http://localhost");
+        const filterDeptId = url.searchParams.get("departmentId");
+
+        // Admins and DEOs see all users capable of being observed/observing
+        // HODs/Lecturers see everyone in their department
         const whereClause: any = { isActive: true };
 
-        if (!["ADMIN", "SUPER_ADMIN"].includes(user.role)) {
-            if (!user.departmentId) return NextResponse.json([]);
-            whereClause.departmentId = user.departmentId;
+        if (filterDeptId) {
+            whereClause.departmentId = parseInt(filterDeptId);
+        } else if (!["ADMIN", "SUPER_ADMIN", "DEO"].includes(user.role)) {
+            if (user.departmentId) {
+                whereClause.departmentId = user.departmentId;
+            }
         }
 
-        const lecturers = await prisma.user.findMany({
+        let lecturers = await prisma.user.findMany({
             where: whereClause,
-            select: { id: true, name: true, email: true, role: true, departmentId: true },
+            select: { 
+                id: true, 
+                name: true, 
+                email: true, 
+                role: true, 
+                departmentId: true,
+                specializations: true,
+                department: { select: { id: true, name: true, code: true } }
+            },
             orderBy: { name: "asc" }
         });
 
-        return NextResponse.json(lecturers);
+        if (lecturers.length === 0) {
+            // Fallback: return all active faculty across departments so dropdowns are never empty
+            lecturers = await prisma.user.findMany({
+                where: { isActive: true },
+                select: { 
+                    id: true, 
+                    name: true, 
+                    email: true, 
+                    role: true, 
+                    departmentId: true,
+                    specializations: true,
+                    department: { select: { id: true, name: true, code: true } }
+                },
+                orderBy: { name: "asc" }
+            });
+        }
+
+        return NextResponse.json(lecturers, {
+            headers: {
+                "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0",
+            }
+        });
     } catch (error) {
         console.error("Failed to fetch lecturers:", error);
         return NextResponse.json(

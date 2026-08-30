@@ -17,6 +17,7 @@ import {
     Download
 } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
+import { useModal } from "@/context/ModalContext";
 
 interface ExamHall {
     id: number;
@@ -123,6 +124,7 @@ export default function InvigilationMatrixTab({
     onOpenHallsModal: () => void;
 }) {
     const { selectedTerm, selectedTermId, isArchiveMode } = useTerm();
+    const { showWarning, showError, showConfirm } = useModal();
     const [slots, setSlots] = useState<InvigilationSlot[]>([]);
     const [halls, setHalls] = useState<ExamHall[]>([]);
     const [loading, setLoading] = useState(true);
@@ -335,24 +337,31 @@ export default function InvigilationMatrixTab({
         }
     };
 
-    const handleDeleteSlot = async (id: number, courseCode: string) => {
+    const handleDeleteSlot = (id: number, courseCode: string) => {
         if (isArchiveMode) {
-            alert("Action Disabled: You are viewing a read-only historical archive.");
+            showWarning("Action Disabled", "You are viewing a read-only historical archive.");
             return;
         }
-        if (!confirm(`Are you sure you want to remove the exam session for ${courseCode}?`)) return;
 
-        try {
-            const res = await fetch(`/api/deo/invigilation/${id}`, { method: "DELETE" });
-            if (res.ok) {
-                setSlots(prev => prev.filter(s => s.id !== id));
-            } else {
-                const d = await res.json().catch(() => ({}));
-                alert(d.error || "Failed to delete slot");
+        showConfirm({
+            title: "Remove Exam Session",
+            message: `Are you sure you want to remove the exam session for ${courseCode}? This cannot be undone.`,
+            confirmText: "Delete Session",
+            cancelText: "Keep Session",
+            onConfirm: async () => {
+                try {
+                    const res = await fetch(`/api/deo/invigilation/${id}`, { method: "DELETE" });
+                    if (res.ok) {
+                        setSlots(prev => prev.filter(s => s.id !== id));
+                    } else {
+                        const d = await res.json().catch(() => ({}));
+                        showError("Delete Failed", d.error || "Failed to delete slot");
+                    }
+                } catch {
+                    showError("Network Error", "Network error while deleting slot");
+                }
             }
-        } catch {
-            alert("Network error while deleting slot");
-        }
+        });
     };
 
     const handlePrint = () => {
@@ -361,7 +370,7 @@ export default function InvigilationMatrixTab({
 
     const exportToExcel = () => {
         if (slots.length === 0) {
-            alert("No schedule data available to export.");
+            showWarning("No Schedule Data", "No schedule data available to export.");
             return;
         }
 
