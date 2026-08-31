@@ -13,11 +13,14 @@ import {
     Clock,
     Sparkles,
     Tag,
-    Info
+    Info,
+    Users
 } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import RefreshButton from "@/components/ui/RefreshButton";
+import Pagination from "@/components/ui/Pagination";
+import PairingMatrixTab from "@/components/deo/PairingMatrixTab";
 import { useRouter } from "next/navigation";
 import { useTerm } from "@/context/TermContext";
 import { useModal } from "@/context/ModalContext";
@@ -97,7 +100,7 @@ const DeoDashboardSkeleton = () => (
 export default function DEOReviewsPage() {
     const router = useRouter();
     const { selectedTermId, isArchiveMode } = useTerm();
-    const { showWarning, showError, showSuccess } = useModal();
+    const { showWarning, showError, showSuccess, showConfirm } = useModal();
     const [assignments, setAssignments] = useState<any[]>([]);
     const [courses, setCourses] = useState<any[]>([]);
     const [lecturers, setLecturers] = useState<any[]>([]);
@@ -108,7 +111,15 @@ export default function DEOReviewsPage() {
     const [form, setForm] = useState({ lecturerId: "", observerId: "", courseCode: "" });
     const [msg, setMsg] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isProvisioningAll, setIsProvisioningAll] = useState(false);
+    const [viewMode, setViewMode] = useState<"DISPATCH" | "MATRIX">("DISPATCH");
     const [activeTab, setActiveTab] = useState<"ALL" | "A" | "B" | "C">("ALL");
+    const [page, setPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
+
+    useEffect(() => {
+        setPage(1);
+    }, [activeTab, selectedTermId]);
 
     // Nudge Reminder States
     const [isNudgingAll, setIsNudgingAll] = useState(false);
@@ -252,6 +263,44 @@ export default function DEOReviewsPage() {
         }
     };
 
+    // 1-Click Batch Provisioning of All 3 Review Types across All Courses
+    const handleAutoProvisionAll = () => {
+        if (isArchiveMode) {
+            showWarning("Action Disabled", "You are viewing a read-only historical archive.");
+            return;
+        }
+
+        showConfirm({
+            title: "Auto-Provision All 3 Reviews",
+            message: "This will automatically initialize Form A (Materials Audit), Form B (Peer Observation), and Form C (Exam Moderation) across all department courses in the active semester.\n\nAssigned instructors from course sections will be automatically matched, and existing reviews will be safely preserved.\n\nProceed with batch provisioning?",
+            confirmText: "Auto-Provision All Reviews",
+            onConfirm: async () => {
+                setIsProvisioningAll(true);
+                try {
+                    const res = await fetch("/api/deo/assignments/bulk", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ termId: selectedTermId }),
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        showSuccess(
+                            "Batch Provisioning Completed",
+                            data.message || "All 3 review types successfully provisioned across courses!"
+                        );
+                        loadData();
+                    } else {
+                        showError("Provisioning Failed", data.error || "Failed to auto-provision reviews.");
+                    }
+                } catch {
+                    showError("Network Error", "Network error during batch review provisioning.");
+                } finally {
+                    setIsProvisioningAll(false);
+                }
+            }
+        });
+    };
+
     const statusColors: Record<string, string> = { 
         PENDING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300", 
         COMPLETED: "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300", 
@@ -393,14 +442,26 @@ export default function DEOReviewsPage() {
                         Centralized dispatch for peer reviews, overdue reviewer alerts, and moderation monitoring.
                     </p>
                 </div>
-                <RefreshButton
-                    onClick={loadData}
-                    isRefreshing={loading}
-                    label="Refresh Hub"
-                    size="sm"
-                    variant="outline"
-                    title="Reload peer review assignments"
-                />
+                <div className="flex flex-wrap items-center gap-3">
+                    <button
+                        type="button"
+                        onClick={handleAutoProvisionAll}
+                        disabled={isProvisioningAll}
+                        className="px-4 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-sm shadow-blue-600/20 flex items-center gap-2 active:scale-95 disabled:opacity-50 cursor-pointer"
+                        title="Automatically provision Form A, Form B, and Form C for all curriculum courses"
+                    >
+                        <Sparkles className={`w-4 h-4 ${isProvisioningAll ? "animate-spin" : ""}`} />
+                        <span>{isProvisioningAll ? "Provisioning..." : "Auto-Provision All 3 Reviews"}</span>
+                    </button>
+                    <RefreshButton
+                        onClick={loadData}
+                        isRefreshing={loading}
+                        label="Refresh Hub"
+                        size="sm"
+                        variant="outline"
+                        title="Reload peer review assignments"
+                    />
+                </div>
             </div>
 
             {/* Notification alert banner */}
@@ -411,8 +472,39 @@ export default function DEOReviewsPage() {
                 </div>
             )}
 
-            {/* PEER REVIEWS & OVERDUE NUDGES */}
-            <div className="space-y-8 animate-in fade-in duration-300">
+            {/* Sub-Navigation: Dispatch Queue vs. Pairing Matrix */}
+            <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-fit">
+                <button
+                    type="button"
+                    onClick={() => setViewMode("DISPATCH")}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                        viewMode === "DISPATCH"
+                            ? "bg-blue-600 text-white shadow-sm"
+                            : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                >
+                    <ClipboardList className="w-3.5 h-3.5" />
+                    <span>Single Dispatch & Queue</span>
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setViewMode("MATRIX")}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                        viewMode === "MATRIX"
+                            ? "bg-blue-600 text-white shadow-sm"
+                            : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                >
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Faculty Pairing Matrix</span>
+                </button>
+            </div>
+
+            {viewMode === "MATRIX" ? (
+                <PairingMatrixTab onRefresh={loadData} />
+            ) : (
+                /* PEER REVIEWS & OVERDUE NUDGES */
+                <div className="space-y-8 animate-in fade-in duration-300">
                     {/* 3 Clickable Horizontal Dispatch Cards */}
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
                         {/* Card 1: Form A */}
@@ -672,114 +764,125 @@ export default function DEOReviewsPage() {
                                     <div className="flex justify-center mb-4"><Inbox className="w-10 h-10 text-gray-400" /></div>
                                     <p>No reviews assigned yet.</p>
                                 </div>
-                            ) : assignments.filter(o => activeTab === "ALL" || o.formType === activeTab).length === 0 ? (
-                                <div className="text-center py-20" style={{ color: "var(--text-muted)" }}>
-                                    <div className="flex justify-center mb-4"><Inbox className="w-10 h-10 text-gray-400" /></div>
-                                    <p>No {activeTab === "A" ? "Instructional Materials" : activeTab === "B" ? "Teaching Observation" : "Exam Moderation"} reviews assigned yet.</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {assignments
-                                        .filter(o => activeTab === "ALL" || o.formType === activeTab)
-                                        .map(o => {
-                                            const days = getDaysElapsed(o.createdAt);
-                                            const isPending = o.status === "PENDING";
-                                            const isNudging = nudgingId === `${o.formType}-${o.id}`;
+                            ) : (() => {
+                                const filtered = assignments.filter(o => activeTab === "ALL" || o.formType === activeTab);
+                                if (filtered.length === 0) {
+                                    return (
+                                        <div className="text-center py-20" style={{ color: "var(--text-muted)" }}>
+                                            <div className="flex justify-center mb-4"><Inbox className="w-10 h-10 text-gray-400" /></div>
+                                            <p>No {activeTab === "A" ? "Instructional Materials" : activeTab === "B" ? "Teaching Observation" : "Exam Moderation"} reviews assigned yet.</p>
+                                        </div>
+                                    );
+                                }
+                                const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE) || 1;
+                                const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
-                                            return (
-                                                <div key={`${o.formType}-${o.id}`} className="group p-4 rounded-2xl transition-all hover:shadow-md border" style={{ backgroundColor: "var(--bg-hover)", borderColor: "var(--bg-border)" }}>
-                                                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                                                        <div className="flex items-start gap-4">
-                                                            {/* Colored Icon box based on Form Type */}
-                                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${
-                                                                o.formType === "A" ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400" :
-                                                                o.formType === "B" ? "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400" :
-                                                                "bg-purple-500/10 border-purple-500/20 text-purple-600 dark:text-purple-400"
-                                                            }`}>
-                                                                {o.formType === "A" && <BookOpen className="w-5 h-5" />}
-                                                                {o.formType === "B" && <Video className="w-5 h-5" />}
-                                                                {o.formType === "C" && <ShieldCheck className="w-5 h-5" />}
-                                                            </div>
-                                                            
-                                                            <div>
-                                                                {/* Form Name & Type */}
-                                                                <div className="flex items-center flex-wrap gap-2">
-                                                                    <span className="font-extrabold text-sm text-slate-900 dark:text-white">
-                                                                        {o.typeName}
-                                                                    </span>
-                                                                    <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
-                                                                        o.formType === "A" ? "bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400" :
-                                                                        o.formType === "B" ? "bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400" :
-                                                                        "bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400"
-                                                                    }`}>
-                                                                        Form {o.formType}
-                                                                    </span>
+                                return (
+                                    <>
+                                        <div className="space-y-3">
+                                            {paginated.map(o => {
+                                                const days = getDaysElapsed(o.createdAt);
+                                                const isPending = o.status === "PENDING";
+                                                const isNudging = nudgingId === `${o.formType}-${o.id}`;
 
-                                                                    {isPending && days >= 5 && (
-                                                                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 flex items-center gap-1">
-                                                                            <Clock className="w-2.5 h-2.5 shrink-0" />
-                                                                            <span>{days}d overdue</span>
+                                                return (
+                                                    <div key={`${o.formType}-${o.id}`} className="group p-4 rounded-2xl transition-all hover:shadow-md border" style={{ backgroundColor: "var(--bg-hover)", borderColor: "var(--bg-border)" }}>
+                                                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                                                            <div className="flex items-start gap-4">
+                                                                {/* Colored Icon box based on Form Type */}
+                                                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${
+                                                                    o.formType === "A" ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400" :
+                                                                    o.formType === "B" ? "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400" :
+                                                                    "bg-purple-500/10 border-purple-500/20 text-purple-600 dark:text-purple-400"
+                                                                }`}>
+                                                                    {o.formType === "A" && <BookOpen className="w-5 h-5" />}
+                                                                    {o.formType === "B" && <Video className="w-5 h-5" />}
+                                                                    {o.formType === "C" && <ShieldCheck className="w-5 h-5" />}
+                                                                </div>
+                                                                
+                                                                <div>
+                                                                    {/* Form Name & Type */}
+                                                                    <div className="flex items-center flex-wrap gap-2">
+                                                                        <span className="font-extrabold text-sm text-slate-900 dark:text-white">
+                                                                            {o.typeName}
                                                                         </span>
-                                                                    )}
-                                                                </div>
-
-                                                                {/* Course & Status */}
-                                                                <div className="font-bold text-base mt-1 flex items-center flex-wrap gap-2.5" style={{ color: "var(--text-primary)" }}>
-                                                                    <span className="font-black text-blue-600 dark:text-blue-400">{o.courseCode}</span>
-                                                                    {(getCourseTitle(o.courseCode) || courses.find(c => c.code === o.courseCode)?.title) && (
-                                                                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                                                                            — {getCourseTitle(o.courseCode) || courses.find(c => c.code === o.courseCode)?.title}
+                                                                        <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
+                                                                            o.formType === "A" ? "bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400" :
+                                                                            o.formType === "B" ? "bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400" :
+                                                                            "bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400"
+                                                                        }`}>
+                                                                            Form {o.formType}
                                                                         </span>
-                                                                    )}
-                                                                    <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${statusColors[o.status]}`}>
-                                                                        {o.status}
-                                                                    </span>
-                                                                </div>
 
-                                                                {/* Target & Assigned Partners */}
-                                                                <div className="flex flex-col sm:flex-row sm:items-center gap-x-3 gap-y-0.5 mt-2 text-xs">
-                                                                    <div style={{ color: "var(--text-secondary)" }}>
-                                                                        Target: <span className="font-bold text-slate-900 dark:text-white">{o.lecturer?.name}</span>
+                                                                        {isPending && days >= 5 && (
+                                                                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 flex items-center gap-1">
+                                                                                <Clock className="w-2.5 h-2.5 shrink-0" />
+                                                                                <span>{days}d overdue</span>
+                                                                            </span>
+                                                                        )}
                                                                     </div>
-                                                                    <span className="hidden sm:inline text-slate-300 dark:text-slate-700">|</span>
-                                                                    <div style={{ color: "var(--text-muted)" }}>
-                                                                        Assigned: <span className="font-semibold text-slate-700 dark:text-slate-300">{o.formType === "C" ? o.moderator?.name : o.observer?.name}</span>
+
+                                                                    {/* Course & Status */}
+                                                                    <div className="font-bold text-base mt-1 flex items-center flex-wrap gap-2.5" style={{ color: "var(--text-primary)" }}>
+                                                                        <span className="font-black text-blue-600 dark:text-blue-400">{o.courseCode}</span>
+                                                                        {(getCourseTitle(o.courseCode) || courses.find(c => c.code === o.courseCode)?.title) && (
+                                                                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                                                                — {getCourseTitle(o.courseCode) || courses.find(c => c.code === o.courseCode)?.title}
+                                                                            </span>
+                                                                        )}
+                                                                        <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${statusColors[o.status]}`}>
+                                                                            {o.status}
+                                                                        </span>
+                                                                    </div>
+
+                                                                    {/* Target & Assigned Partners */}
+                                                                    <div className="flex flex-col sm:flex-row sm:items-center gap-x-3 gap-y-0.5 mt-2 text-xs">
+                                                                        <div style={{ color: "var(--text-secondary)" }}>
+                                                                            Target: <span className="font-bold text-slate-900 dark:text-white">{o.lecturer?.name}</span>
+                                                                        </div>
+                                                                        <span className="hidden sm:inline text-slate-300 dark:text-slate-700">|</span>
+                                                                        <div style={{ color: "var(--text-muted)" }}>
+                                                                            Assigned: <span className="font-semibold text-slate-700 dark:text-slate-300">{o.formType === "C" ? o.moderator?.name : o.observer?.name}</span>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
 
-                                                        {/* Actions */}
-                                                        <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                                                            {isPending && !isArchiveMode && (
-                                                                <button
-                                                                    onClick={() => handleNudgeReviewer(o.formType, o.id)}
-                                                                    disabled={isNudging}
-                                                                    className="px-3 py-2 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
-                                                                    title="Send notification nudge to the assigned reviewer"
+                                                            {/* Actions */}
+                                                            <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                                                                {isPending && !isArchiveMode && (
+                                                                    <button
+                                                                        onClick={() => handleNudgeReviewer(o.formType, o.id)}
+                                                                        disabled={isNudging}
+                                                                        className="px-3 py-2 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+                                                                        title="Send notification nudge to the assigned reviewer"
+                                                                    >
+                                                                        <BellRing className="w-3.5 h-3.5" />
+                                                                        {isNudging ? "Nudging..." : "Send Nudge"}
+                                                                    </button>
+                                                                )}
+
+                                                                <button 
+                                                                    onClick={() => router.push(getRoute(o.formType, o.id))}
+                                                                    className="px-4 py-2 rounded-xl text-xs font-bold transition-all border"
+                                                                    style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)", color: "var(--text-primary)" }}
                                                                 >
-                                                                    <BellRing className="w-3.5 h-3.5" />
-                                                                    {isNudging ? "Nudging..." : "Send Nudge"}
+                                                                    View Details →
                                                                 </button>
-                                                            )}
-
-                                                            <button 
-                                                                onClick={() => router.push(getRoute(o.formType, o.id))}
-                                                                className="px-4 py-2 rounded-xl text-xs font-bold transition-all border"
-                                                                style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)", color: "var(--text-primary)" }}
-                                                            >
-                                                                View Details →
-                                                            </button>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            );
-                                        })}
-                                </div>
-                            )}
+                                                );
+                                            })}
+                                        </div>
+                                        <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+                                    </>
+                                );
+                            })()}
                         </div>
                     </div>
                 </div>
-            </div>
+            )}
+        </div>
     );
 }

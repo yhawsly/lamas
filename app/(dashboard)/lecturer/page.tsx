@@ -464,57 +464,41 @@ export default function LecturerDashboard() {
                                 </Link>
                         </div>
 
-                        {/* Dotted Timeline tracks (Image 3 Style) */}
+                        {/* Dotted Timeline tracks */}
                         {selectedDaySections.length === 0 ? (
                             <div className="text-center py-10">
                                 <CheckCircle2 className="w-10 h-10 text-blue-500/30 mx-auto mb-2" />
                                 <p className="text-xs text-slate-400 italic">No classes scheduled on this day.</p>
                             </div>
                         ) : (
-                            <div className="relative pl-4 space-y-6 before:absolute before:left-14 before:top-2 before:bottom-2 before:w-[2px] before:bg-dotted before:border-l-2 before:border-dashed before:border-slate-200 dark:before:border-slate-800">
+                            <div className="space-y-3">
                                 {selectedDaySections.map((sec: any, idx: number) => {
-                                    // Extract simple Hour display e.g. "08:30 AM" -> "08 AM"
                                     const hourDisplay = sec.startTime ? sec.startTime.replace(/:[0-9]{2}/, '') : "10 AM";
                                     const isFirst = idx === 0;
 
                                     return (
-                                        <div key={sec.id} className="relative flex items-start gap-4">
+                                        <div key={sec.id} className="flex items-center gap-3 p-2.5 rounded-2xl bg-slate-50/60 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/80 hover:border-blue-200 dark:hover:border-blue-800 transition">
                                             {/* Time Column */}
-                                            <div className="w-12 text-right shrink-0 text-xs font-extrabold text-slate-900 dark:text-white py-1">
-                                                {hourDisplay}
+                                            <div className="w-14 text-center shrink-0 py-0.5">
+                                                <div className="text-xs font-black text-slate-900 dark:text-white">{hourDisplay}</div>
+                                                <div className="text-[9px] font-semibold text-slate-400">{sec.startTime || "08:00 AM"}</div>
                                             </div>
 
-                                            {/* Dotted Node indicator */}
-                                            <div className="absolute left-[3.25rem] z-10 flex items-center justify-center w-5 h-5 bg-white dark:bg-slate-900 rounded-full py-1">
-                                                <div className={`w-3.5 h-3.5 rounded-full border-2 bg-white dark:bg-slate-900 flex items-center justify-center ${
-                                                    isFirst ? "border-emerald-500" : "border-blue-600"
-                                                }`}>
-                                                    <div className={`w-1.5 h-1.5 rounded-full ${isFirst ? "bg-emerald-500" : "bg-blue-600"}`} />
+                                            {/* Course Code Badge */}
+                                            <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-[10px] font-black text-blue-700 dark:text-blue-300 shrink-0 shadow-xs">
+                                                {sec.course?.code?.slice(0, 5) || "CS"}
+                                            </div>
+
+                                            {/* Class Details */}
+                                            <div className="min-w-0 flex-1">
+                                                <div className={`text-xs font-bold truncate leading-tight ${isFirst ? "text-emerald-600 dark:text-emerald-400" : "text-slate-900 dark:text-white"}`} title={sec.course?.title || sec.name}>
+                                                    {sec.course?.title || sec.name}
                                                 </div>
-                                            </div>
-
-                                            {/* Avatars & Class details */}
-                                            <div className="flex-1 pl-6">
-                                                <div className="flex items-center gap-3">
-                                                    {/* Overlapping Avatars (Physics/Book Club style) */}
-                                                    <div className="flex -space-x-2 shrink-0">
-                                                        <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-800 border-2 border-white dark:border-slate-900 flex items-center justify-center text-[8px] font-black text-slate-600 dark:text-slate-400 uppercase">
-                                                            {sec.course?.code?.slice(0, 2) || "CS"}
-                                                        </div>
-                                                        <div className="w-6 h-6 rounded-full bg-blue-500/10 border-2 border-white dark:border-slate-900 flex items-center justify-center">
-                                                            <Plus className="w-3.5 h-3.5 text-blue-600" />
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Class Title */}
-                                                    <div className="min-w-0">
-                                                        <div className={`text-xs font-black truncate leading-tight ${isFirst ? "text-emerald-600 dark:text-emerald-400" : "text-slate-900 dark:text-white"}`}>
-                                                            {sec.course?.title || sec.name}
-                                                        </div>
-                                                        <div className="text-[10px] text-slate-400 truncate mt-0.5 flex items-center gap-1">
-                                                            <MapPin className="w-3 h-3 shrink-0 text-slate-400" /> {sec.venue || "TBD"} · {sec.session}
-                                                        </div>
-                                                    </div>
+                                                <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5 flex items-center gap-1 font-medium">
+                                                    <MapPin className="w-3 h-3 shrink-0 text-slate-400" />
+                                                    <span>{sec.venue || "TBD"}</span>
+                                                    <span>•</span>
+                                                    <span className="font-bold text-slate-600 dark:text-slate-300 uppercase">{sec.session || "REGULAR"}</span>
                                                 </div>
                                             </div>
                                         </div>

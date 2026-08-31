@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import KPICard from "@/components/ui/KPICard";
 import RefreshButton from "@/components/ui/RefreshButton";
+import Pagination from "@/components/ui/Pagination";
 import { CheckCircle, Clock, AlertCircle, FileText, Search } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 import { useModal } from "@/context/ModalContext";
@@ -52,6 +53,12 @@ export default function AppraisalsTab() {
     const [filter, setFilter] = useState({ status: "", type: "" });
     const [search, setSearch] = useState("");
     const [selectedSub, setSelectedSub] = useState<SubmissionAuditData | null>(null);
+    const [page, setPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
+
+    useEffect(() => {
+        setPage(1);
+    }, [filter, search, selectedTermId]);
 
     const fetchSubmissions = () => {
         setLoading(true);
@@ -220,74 +227,82 @@ export default function AppraisalsTab() {
                             <h3 className="text-xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>No Submissions Found</h3>
                             <p className="text-sm" style={{ color: "var(--text-muted)" }}>There are no submissions matching your filters.</p>
                         </div>
-                    ) : (
-                        filteredSubmissions.map(s => (
-                            <div
-                                key={s.id}
-                                onClick={() => setSelectedSub(s)}
-                                className="group flex flex-col transition-colors hover:bg-[var(--bg-hover)] cursor-pointer"
-                                style={{ backgroundColor: "var(--bg-base)" }}
-                            >
-                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 sm:p-5 items-center">
-                                    {/* Lecturer */}
-                                    <div className="col-span-1 sm:col-span-3 flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs border shrink-0 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700" style={{ color: "var(--text-primary)" }}>
-                                            {(s.lecturer?.name || "?").substring(0, 2).toUpperCase()}
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-sm truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" style={{ color: "var(--text-primary)" }}>{s.lecturer?.name || "Unknown User"}</div>
-                                            <div className="text-xs font-semibold mt-0.5 truncate" style={{ color: "var(--text-muted)" }}>{s.lecturer?.email}</div>
-                                        </div>
-                                    </div>
+                    ) : (() => {
+                        const totalPages = Math.ceil(filteredSubmissions.length / ITEMS_PER_PAGE) || 1;
+                        const paginated = filteredSubmissions.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
-                                    {/* Department */}
-                                    <div className="col-span-1 sm:col-span-3">
-                                        <div className="text-xs font-bold" style={{ color: "var(--text-secondary)" }}>
-                                            {s.lecturer?.department?.name || "—"}
-                                        </div>
-                                        <div className="text-[11px] font-semibold truncate mt-0.5" style={{ color: "var(--text-muted)" }}>
-                                            {s.title}
-                                        </div>
-                                    </div>
+                        return (
+                            <>
+                                {paginated.map(s => (
+                                    <div
+                                        key={s.id}
+                                        onClick={() => setSelectedSub(s)}
+                                        className="group flex flex-col transition-colors hover:bg-[var(--bg-hover)] cursor-pointer"
+                                        style={{ backgroundColor: "var(--bg-base)" }}
+                                    >
+                                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 sm:p-5 items-center">
+                                            {/* Lecturer */}
+                                            <div className="col-span-1 sm:col-span-3 flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs border shrink-0 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700" style={{ color: "var(--text-primary)" }}>
+                                                    {(s.lecturer?.name || "?").substring(0, 2).toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <div className="font-bold text-sm truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" style={{ color: "var(--text-primary)" }}>{s.lecturer?.name || "Unknown User"}</div>
+                                                    <div className="text-xs font-semibold mt-0.5 truncate" style={{ color: "var(--text-muted)" }}>{s.lecturer?.email}</div>
+                                                </div>
+                                            </div>
 
-                                    {/* Type */}
-                                    <div className="col-span-1 sm:col-span-2">
-                                        <div className="inline-flex px-2 py-1 rounded bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest border border-slate-200 dark:border-slate-700">
-                                            {s.type?.replace(/_/g, " ")}
+                                            {/* Department */}
+                                            <div className="col-span-1 sm:col-span-3">
+                                                <div className="text-xs font-bold" style={{ color: "var(--text-secondary)" }}>
+                                                    {s.lecturer?.department?.name || "—"}
+                                                </div>
+                                                <div className="text-[11px] font-semibold truncate mt-0.5" style={{ color: "var(--text-muted)" }}>
+                                                    {s.title}
+                                                </div>
+                                            </div>
+
+                                            {/* Type */}
+                                            <div className="col-span-1 sm:col-span-2">
+                                                <div className="inline-flex px-2 py-1 rounded bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest border border-slate-200 dark:border-slate-700">
+                                                    {s.type?.replace(/_/g, " ")}
+                                                </div>
+                                            </div>
+
+                                            {/* Date */}
+                                            <div className="col-span-1 sm:col-span-2">
+                                                <div className="text-xs font-bold" style={{ color: "var(--text-secondary)" }}>
+                                                    {s.submittedAt ? new Date(s.submittedAt).toLocaleDateString() : "—"}
+                                                </div>
+                                            </div>
+
+                                            {/* Status */}
+                                            <div className="col-span-1 sm:col-span-2 flex justify-end items-center gap-2">
+                                                {s.status === "SUBMITTED" ? (
+                                                    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20">
+                                                        <CheckCircle className="w-3 h-3" /> Submitted
+                                                    </span>
+                                                ) : s.status === "LATE" ? (
+                                                    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-red-50 text-red-600 border border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20">
+                                                        <AlertCircle className="w-3 h-3" /> Late
+                                                    </span>
+                                                ) : s.status === "PENDING" ? (
+                                                    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20">
+                                                        <Clock className="w-3 h-3" /> Pending
+                                                    </span>
+                                                ) : (
+                                                    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-50 text-slate-600 border border-slate-200 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-700">
+                                                        <FileText className="w-3 h-3" /> {s.status}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-
-                                    {/* Date */}
-                                    <div className="col-span-1 sm:col-span-2">
-                                        <div className="text-xs font-bold" style={{ color: "var(--text-secondary)" }}>
-                                            {s.submittedAt ? new Date(s.submittedAt).toLocaleDateString() : "—"}
-                                        </div>
-                                    </div>
-
-                                    {/* Status */}
-                                    <div className="col-span-1 sm:col-span-2 flex justify-end items-center gap-2">
-                                        {s.status === "SUBMITTED" ? (
-                                            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20">
-                                                <CheckCircle className="w-3 h-3" /> Submitted
-                                            </span>
-                                        ) : s.status === "LATE" ? (
-                                            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-red-50 text-red-600 border border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20">
-                                                <AlertCircle className="w-3 h-3" /> Late
-                                            </span>
-                                        ) : s.status === "PENDING" ? (
-                                            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20">
-                                                <Clock className="w-3 h-3" /> Pending
-                                            </span>
-                                        ) : (
-                                            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-50 text-slate-600 border border-slate-200 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-700">
-                                                <FileText className="w-3 h-3" /> {s.status}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    )}
+                                ))}
+                                <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+                            </>
+                        );
+                    })()}
                 </div>
             </div>
         </div>

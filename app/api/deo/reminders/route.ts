@@ -103,9 +103,11 @@ export async function POST(req: NextRequest) {
                     include: { lecturer: { select: { name: true } } }
                 });
                 if (record && record.observerId) {
+                    const course = await prisma.course.findUnique({ where: { code: record.courseCode } });
+                    const courseDisplay = course?.title ? `${record.courseCode} - ${course.title}` : record.courseCode;
                     notificationsToCreate.push({
                         userId: record.observerId,
-                        message: `DEO Nudge: Please complete the Course Outline review (Form A) for ${record.courseCode} (Lecturer: ${record.lecturer?.name || 'Assigned Staff'}).`
+                        message: `DEO Nudge: Please complete the Course Outline review (Form A) for ${courseDisplay} (Lecturer: ${record.lecturer?.name || 'Assigned Staff'}).`
                     });
                 }
             } else if (formType === "B") {
@@ -114,9 +116,11 @@ export async function POST(req: NextRequest) {
                     include: { lecturer: { select: { name: true } } }
                 });
                 if (record && record.observerId) {
+                    const course = await prisma.course.findUnique({ where: { code: record.courseCode } });
+                    const courseDisplay = course?.title ? `${record.courseCode} - ${course.title}` : record.courseCode;
                     notificationsToCreate.push({
                         userId: record.observerId,
-                        message: `DEO Nudge: Please complete the Classroom Teaching Observation (Form B) for ${record.courseCode} (Lecturer: ${record.lecturer?.name || 'Assigned Staff'}).`
+                        message: `DEO Nudge: Please complete the Classroom Teaching Observation (Form B) for ${courseDisplay} (Lecturer: ${record.lecturer?.name || 'Assigned Staff'}).`
                     });
                 }
             } else if (formType === "C") {
@@ -125,9 +129,11 @@ export async function POST(req: NextRequest) {
                     include: { lecturer: { select: { name: true } } }
                 });
                 if (record && record.moderatorId) {
+                    const course = await prisma.course.findUnique({ where: { code: record.courseCode } });
+                    const courseDisplay = course?.title ? `${record.courseCode} - ${course.title}` : record.courseCode;
                     notificationsToCreate.push({
                         userId: record.moderatorId,
-                        message: `DEO Nudge: Urgent exam paper moderation (Form C) for ${record.courseCode} is pending your evaluation.`
+                        message: `DEO Nudge: Urgent exam paper moderation (Form C) for ${courseDisplay} is pending your evaluation.`
                     });
                 }
             }

@@ -51,18 +51,26 @@ const getBaseTemplate = (content: string, title: string) => `
         }
         .brand-header { 
           padding: 32px 40px; 
-          border-bottom: 1px solid #f1f5f9;
+          background: #0f172a;
           text-align: left;
+          border-bottom: 4px solid #3b82f6;
         }
         .brand-logo { 
-          display: inline-block;
           font-weight: 800; 
-          font-size: 18px; 
-          color: #0f172a; 
-          letter-spacing: -0.02em;
+          font-size: 22px; 
+          color: #ffffff; 
+          letter-spacing: 0.05em;
           text-transform: uppercase;
-          border-bottom: 3px solid #4f46e5;
-          padding-bottom: 4px;
+          vertical-align: middle;
+          margin-left: 8px;
+        }
+        .logo-img {
+          width: 36px;
+          height: 36px;
+          vertical-align: middle;
+          border-radius: 8px;
+          background: #ffffff;
+          padding: 2px;
         }
         .content { 
           padding: 40px; 
@@ -125,7 +133,16 @@ const getBaseTemplate = (content: string, title: string) => `
       <div class="container">
         <div class="wrapper">
           <div class="brand-header">
-            <div class="brand-logo">LAMAS</div>
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td valign="middle" width="40">
+                  <img src="\${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/htu-logo.png" alt="LAMAS Logo" class="logo-img" />
+                </td>
+                <td valign="middle">
+                  <span class="brand-logo">LAMAS</span>
+                </td>
+              </tr>
+            </table>
           </div>
           <div class="content">
             <div class="alert-badge">${title}</div>

@@ -75,7 +75,7 @@ export default function MobileBottomNav({ onOpenDrawer }: MobileBottomNavProps) 
 
     return (
         <nav 
-            className="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]"
+            className="fixed bottom-0 inset-x-0 z-40 lg:hidden print:hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]"
             style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
         >
             <div className="grid grid-flow-col auto-cols-fr items-center px-2 py-1.5 max-w-md mx-auto">

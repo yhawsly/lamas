@@ -40,7 +40,10 @@ export async function GET(req: Request) {
         }
 
         let lecturers = await prisma.user.findMany({
-            where: whereClause,
+            where: {
+                ...whereClause,
+                role: { notIn: ["ADMIN", "SUPER_ADMIN"] }
+            },
             select: { 
                 id: true, 
                 name: true, 
@@ -54,9 +57,12 @@ export async function GET(req: Request) {
         });
 
         if (lecturers.length === 0) {
-            // Fallback: return all active faculty across departments so dropdowns are never empty
+            // Fallback: return all active non-admin faculty across departments so dropdowns are never empty
             lecturers = await prisma.user.findMany({
-                where: { isActive: true },
+                where: {
+                    isActive: true,
+                    role: { notIn: ["ADMIN", "SUPER_ADMIN"] }
+                },
                 select: { 
                     id: true, 
                     name: true, 

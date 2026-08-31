@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+export { buildReciprocalPairingMap } from "./pairing-utils";
 
 export interface ReviewerMatchResult {
     id: number;
@@ -235,4 +236,11 @@ export async function getDepartmentReviewerRecommendations(params: {
         }
         return a.name.localeCompare(b.name);
     });
+}
+
+export interface ReciprocalPairInfo {
+    lecturer1: { id: number; name: string; email?: string; departmentId: number | null };
+    lecturer2: { id: number; name: string; email?: string; departmentId: number | null };
+    lecturer1Courses: string[];
+    lecturer2Courses: string[];
 }

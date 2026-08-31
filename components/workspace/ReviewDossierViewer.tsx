@@ -21,7 +21,7 @@ import {
     Printer,
     Tag
 } from "lucide-react";
-import { isBrowserViewable } from "@/lib/file-preview";
+import { isBrowserViewable, openInBrowserViewer } from "@/lib/file-preview";
 
 interface DossierDocument {
     id: string;
@@ -246,11 +246,12 @@ export default function ReviewDossierViewer({
                                                 <>
                                                     <button
                                                         type="button"
-                                                        onClick={() => setPreviewDoc(doc)}
+                                                        onClick={() => openInBrowserViewer(doc.url, doc.title, doc.id)}
                                                         className="flex-1 py-2 px-3 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center justify-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+                                                        title="Open document in browser"
                                                     >
                                                         <Eye className="w-3.5 h-3.5" />
-                                                        <span>Preview Document</span>
+                                                        <span>View Document</span>
                                                     </button>
 
                                                     <a

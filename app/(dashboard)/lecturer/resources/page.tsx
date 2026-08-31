@@ -27,7 +27,7 @@ import {
     Lock
 } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
-import { isBrowserViewable } from "@/lib/file-preview";
+import { isBrowserViewable, openInBrowserViewer } from "@/lib/file-preview";
 
 interface Resource {
     id: number;
@@ -332,12 +332,9 @@ export default function LecturerResourcesPage() {
         }
     };
 
-    const handleViewClick = (e: React.MouseEvent, url: string, type?: string, title?: string) => {
+    const handleViewClick = (e: React.MouseEvent, url: string, type?: string, title?: string, id?: number) => {
         e.preventDefault();
-        if (type || title) {
-            console.log(`Opening ${type || "resource"}: ${title || "untitled"}`);
-        }
-        window.open(url, "_blank");
+        openInBrowserViewer(url, title, id);
     };
 
     const formatBytes = (bytes: number) => {
@@ -731,7 +728,7 @@ export default function LecturerResourcesPage() {
                                                             {isBrowserViewable(r.url, r.type) && (
                                                                 <a 
                                                                     href={r.url} 
-                                                                    onClick={(e) => handleViewClick(e, r.url, r.type, r.title)}
+                                                                    onClick={(e) => handleViewClick(e, r.url, r.type, r.title, r.id)}
                                                                     className="inline-flex items-center justify-center p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
                                                                     title="Open"
                                                                 >
@@ -858,9 +855,9 @@ export default function LecturerResourcesPage() {
                                                         {isBrowserViewable(r.url, r.type) && (
                                                             <a 
                                                                 href={r.url} 
-                                                                onClick={(e) => handleViewClick(e, r.url, r.type, r.title)}
+                                                                onClick={(e) => handleViewClick(e, r.url, r.type, r.title, r.id)}
                                                                 className="inline-flex items-center justify-center p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
-                                                                title="Open"
+                                                                title="View file"
                                                             >
                                                                 <ExternalLink className="w-4 h-4" />
                                                             </a>

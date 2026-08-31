@@ -246,6 +246,10 @@ export default function ConductObservationPage() {
     const isDisabled = isCompleted || isBlocked || !isObserverUser || isArchiveMode;
 
     const renderRadioGroup = (section: keyof FormAReviewData["criteria"], field: string, sn: number, text: string) => {
+        const sectionCriteria = (reviewData?.criteria?.[section] || DEFAULT_FORM_A.criteria[section]) as any;
+        const currentVal = sectionCriteria?.[field];
+        const currentRemark = sectionCriteria?.remarks?.[field] || "";
+
         return (
             <tr className="border-t hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors" style={{ borderColor: "var(--bg-border)" }}>
                 <td className="py-3 px-4 text-center w-12 font-medium" style={{ color: "var(--text-muted)" }}>{sn}.</td>
@@ -256,12 +260,12 @@ export default function ConductObservationPage() {
                             type="radio" 
                             name={`${section}-${field}`} 
                             disabled={isDisabled}
-                            checked={(reviewData.criteria[section] as any)[field] === val}
+                            checked={currentVal === val}
                             onChange={() => setReviewData(prev => ({
                                 ...prev,
                                 criteria: {
                                     ...prev.criteria,
-                                    [section]: { ...prev.criteria[section], [field]: val }
+                                    [section]: { ...(prev.criteria?.[section] || {}), [field]: val }
                                 }
                             }))}
                             className="w-4 h-4 text-primary bg-gray-100 border-gray-300 focus:ring-primary dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"
@@ -272,7 +276,7 @@ export default function ConductObservationPage() {
                     <input 
                         type="text" 
                         disabled={isDisabled}
-                        value={(reviewData.criteria[section] as any).remarks[field] || ""}
+                        value={currentRemark}
                         onChange={(e) => {
                             const val = e.target.value;
                             setReviewData(prev => ({
@@ -280,8 +284,8 @@ export default function ConductObservationPage() {
                                 criteria: {
                                     ...prev.criteria,
                                     [section]: {
-                                        ...prev.criteria[section],
-                                        remarks: { ...(prev.criteria[section] as any).remarks, [field]: val }
+                                        ...(prev.criteria?.[section] || {}),
+                                        remarks: { ...((prev.criteria?.[section] as any)?.remarks || {}), [field]: val }
                                     }
                                 }
                             }));

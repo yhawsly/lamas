@@ -29,8 +29,9 @@ import RefreshButton from "@/components/ui/RefreshButton";
 import { TableSkeleton } from "@/components/ui/Skeleton";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import KPICard from "@/components/ui/KPICard";
+import Pagination from "@/components/ui/Pagination";
 import { useTerm } from "@/context/TermContext";
-import { isBrowserViewable } from "@/lib/file-preview";
+import { isBrowserViewable, openInBrowserViewer } from "@/lib/file-preview";
 
 interface Resource {
     id: number;
@@ -68,6 +69,12 @@ export default function HODResourcesPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [lecturerFilter, setLecturerFilter] = useState<string>("ALL");
     const [typeFilter, setTypeFilter] = useState<string>("ALL");
+    const [page, setPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
+
+    useEffect(() => {
+        setPage(1);
+    }, [searchQuery, lecturerFilter, typeFilter, selectedTermId]);
 
     const fetchResources = useCallback(async () => {
         setLoading(true);
@@ -271,75 +278,79 @@ export default function HODResourcesPage() {
                         </p>
                     </div>
                 ) : (
-                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                        {filteredResources.map((res) => {
-                            const typeMeta = typeConfig[res.type] || typeConfig.OTHER;
-                            const statusMeta = statusColors[res.status] || statusColors.PENDING;
+                    <>
+                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {filteredResources.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE).map((res) => {
+                                const typeMeta = typeConfig[res.type] || typeConfig.OTHER;
+                                const statusMeta = statusColors[res.status] || statusColors.PENDING;
 
-                            return (
-                                <div key={res.id} className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-5 hover:bg-slate-50/50 dark:hover:bg-slate-850/40 transition-colors">
-                                    <div className="flex items-start gap-4 flex-1">
-                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shrink-0 ${typeMeta.bgClass} ${typeMeta.borderClass} ${typeMeta.textClass}`}>
-                                            {typeMeta.icon}
-                                        </div>
-                                        <div className="space-y-1.5 flex-1">
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
-                                                    {res.title}
-                                                </h3>
-                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusMeta.badge}`}>
-                                                    {statusMeta.label}
-                                                </span>
-                                                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                                                    {res.type}
-                                                </span>
+                                return (
+                                    <div key={res.id} className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-5 hover:bg-slate-50/50 dark:hover:bg-slate-850/40 transition-colors">
+                                        <div className="flex items-start gap-4 flex-1">
+                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shrink-0 ${typeMeta.bgClass} ${typeMeta.borderClass} ${typeMeta.textClass}`}>
+                                                {typeMeta.icon}
                                             </div>
+                                            <div className="space-y-1.5 flex-1">
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <h3 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
+                                                        {res.title}
+                                                    </h3>
+                                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusMeta.badge}`}>
+                                                        {statusMeta.label}
+                                                    </span>
+                                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                                                        {res.type}
+                                                    </span>
+                                                </div>
 
-                                            {res.description && (
-                                                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl whitespace-pre-line">
-                                                    {res.description}
-                                                </p>
+                                                {res.description && (
+                                                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl whitespace-pre-line">
+                                                        {res.description}
+                                                    </p>
+                                                )}
+
+                                                <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 pt-1">
+                                                    <span className="font-semibold text-slate-700 dark:text-slate-300">
+                                                        Lecturer: <span className="font-bold text-amber-600 dark:text-amber-400">{res.lecturer?.name || "Faculty Member"}</span>
+                                                    </span>
+                                                    <span>•</span>
+                                                    <span>{new Date(res.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Action Buttons: View & Download (Read-only for HOD) */}
+                                        <div className="flex items-center gap-2 shrink-0 self-end lg:self-center">
+                                            {isBrowserViewable(res.url, res.type) && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        openInBrowserViewer(res.url, res.title, res.id);
+                                                    }}
+                                                    className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition flex items-center gap-1.5 cursor-pointer"
+                                                    title="View file in browser"
+                                                >
+                                                    <Eye className="w-3.5 h-3.5" />
+                                                    <span>View</span>
+                                                </button>
                                             )}
 
-                                            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 pt-1">
-                                                <span className="font-semibold text-slate-700 dark:text-slate-300">
-                                                    Lecturer: <span className="font-bold text-amber-600 dark:text-amber-400">{res.lecturer?.name || "Faculty Member"}</span>
-                                                </span>
-                                                <span>•</span>
-                                                <span>{new Date(res.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                                            </div>
+                                            <button
+                                                onClick={(e) => handleDownloadClick(e, res.url, res.title)}
+                                                className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition flex items-center gap-1.5 cursor-pointer"
+                                                title="Download material"
+                                            >
+                                                <Download className="w-3.5 h-3.5" />
+                                                <span>Download</span>
+                                            </button>
                                         </div>
                                     </div>
-
-                                    {/* Action Buttons: View & Download (Read-only for HOD) */}
-                                    <div className="flex items-center gap-2 shrink-0 self-end lg:self-center">
-                                        {isBrowserViewable(res.url, res.type) && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    window.open(res.url, "_blank", "noopener,noreferrer");
-                                                }}
-                                                className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition flex items-center gap-1.5 cursor-pointer"
-                                                title="Preview material in new tab"
-                                            >
-                                                <Eye className="w-3.5 h-3.5" />
-                                                <span>View</span>
-                                            </button>
-                                        )}
-
-                                        <button
-                                            onClick={(e) => handleDownloadClick(e, res.url, res.title)}
-                                            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition flex items-center gap-1.5 cursor-pointer"
-                                            title="Download material"
-                                        >
-                                            <Download className="w-3.5 h-3.5" />
-                                            <span>Download</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+                                );
+                            })}
+                        </div>
+                        <Pagination currentPage={page} totalPages={Math.ceil(filteredResources.length / ITEMS_PER_PAGE) || 1} onPageChange={setPage} />
+                    </>
                 )}
             </div>
         </div>

@@ -4,6 +4,7 @@ import SearchableSelect from "@/components/ui/SearchableSelect";
 import { TableSkeleton } from "@/components/ui/Skeleton";
 import KPICard from "@/components/ui/KPICard";
 import RefreshButton from "@/components/ui/RefreshButton";
+import Pagination from "@/components/ui/Pagination";
 import { AlertCircle, Trash2, Key, Users, CheckCircle, Search, UserPlus, ShieldCheck } from "lucide-react";
 
 
@@ -12,6 +13,11 @@ export default function AllUsersTab() {
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [page, setPage] = useState(1);
+    const ITEMS_PER_PAGE = 15;
+
+    // Reset to page 1 on search change
+    useEffect(() => { setPage(1); }, [search]);
 
     // Modal state for creating user
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -172,76 +178,79 @@ export default function AllUsersTab() {
                     {loading ? (
                         <TableSkeleton rows={5} />
                     ) : filteredUsers.length > 0 ? (
-                        filteredUsers.map((u: any) => (
-                            <div key={u.id} className="group flex flex-col transition-colors hover:bg-[var(--bg-hover)]" style={{ backgroundColor: "var(--bg-base)" }}>
-                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 sm:p-5 items-center relative">
-                                    {/* Name & Email */}
-                                    <div className="col-span-1 sm:col-span-4 flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs border shrink-0 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700" style={{ color: "var(--text-primary)" }}>
-                                            {u.name.substring(0, 2).toUpperCase()}
+                        <>
+                            {filteredUsers.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE).map((u: any) => (
+                                <div key={u.id} className="group flex flex-col transition-colors hover:bg-[var(--bg-hover)]" style={{ backgroundColor: "var(--bg-base)" }}>
+                                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 sm:p-5 items-center relative">
+                                        {/* Name & Email */}
+                                        <div className="col-span-1 sm:col-span-4 flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs border shrink-0 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700" style={{ color: "var(--text-primary)" }}>
+                                                {u.name.substring(0, 2).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <div className="font-bold text-sm leading-tight" style={{ color: "var(--text-primary)" }}>{u.name}</div>
+                                                <div className="text-xs font-semibold mt-0.5" style={{ color: "var(--text-muted)" }}>{u.email}</div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div className="font-bold text-sm leading-tight" style={{ color: "var(--text-primary)" }}>{u.name}</div>
-                                            <div className="text-xs font-semibold mt-0.5" style={{ color: "var(--text-muted)" }}>{u.email}</div>
+
+                                        {/* Role */}
+                                        <div className="col-span-1 sm:col-span-3 flex items-center">
+                                            <div className={`px-2.5 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-widest ${
+                                                u.role === 'SUPER_ADMIN' || u.role === 'ADMIN' ? 'bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20' :
+                                                u.role === 'HOD' ? 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' :
+                                                'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20'
+                                            }`}>
+                                                {u.role.replace('_', ' ')}
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* Role */}
-                                    <div className="col-span-1 sm:col-span-3 flex items-center">
-                                        <div className={`px-2.5 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-widest ${
-                                            u.role === 'SUPER_ADMIN' || u.role === 'ADMIN' ? 'bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20' :
-                                            u.role === 'HOD' ? 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' :
-                                            'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20'
-                                        }`}>
-                                            {u.role.replace('_', ' ')}
+                                        {/* Department */}
+                                        <div className="col-span-1 sm:col-span-2 flex items-center text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>
+                                            {u.department?.name || "—"}
                                         </div>
-                                    </div>
 
-                                    {/* Department */}
-                                    <div className="col-span-1 sm:col-span-2 flex items-center text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>
-                                        {u.department?.name || "—"}
-                                    </div>
-
-                                    {/* Security */}
-                                    <div className="col-span-1 sm:col-span-2 flex items-center">
-                                        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-widest ${
-                                            u.requirePasswordReset ? 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' : 
-                                            'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
-                                        }`}>
-                                            {u.requirePasswordReset ? <AlertCircle className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
-                                            {u.requirePasswordReset ? "Reset Reqd" : "Secure"}
+                                        {/* Security */}
+                                        <div className="col-span-1 sm:col-span-2 flex items-center">
+                                            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-widest ${
+                                                u.requirePasswordReset ? 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' : 
+                                                'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
+                                            }`}>
+                                                {u.requirePasswordReset ? <AlertCircle className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                                                {u.requirePasswordReset ? "Reset Reqd" : "Secure"}
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* Actions */}
-                                    <div className="col-span-1 sm:col-span-1 flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        {!u.requirePasswordReset && (
+                                        {/* Actions */}
+                                        <div className="col-span-1 sm:col-span-1 flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {!u.requirePasswordReset && (
+                                                <button
+                                                    onClick={async () => {
+                                                        const res = await fetch(`/api/admin/users/${u.id}`, {
+                                                            method: 'PATCH',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({ requirePasswordReset: true })
+                                                        });
+                                                        if (res.ok) fetchUsers();
+                                                    }}
+                                                    className="p-2 rounded-xl text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors"
+                                                    title="Force Password Reset"
+                                                >
+                                                    <Key className="w-4 h-4" />
+                                                </button>
+                                            )}
                                             <button
-                                                onClick={async () => {
-                                                    const res = await fetch(`/api/admin/users/${u.id}`, {
-                                                        method: 'PATCH',
-                                                        headers: { 'Content-Type': 'application/json' },
-                                                        body: JSON.stringify({ requirePasswordReset: true })
-                                                    });
-                                                    if (res.ok) fetchUsers();
-                                                }}
-                                                className="p-2 rounded-xl text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors"
-                                                title="Force Password Reset"
+                                                onClick={() => confirmDelete(u.id)}
+                                                className="p-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                                                title="Delete User"
                                             >
-                                                <Key className="w-4 h-4" />
+                                                <Trash2 className="w-4 h-4" />
                                             </button>
-                                        )}
-                                        <button
-                                            onClick={() => confirmDelete(u.id)}
-                                            className="p-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-                                            title="Delete User"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))
+                            ))}
+                            <Pagination currentPage={page} totalPages={Math.ceil(filteredUsers.length / ITEMS_PER_PAGE) || 1} onPageChange={setPage} />
+                        </>
                     ) : (
                         <div className="p-16 text-center flex flex-col items-center justify-center">
                             <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-inner" style={{ backgroundColor: "var(--bg-hover)" }}>

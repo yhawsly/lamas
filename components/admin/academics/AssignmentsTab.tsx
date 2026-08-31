@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
     BookOpen,
     AlertCircle,
@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import KPICard from "@/components/ui/KPICard";
 import RefreshButton from "@/components/ui/RefreshButton";
+import Pagination from "@/components/ui/Pagination";
 import { useTerm } from "@/context/TermContext";
 
 const AssignmentsSkeleton = () => (
@@ -187,12 +188,22 @@ function CohortPresetSelector({ value, onChange, onSelectCustom }: CohortPresetS
                         </div>
                         {value && !isCustom && (
                             <div className="flex items-center gap-1.5 mt-1">
-                                <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border ${
+                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border ${
                                     selectedSession === "WEEKEND" 
                                         ? "bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700" 
                                         : "bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700"
                                 }`}>
-                                    {selectedSession === "WEEKEND" ? "🌙 Weekend Session" : "☀️ Regular Session"}
+                                    {selectedSession === "WEEKEND" ? (
+                                        <>
+                                            <Moon className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                                            <span>Weekend Session</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sun className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                                            <span>Regular Session</span>
+                                        </>
+                                    )}
                                 </span>
                             </div>
                         )}
@@ -643,6 +654,12 @@ export default function AssignmentsTab() {
     const [programFilter, setProgramFilter] = useState<number | "All">("All");
     const [levelFilter, setLevelFilter] = useState<string>("All");
     const [courseSearch, setCourseSearch] = useState<string>("");
+    const [page, setPage] = useState(1);
+    const COURSES_PER_PAGE = 8;
+
+    useEffect(() => {
+        setPage(1);
+    }, [programFilter, levelFilter, courseSearch, selectedTermId]);
 
     // Modals State
     const [assignStaffModal, setAssignStaffModal] = useState<{ isOpen: boolean; course: any; section: any } | null>(null);
@@ -661,31 +678,42 @@ export default function AssignmentsTab() {
     const [customModal, setCustomModal] = useState<{ isOpen: boolean; type: "alert"; title: string; message: string } | null>(null);
     const showAlert = (title: string, message: string) => setCustomModal({ isOpen: true, type: "alert", title, message });
 
-    const fetchData = () => {
+    const safeFetchJson = async (url: string) => {
+        try {
+            const res = await fetch(url, { cache: "no-store" });
+            if (!res.ok) return null;
+            return await res.json();
+        } catch {
+            return null;
+        }
+    };
+
+    const fetchData = useCallback(async () => {
         setLoading(true);
         const coursesUrl = selectedTermId ? `/api/courses?termId=${selectedTermId}` : "/api/courses";
-        Promise.all([
-            fetch(coursesUrl, { cache: "no-store" }).then(r => r.ok ? r.json() : []),
-            fetch("/api/lecturers", { cache: "no-store" }).then(r => r.ok ? r.json() : []),
-            fetch("/api/admin/curriculum", { cache: "no-store" }).then(r => r.ok ? r.json() : null)
-        ]).then(([coursesData, lecturersData, curriculumData]) => {
+        try {
+            const [coursesData, lecturersData, curriculumData] = await Promise.all([
+                safeFetchJson(coursesUrl),
+                safeFetchJson("/api/lecturers"),
+                safeFetchJson("/api/admin/curriculum")
+            ]);
+
             const safeCourses = Array.isArray(coursesData) ? coursesData : (coursesData?.data || coursesData?.courses || []);
             const safeLecturers = Array.isArray(lecturersData) ? lecturersData : (lecturersData?.data || lecturersData?.lecturers || []);
             const safePrograms = curriculumData?.programs || [];
             setCourses(safeCourses);
             setLecturers(safeLecturers);
             setAllDbPrograms(safePrograms);
-            setLoading(false);
-        }).catch((err) => {
+        } catch (err) {
             console.error("Failed to load assignments data:", err);
+        } finally {
             setLoading(false);
-        });
-    };
+        }
+    }, [selectedTermId]);
 
     useEffect(() => {
         fetchData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedTermId]);
+    }, [fetchData]);
 
     const handleAssignLecturer = async (courseId: number, sectionId: number, lecturerId: number | null) => {
         if (isArchiveMode) {
@@ -1003,157 +1031,167 @@ export default function AssignmentsTab() {
             {/* Courses & Sections List */}
             <div className="space-y-6">
                 {filteredCourses.length > 0 ? (
-                    filteredCourses.map((course: any) => {
-                        const displayedSections = filterSections(course.sections || []);
-                        const unassignedCount = displayedSections.filter(s => s.lecturerId === null).length;
+                    (() => {
+                        const totalPages = Math.ceil(filteredCourses.length / COURSES_PER_PAGE) || 1;
+                        const paginatedCourses = filteredCourses.slice((page - 1) * COURSES_PER_PAGE, page * COURSES_PER_PAGE);
 
                         return (
-                            <div
-                                key={course.id}
-                                className="rounded-3xl border shadow-sm transition-all hover:shadow-md overflow-hidden"
-                                style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}
-                            >
-                                {/* Course Header */}
-                                <div className="p-5 sm:p-6 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4" style={{ borderColor: "var(--bg-border)", backgroundColor: "var(--bg-surface-elevated, var(--bg-hover))" }}>
-                                    <div className="flex items-start sm:items-center gap-3.5">
-                                        <div className="px-3 py-1.5 rounded-2xl bg-blue-600 text-white font-black text-xs shrink-0 shadow-sm shadow-blue-600/30">
-                                            {course.code}
-                                        </div>
-                                        <div>
-                                            <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
-                                                <span>{course.title}</span>
-                                                {course.domain && (
-                                                    <span className="px-2 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-[10px] font-bold border border-blue-200 dark:border-blue-800">
-                                                        {course.domain}
-                                                    </span>
-                                                )}
-                                            </h3>
-                                            <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 font-medium">
-                                                <span>{course.credits ?? 3} Credits</span>
-                                                <span>•</span>
-                                                <span>Level {course.code.match(/\d+/)?.[0]?.charAt(0) || "3"}00</span>
-                                                <span>•</span>
-                                                <span className="font-semibold text-slate-700 dark:text-slate-300">
-                                                    {displayedSections.length} {displayedSections.length === 1 ? "Section" : "Sections"}
-                                                </span>
-                                                {unassignedCount > 0 && (
-                                                    <>
-                                                        <span>•</span>
-                                                        <span className="inline-flex items-center gap-1 font-bold text-amber-600 dark:text-amber-400">
-                                                            <AlertCircle className="w-3 h-3" />
-                                                            {unassignedCount} unassigned
-                                                        </span>
-                                                    </>
+                            <>
+                                {paginatedCourses.map((course: any) => {
+                                    const displayedSections = filterSections(course.sections || []);
+                                    const unassignedCount = displayedSections.filter(s => s.lecturerId === null).length;
+
+                                    return (
+                                        <div
+                                            key={course.id}
+                                            className="rounded-3xl border shadow-sm transition-all hover:shadow-md overflow-hidden"
+                                            style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}
+                                        >
+                                            {/* Course Header */}
+                                            <div className="p-5 sm:p-6 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4" style={{ borderColor: "var(--bg-border)", backgroundColor: "var(--bg-surface-elevated, var(--bg-hover))" }}>
+                                                <div className="flex items-start sm:items-center gap-3.5">
+                                                    <div className="px-3 py-1.5 rounded-2xl bg-blue-600 text-white font-black text-xs shrink-0 shadow-sm shadow-blue-600/30">
+                                                        {course.code}
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
+                                                            <span>{course.title}</span>
+                                                            {course.domain && (
+                                                                <span className="px-2 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-[10px] font-bold border border-blue-200 dark:border-blue-800">
+                                                                    {course.domain}
+                                                                </span>
+                                                            )}
+                                                        </h3>
+                                                        <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 font-medium">
+                                                            <span>{course.credits ?? 3} Credits</span>
+                                                            <span>•</span>
+                                                            <span>Level {course.code.match(/\d+/)?.[0]?.charAt(0) || "3"}00</span>
+                                                            <span>•</span>
+                                                            <span className="font-semibold text-slate-700 dark:text-slate-300">
+                                                                {displayedSections.length} {displayedSections.length === 1 ? "Section" : "Sections"}
+                                                            </span>
+                                                            {unassignedCount > 0 && (
+                                                                <>
+                                                                    <span>•</span>
+                                                                    <span className="inline-flex items-center gap-1 font-bold text-amber-600 dark:text-amber-400">
+                                                                        <AlertCircle className="w-3.5 h-3.5" />
+                                                                        {unassignedCount} unassigned
+                                                                    </span>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Action Buttons */}
+                                                <div className="flex items-center gap-2 self-end sm:self-center">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setAddSectionModal({ isOpen: true, course });
+                                                            setModalClassName("");
+                                                            setModalClassPreset("");
+                                                            setModalSession("REGULAR");
+                                                            setModalLecturerId(null);
+                                                        }}
+                                                        disabled={isArchiveMode}
+                                                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 dark:bg-blue-950/40 dark:hover:bg-blue-600 text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 active:scale-95"
+                                                    >
+                                                        <Plus className="w-4 h-4" />
+                                                        <span>Add Section</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Sections Body */}
+                                            <div className="p-5 sm:p-6 space-y-3">
+                                                {displayedSections.length > 0 ? (
+                                                    displayedSections.map((section: any) => {
+                                                        const currentLecturer = lecturers.find(l => l.id === section.lecturerId);
+
+                                                        return (
+                                                            <div
+                                                                key={section.id}
+                                                                className="rounded-2xl border p-4 transition-all hover:shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                                                                style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}
+                                                            >
+                                                                {/* Section Info */}
+                                                                <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                                                                    <div className={`w-2 h-10 rounded-full shrink-0 ${section.session === 'WEEKEND' ? 'bg-amber-500' : 'bg-blue-600'}`} />
+                                                                    <div className="min-w-0 flex-1">
+                                                                        <div className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
+                                                                            {section.name}
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2 mt-1">
+                                                                            <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
+                                                                                section.session === 'WEEKEND'
+                                                                                    ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700'
+                                                                                    : 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700'
+                                                                            }`}>
+                                                                                {section.session} Session
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Assigned Lecturer / Assign Staff Modal Trigger */}
+                                                                <div className="flex items-center gap-2 sm:self-center shrink-0">
+                                                                    {currentLecturer ? (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => setAssignStaffModal({ isOpen: true, course, section })}
+                                                                            disabled={isArchiveMode}
+                                                                            className="group flex items-center gap-3 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-xs transition-all text-left cursor-pointer"
+                                                                        >
+                                                                            <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                                                                                {currentLecturer.name.substring(0, 2).toUpperCase()}
+                                                                            </div>
+                                                                            <div className="min-w-0">
+                                                                                <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate max-w-[150px]">
+                                                                                    {currentLecturer.name}
+                                                                                </div>
+                                                                                <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate max-w-[150px]">
+                                                                                    {currentLecturer.department?.name?.replace('Department of ', '') || "Faculty"}
+                                                                                </div>
+                                                                            </div>
+                                                                            <span className="text-xs font-bold text-blue-600 dark:text-blue-400 px-3 py-1 rounded-lg border border-blue-200 dark:border-blue-800/80 bg-blue-50/60 dark:bg-blue-950/40 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all ml-1">
+                                                                                Change →
+                                                                            </span>
+                                                                        </button>
+                                                                    ) : (
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700/80 shadow-xs flex items-center gap-1.5">
+                                                                                <AlertCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> Unassigned
+                                                                            </span>
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => setAssignStaffModal({ isOpen: true, course, section })}
+                                                                                disabled={isArchiveMode}
+                                                                                className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 dark:bg-blue-950/40 dark:hover:bg-blue-600 text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 active:scale-95"
+                                                                            >
+                                                                                <UserPlus className="w-4 h-4" />
+                                                                                <span>Assign Staff</span>
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })
+                                                ) : (
+                                                    <div className="flex items-center gap-3 px-4 py-3 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-xs font-semibold text-slate-400">
+                                                        <BookOpen className="w-4 h-4 text-slate-400" />
+                                                        <span>No sections configured for this course yet. Click &quot;Add Section&quot; to create one.</span>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="flex items-center gap-2 self-end sm:self-center">
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setAddSectionModal({ isOpen: true, course });
-                                                setModalClassName("");
-                                                setModalClassPreset("");
-                                                setModalSession("REGULAR");
-                                                setModalLecturerId(null);
-                                            }}
-                                            disabled={isArchiveMode}
-                                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 dark:bg-blue-950/40 dark:hover:bg-blue-600 text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 active:scale-95"
-                                        >
-                                            <Plus className="w-4 h-4" />
-                                            <span>Add Section</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Sections Body */}
-                                <div className="p-5 sm:p-6 space-y-3">
-                                    {displayedSections.length > 0 ? (
-                                        displayedSections.map((section: any) => {
-                                            const currentLecturer = lecturers.find(l => l.id === section.lecturerId);
-
-                                            return (
-                                                <div
-                                                    key={section.id}
-                                                    className="rounded-2xl border p-4 transition-all hover:shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                                                    style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}
-                                                >
-                                                    {/* Section Info */}
-                                                    <div className="flex items-center gap-3.5 flex-1 min-w-0">
-                                                        <div className={`w-2 h-10 rounded-full shrink-0 ${section.session === 'WEEKEND' ? 'bg-amber-500' : 'bg-blue-600'}`} />
-                                                        <div className="min-w-0 flex-1">
-                                                            <div className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
-                                                                {section.name}
-                                                            </div>
-                                                            <div className="flex items-center gap-2 mt-1">
-                                                                <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
-                                                                    section.session === 'WEEKEND'
-                                                                        ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700'
-                                                                        : 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700'
-                                                                }`}>
-                                                                    {section.session} Session
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Assigned Lecturer / Assign Staff Modal Trigger */}
-                                                    <div className="flex items-center gap-2 sm:self-center shrink-0">
-                                                        {currentLecturer ? (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setAssignStaffModal({ isOpen: true, course, section })}
-                                                                disabled={isArchiveMode}
-                                                                className="group flex items-center gap-3 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-xs transition-all text-left cursor-pointer"
-                                                            >
-                                                                <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
-                                                                    {currentLecturer.name.substring(0, 2).toUpperCase()}
-                                                                </div>
-                                                                <div className="min-w-0">
-                                                                    <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate max-w-[150px]">
-                                                                        {currentLecturer.name}
-                                                                    </div>
-                                                                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate max-w-[150px]">
-                                                                        {currentLecturer.department?.name?.replace('Department of ', '') || "Faculty"}
-                                                                    </div>
-                                                                </div>
-                                                                <span className="text-xs font-bold text-blue-600 dark:text-blue-400 px-3 py-1 rounded-lg border border-blue-200 dark:border-blue-800/80 bg-blue-50/60 dark:bg-blue-950/40 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all ml-1">
-                                                                    Change →
-                                                                </span>
-                                                            </button>
-                                                        ) : (
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700/80 shadow-xs flex items-center gap-1.5">
-                                                                    <AlertCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> Unassigned
-                                                                </span>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => setAssignStaffModal({ isOpen: true, course, section })}
-                                                                    disabled={isArchiveMode}
-                                                                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 dark:bg-blue-950/40 dark:hover:bg-blue-600 text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 active:scale-95"
-                                                                >
-                                                                    <UserPlus className="w-4 h-4" />
-                                                                    <span>Assign Staff</span>
-                                                                </button>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })
-                                    ) : (
-                                        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-xs font-semibold text-slate-400">
-                                            <BookOpen className="w-4 h-4 text-slate-400" />
-                                            <span>No sections configured for this course yet. Click &quot;Add Section&quot; to create one.</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                                    );
+                                })}
+                                <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+                            </>
                         );
-                    })
+                    })()
                 ) : (
                     <div className="p-16 text-center rounded-3xl border border-dashed flex flex-col items-center justify-center" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
                         <BookOpen className="w-10 h-10 text-slate-400 mb-3 opacity-60" />
@@ -1283,8 +1321,9 @@ export default function AssignmentsTab() {
                                                     <div className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
                                                         <span>{lecturer.name}</span>
                                                         {isAssignedToThisSection && (
-                                                            <span className="px-2.5 py-0.5 rounded-lg bg-blue-600 text-white text-[10px] font-black shadow-xs">
-                                                                ✓ Currently Assigned
+                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-blue-600 text-white text-[10px] font-bold shadow-xs">
+                                                                <Check className="w-3 h-3" />
+                                                                <span>Currently Assigned</span>
                                                             </span>
                                                         )}
                                                     </div>
