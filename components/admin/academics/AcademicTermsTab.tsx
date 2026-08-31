@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import RefreshButton from "@/components/ui/RefreshButton";
+import { TableSkeleton } from "@/components/ui/Skeleton";
 import { Calendar, CheckCircle, HelpCircle, CalendarPlus, AlertTriangle, AlertCircle, CheckCircle2 } from "lucide-react";
 
 function computeWeeks(start: string, end: string) {
@@ -144,6 +146,20 @@ export default function AcademicTermsTab() {
 
                 {/* Term List - Professional UI */}
                 <div className="border border-slate-200 dark:border-slate-800/60 rounded-2xl overflow-hidden shadow-sm flex flex-col" style={{ backgroundColor: "var(--bg-surface)" }}>
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-2">
+                            <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>Configured Academic Terms ({terms.length})</h3>
+                        </div>
+                        <RefreshButton
+                            onClick={fetchTerms}
+                            isRefreshing={loading}
+                            label="Refresh"
+                            size="sm"
+                            variant="outline"
+                            title="Reload academic terms"
+                        />
+                    </div>
                     <div className="hidden sm:grid grid-cols-12 gap-4 p-4 border-b border-slate-200 dark:border-slate-800/60 text-[10px] font-black uppercase tracking-widest" style={{ backgroundColor: "var(--bg-hover)", color: "var(--text-muted)" }}>
                         <div className="col-span-4">Term Name</div>
                         <div className="col-span-5">Date of Commencement & End</div>
@@ -153,9 +169,7 @@ export default function AcademicTermsTab() {
 
                     <div className="divide-y divide-slate-100 dark:divide-slate-800/60 flex-1">
                         {loading ? (
-                            <div className="flex justify-center items-center h-48">
-                                <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" />
-                            </div>
+                            <TableSkeleton rows={3} />
                         ) : terms.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-48 text-center p-8">
                                 <Calendar className="w-10 h-10 text-slate-400 mb-4" />

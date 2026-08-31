@@ -2,6 +2,7 @@
 import { Inbox, Folder } from "lucide-react";
 import { useEffect, useState } from "react";
 import Pagination from "@/components/ui/Pagination";
+import RefreshButton from "@/components/ui/RefreshButton";
 import { useTerm } from "@/context/TermContext";
 import { useModal } from "@/context/ModalContext";
 import SubmissionAuditWorkspace, { SubmissionAuditData } from "@/components/hod/reviews/SubmissionAuditWorkspace";
@@ -128,11 +129,21 @@ export default function ReviewCenterTab() {
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header */}
-            <div>
-                <h2 className="text-2xl font-bold tracking-tight mb-2" style={{ color: "var(--text-primary)" }}>Review Center</h2>
-                <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                    Quality assurance and departmental oversight for academic planning.
-                </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight mb-2" style={{ color: "var(--text-primary)" }}>Review Center</h2>
+                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                        Quality assurance and departmental oversight for academic planning.
+                    </p>
+                </div>
+                <RefreshButton
+                    onClick={fetchSubmissions}
+                    isRefreshing={loading}
+                    label="Refresh"
+                    size="sm"
+                    variant="outline"
+                    title="Reload submissions"
+                />
             </div>
 
             {/* Tabs */}
@@ -210,7 +221,7 @@ export default function ReviewCenterTab() {
                                     {/* Action */}
                                     <div className="col-span-1 sm:col-span-2 text-right">
                                         <button onClick={() => setSelectedSub(s)}
-                                            className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white text-xs font-black transition-all shadow-md shadow-indigo-600/25 border border-indigo-400/40 inline-flex items-center gap-1.5 active:scale-95 cursor-pointer">
+                                            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-sm shadow-blue-600/20 inline-flex items-center gap-1.5 active:scale-95 cursor-pointer">
                                             <span>Open Audit Workspace</span>
                                             <span>→</span>
                                         </button>

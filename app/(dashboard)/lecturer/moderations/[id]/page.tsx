@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { AlertTriangle, AlertCircle } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 import ReviewDossierViewer from "@/components/workspace/ReviewDossierViewer";
+import { getCourseTitle } from "@/lib/courses";
 
 const DetailWorkspaceSkeleton = () => (
     <div className="max-w-4xl mx-auto space-y-8 animate-pulse pb-20 pt-6 px-4">
@@ -265,7 +266,7 @@ export default function ConductModerationPage() {
                     </h2>
                     <div className="text-sm space-y-1" style={{ color: "var(--text-secondary)" }}>
                         <p><strong>Internal Examiner:</strong> {lecturer}</p>
-                        <p><strong>Course Code:</strong> {data.courseCode}</p>
+                        <p><strong>Course:</strong> <span className="font-bold text-blue-600 dark:text-blue-400">{data.courseCode}</span>{getCourseTitle(data.courseCode) && <span className="font-medium text-slate-700 dark:text-slate-300"> — {getCourseTitle(data.courseCode)}</span>}</p>
                         <p><strong>Date Assigned:</strong> {new Date(data.createdAt).toLocaleDateString()}</p>
                     </div>
                 </div>

@@ -68,6 +68,11 @@ const nextConfig: NextConfig = {
     // Strict mode for catching React issues early
     reactStrictMode: true,
 
+    // Optimize package imports for faster load and tree-shaking
+    experimental: {
+        optimizePackageImports: ["lucide-react", "recharts", "date-fns"],
+    },
+
     // Externalize problematic CommonJS packages so Turbopack doesn't break them
     serverExternalPackages: ["pdf-parse", "exceljs", "bcrypt", "nodemailer"],
 };

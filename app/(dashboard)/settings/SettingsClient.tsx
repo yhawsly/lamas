@@ -1,11 +1,9 @@
 "use client";
-import { Bell, Palette, Calendar, Users, Server } from "lucide-react";
+import { Bell, Palette, Calendar } from "lucide-react";
 import { useState } from "react";
 import NotificationTab from "@/components/settings/NotificationTab";
 import AppearanceTab from "@/components/settings/AppearanceTab";
 import AcademicCycleTab from "@/components/settings/AcademicCycleTab";
-import DepartmentConfigTab from "@/components/settings/DepartmentConfigTab";
-import SystemControlsTab from "@/components/settings/SystemControlsTab";
 
 export default function SettingsClient({ user }: { user: { role: string } }) {
     const [activeTab, setActiveTab] = useState("notifications");
@@ -13,16 +11,14 @@ export default function SettingsClient({ user }: { user: { role: string } }) {
     const tabs = [
         { id: "notifications", label: "Notifications", icon: Bell, show: true },
         { id: "appearance", label: "Appearance & Theme", icon: Palette, show: true },
-        { id: "department", label: "Department Config", icon: Users, show: user.role === "HOD" || user.role === "ADMIN" || user.role === "SUPER_ADMIN" },
         { id: "academic", label: "Academic Cycle", icon: Calendar, show: user.role === "ADMIN" || user.role === "SUPER_ADMIN" },
-        { id: "system", label: "System & Infrastructure", icon: Server, show: user.role === "ADMIN" || user.role === "SUPER_ADMIN" },
     ].filter(t => t.show);
 
     return (
         <div className="max-w-5xl mx-auto pb-24">
             <div>
                 <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Settings Panel</h1>
-                <p className="text-slate-500 text-sm mt-1">Configure institutional quality standards, notification delivery, academic lifecycles, and system controls.</p>
+                <p className="text-slate-500 text-sm mt-1">Configure institutional notification delivery, appearance themes, and academic lifecycles.</p>
             </div>
 
             <div className="mt-8 flex flex-col lg:flex-row gap-6">
@@ -54,9 +50,7 @@ export default function SettingsClient({ user }: { user: { role: string } }) {
                 <div className="flex-1 min-w-0">
                     {activeTab === "notifications" && <NotificationTab />}
                     {activeTab === "appearance" && <AppearanceTab />}
-                    {activeTab === "department" && <DepartmentConfigTab />}
                     {activeTab === "academic" && <AcademicCycleTab />}
-                    {activeTab === "system" && <SystemControlsTab />}
                 </div>
             </div>
         </div>

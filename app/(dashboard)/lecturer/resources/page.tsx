@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Pagination from "@/components/ui/Pagination";
 import Modal from "@/components/ui/Modal";
 import SearchableSelect from "@/components/ui/SearchableSelect";
+import RefreshButton from "@/components/ui/RefreshButton";
 import { 
     FileText, 
     BarChart2, 
@@ -26,6 +27,7 @@ import {
     Lock
 } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
+import { isBrowserViewable } from "@/lib/file-preview";
 
 interface Resource {
     id: number;
@@ -428,6 +430,19 @@ export default function LecturerResourcesPage() {
                             { label: "External Link", value: "LINK" },
                         ]} 
                     />
+                    <RefreshButton
+                        onClick={async () => {
+                            await Promise.all([
+                                fetchMyResources(myPagination.page),
+                                fetchSharedResources(sharedPagination.page)
+                            ]);
+                        }}
+                        isRefreshing={myLoading || sharedLoading}
+                        label="Refresh"
+                        size="sm"
+                        variant="outline"
+                        title="Reload resources"
+                    />
                 </div>
             </div>
 
@@ -713,14 +728,16 @@ export default function LecturerResourcesPage() {
                                                             >
                                                                 <Download className="w-4 h-4" />
                                                             </a>
-                                                            <a 
-                                                                href={r.url} 
-                                                                onClick={(e) => handleViewClick(e, r.url, r.type, r.title)}
-                                                                className="inline-flex items-center justify-center p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
-                                                                title="Open"
-                                                            >
-                                                                <ExternalLink className="w-4 h-4" />
-                                                            </a>
+                                                            {isBrowserViewable(r.url, r.type) && (
+                                                                <a 
+                                                                    href={r.url} 
+                                                                    onClick={(e) => handleViewClick(e, r.url, r.type, r.title)}
+                                                                    className="inline-flex items-center justify-center p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
+                                                                    title="Open"
+                                                                >
+                                                                    <ExternalLink className="w-4 h-4" />
+                                                                </a>
+                                                            )}
                                                             {!isArchiveMode && (
                                                                 <button 
                                                                     onClick={() => handleDelete(r.id)}
@@ -838,14 +855,16 @@ export default function LecturerResourcesPage() {
                                                         >
                                                             <Download className="w-4 h-4" />
                                                         </a>
-                                                        <a 
-                                                            href={r.url} 
-                                                            onClick={(e) => handleViewClick(e, r.url, r.type, r.title)}
-                                                            className="inline-flex items-center justify-center p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
-                                                            title="Open"
-                                                        >
-                                                            <ExternalLink className="w-4 h-4" />
-                                                        </a>
+                                                        {isBrowserViewable(r.url, r.type) && (
+                                                            <a 
+                                                                href={r.url} 
+                                                                onClick={(e) => handleViewClick(e, r.url, r.type, r.title)}
+                                                                className="inline-flex items-center justify-center p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition"
+                                                                title="Open"
+                                                            >
+                                                                <ExternalLink className="w-4 h-4" />
+                                                            </a>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>

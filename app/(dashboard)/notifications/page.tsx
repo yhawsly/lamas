@@ -4,6 +4,7 @@ import { Inbox } from "lucide-react";
 
 import { formatDistanceToNow } from "date-fns";
 import useSWR from "swr";
+import RefreshButton from "@/components/ui/RefreshButton";
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
@@ -19,7 +20,7 @@ export default function NotificationsPage() {
     
     
     // Shared SWR hook with the same key used by the Sidebar and NotificationBell
-    const { data: notificationsData, mutate } = useSWR("/api/notifications", fetcher, {
+    const { data: notificationsData, mutate, isValidating } = useSWR("/api/notifications", fetcher, {
         refreshInterval: 30000,
         dedupingInterval: 5000,
     });
@@ -54,14 +55,24 @@ export default function NotificationsPage() {
                     <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Notification Center</h1>
                     <p className="text-slate-500 text-xs sm:text-sm mt-1">View your latest alerts, appraisal requests, and department messages.</p>
                 </div>
-                {notifications.some((n: Notification) => !n.read) && (
-                    <button
-                        onClick={markAllAsRead}
-                        className="px-4 py-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-xl text-xs font-bold transition-colors border border-blue-200 dark:border-blue-800 self-start sm:self-auto cursor-pointer"
-                    >
-                        Mark all as read
-                    </button>
-                )}
+                <div className="flex items-center gap-3">
+                    <RefreshButton
+                        onClick={() => mutate()}
+                        isRefreshing={isValidating}
+                        label="Refresh"
+                        size="sm"
+                        variant="outline"
+                        title="Reload notifications"
+                    />
+                    {notifications.some((n: Notification) => !n.read) && (
+                        <button
+                            onClick={markAllAsRead}
+                            className="px-4 py-2 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-xl text-xs font-bold transition-colors border border-blue-200 dark:border-blue-800 self-start sm:self-auto cursor-pointer"
+                        >
+                            Mark all as read
+                        </button>
+                    )}
+                </div>
             </div>
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">

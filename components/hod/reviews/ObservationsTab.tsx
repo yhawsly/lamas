@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Eye, Calendar, User, ChevronRight } from "lucide-react";
+import RefreshButton from "@/components/ui/RefreshButton";
 import { useTerm } from "@/context/TermContext";
 
 const ObservationsSkeleton = () => (
@@ -35,17 +36,24 @@ export default function ObservationsTab() {
     const [observations, setObservations] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+    const loadObservations = useCallback(async () => {
         setLoading(true);
-        const url = selectedTermId ? `/api/observations?termId=${selectedTermId}` : "/api/observations";
-        fetch(url).then(r => r.json()).then(d => {
-            // API returns { data: [...], meta: {...} } — not a plain array
+        try {
+            const url = selectedTermId ? `/api/observations?termId=${selectedTermId}` : "/api/observations";
+            const r = await fetch(url);
+            const d = await r.json();
             const list = Array.isArray(d) ? d : (Array.isArray(d?.data) ? d.data : []);
             setObservations(list);
+        } catch {
+            // handle error
+        } finally {
             setLoading(false);
-        }).catch(() => setLoading(false));
+        }
     }, [selectedTermId]);
+
+    useEffect(() => {
+        loadObservations();
+    }, [loadObservations]);
 
     const statusColors: Record<string, string> = { 
         PENDING: "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20", 
@@ -55,9 +63,19 @@ export default function ObservationsTab() {
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            <div>
-                <h2 className="text-2xl font-bold tracking-tight mb-2" style={{ color: "var(--text-primary)" }}>Classroom Observations</h2>
-                <p className="text-sm" style={{ color: "var(--text-muted)" }}>Manage and review classroom observation sessions within the department.</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight mb-2" style={{ color: "var(--text-primary)" }}>Classroom Observations</h2>
+                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>Manage and review classroom observation sessions within the department.</p>
+                </div>
+                <RefreshButton
+                    onClick={loadObservations}
+                    isRefreshing={loading}
+                    label="Refresh"
+                    size="sm"
+                    variant="outline"
+                    title="Reload observations"
+                />
             </div>
 
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800/60 overflow-hidden shadow-sm flex flex-col" style={{ backgroundColor: "var(--bg-surface)" }}>

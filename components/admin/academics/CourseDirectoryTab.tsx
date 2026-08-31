@@ -3,6 +3,7 @@ import { BookOpen, HelpCircle, BookPlus, CheckCircle2, AlertCircle } from "lucid
 
 import { useState, useEffect } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
+import RefreshButton from "@/components/ui/RefreshButton";
 
 export default function CourseDirectoryTab() {
     const [courses, setCourses] = useState<any[]>([]);
@@ -151,6 +152,20 @@ export default function CourseDirectoryTab() {
 
                 {/* List */}
                 <div className="border rounded-2xl overflow-hidden shadow-sm flex flex-col" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-2">
+                            <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>Active Course Directory ({courses.length})</h3>
+                        </div>
+                        <RefreshButton
+                            onClick={fetchCourses}
+                            isRefreshing={loading}
+                            label="Refresh"
+                            size="sm"
+                            variant="outline"
+                            title="Reload course directory"
+                        />
+                    </div>
                     <div className="overflow-x-auto flex-1">
                         <table className="w-full text-left text-sm whitespace-nowrap">
                             <thead style={{ backgroundColor: "var(--bg-hover)", borderBottom: "1px solid var(--bg-border)" }}>
@@ -163,7 +178,14 @@ export default function CourseDirectoryTab() {
                             </thead>
                             <tbody className="divide-y divide-[var(--bg-border)]">
                                 {loading ? (
-                                    <tr><td colSpan={4} className="p-8 text-center animate-pulse" style={{ color: "var(--text-primary)" }}>Loading courses...</td></tr>
+                                    Array.from({ length: 4 }).map((_, i) => (
+                                        <tr key={i} className="animate-pulse">
+                                            <td className="px-6 py-4"><div className="h-4 w-20 bg-slate-200 dark:bg-slate-800 rounded" /></td>
+                                            <td className="px-6 py-4"><div className="h-4 w-48 bg-slate-200 dark:bg-slate-800 rounded" /></td>
+                                            <td className="px-6 py-4"><div className="h-4 w-12 bg-slate-200 dark:bg-slate-800 rounded" /></td>
+                                            <td className="px-6 py-4 text-right"><div className="h-6 w-6 ml-auto bg-slate-200 dark:bg-slate-800 rounded" /></td>
+                                        </tr>
+                                    ))
                                 ) : courses.length === 0 ? (
                                     <tr>
                                         <td colSpan={4} className="p-16 text-center">

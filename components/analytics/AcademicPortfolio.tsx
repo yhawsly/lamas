@@ -1,10 +1,11 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
     RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend,
 } from "recharts";
 import { Compass, BarChart2, Shield, Eye, CheckCircle2, Check, AlertTriangle } from "lucide-react";
+import RefreshButton from "@/components/ui/RefreshButton";
 
 interface ClearanceItem {
     done: boolean;
@@ -28,7 +29,7 @@ interface PortfolioData {
         observations: number; 
         alerts: number;
         coursesTaught?: number;
-        invigilations?: number;
+        resources?: number;
         moderations?: number;
         userProfile?: any;
     };
@@ -36,7 +37,6 @@ interface PortfolioData {
         syllabuses: ClearanceItem;
         observations: ClearanceItem;
         moderations: ClearanceItem;
-        invigilation: ClearanceItem;
     };
 }
 
@@ -46,12 +46,24 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
     const [tab, setTab] = useState<"dossier" | "department" | "audit">(role === "LECTURER" ? "dossier" : "department");
     const [toast, setToast] = useState<string | null>(null);
     
-    useEffect(() => {
-        fetch("/api/reports/portfolio")
-            .then(r => r.ok ? r.json() : null)
-            .then(d => { if (d) setData(d); setLoading(false); })
-            .catch(() => setLoading(false));
+    const fetchPortfolio = useCallback(async () => {
+        setLoading(true);
+        try {
+            const r = await fetch("/api/reports/portfolio");
+            if (r.ok) {
+                const d = await r.json();
+                if (d) setData(d);
+            }
+        } catch (err) {
+            console.error("Failed to load portfolio:", err);
+        } finally {
+            setLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        fetchPortfolio();
+    }, [fetchPortfolio]);
 
     const showToast = (msg: string) => {
         setToast(msg);
@@ -116,22 +128,33 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
                     </div>
                 </div>
                 
-                <div className="flex p-1.5 rounded-2xl border backdrop-blur-md" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
-                    {[
-                        { id: "dossier", label: "My Reports", roles: ["LECTURER", "ADMIN", "SUPER_ADMIN"] },
-                        { id: "department", label: "Command Center", roles: ["HOD", "ADMIN", "SUPER_ADMIN"] },
-                        { id: "audit", label: "Audit Vault", roles: ["ADMIN", "SUPER_ADMIN"] }
-                    ].filter(t => t.roles.includes(role)).map(t => (
-                        <button key={t.id} onClick={() => setTab(t.id as any)}
-                            className="px-6 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 transform active:scale-95"
-                            style={{
-                                backgroundColor: tab === t.id ? "var(--primary)" : "transparent",
-                                color: tab === t.id ? "white" : "var(--text-muted)",
-                                boxShadow: tab === t.id ? "0 8px 16px -4px rgba(59, 130, 246, 0.3)" : "none"
-                            }}>
-                            {t.label}
-                        </button>
-                    ))}
+                <div className="flex flex-wrap items-center gap-3">
+                    <RefreshButton
+                        onClick={fetchPortfolio}
+                        isRefreshing={loading}
+                        label="Refresh Data"
+                        size="md"
+                        variant="outline"
+                        title="Reload portfolio metrics"
+                    />
+
+                    <div className="flex p-1.5 rounded-2xl border backdrop-blur-md" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
+                        {[
+                            { id: "dossier", label: "My Reports", roles: ["LECTURER", "ADMIN", "SUPER_ADMIN"] },
+                            { id: "department", label: "Command Center", roles: ["HOD", "ADMIN", "SUPER_ADMIN"] },
+                            { id: "audit", label: "Audit Vault", roles: ["ADMIN", "SUPER_ADMIN"] }
+                        ].filter(t => t.roles.includes(role)).map(t => (
+                            <button key={t.id} onClick={() => setTab(t.id as any)}
+                                className="px-6 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 transform active:scale-95 cursor-pointer"
+                                style={{
+                                    backgroundColor: tab === t.id ? "var(--primary)" : "transparent",
+                                    color: tab === t.id ? "white" : "var(--text-muted)",
+                                    boxShadow: tab === t.id ? "0 8px 16px -4px rgba(59, 130, 246, 0.3)" : "none"
+                                }}>
+                                {t.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
@@ -236,8 +259,8 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
                             <p className="text-4xl font-black text-emerald-600 dark:text-emerald-400">{data.metrics?.outlines || 0}</p>
                         </div>
                         <div className="p-6 rounded-3xl" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
-                            <p className="text-[11px] font-black text-indigo-500 uppercase tracking-widest mb-1">Invigilation Duties</p>
-                            <p className="text-4xl font-black text-indigo-600 dark:text-indigo-400">{data.metrics?.invigilations || 0}</p>
+                            <p className="text-[11px] font-black text-violet-500 uppercase tracking-widest mb-1">Learning Resources</p>
+                            <p className="text-4xl font-black text-violet-600 dark:text-violet-400">{data.metrics?.resources || 0}</p>
                         </div>
                         <div className="p-6 rounded-3xl" style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)" }}>
                             <p className="text-[11px] font-black text-amber-500 uppercase tracking-widest mb-1">Moderations</p>
@@ -308,11 +331,6 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
                                         key: "moderations",
                                         label: "Exam Moderations Finalized",
                                         item: data?.clearance?.moderations,
-                                    },
-                                    {
-                                        key: "invigilation",
-                                        label: "Invigilation Duties Fulfilled",
-                                        item: data?.clearance?.invigilation,
                                     },
                                 ].map(({ key, label, item }) => {
                                     const done = item?.done ?? false;
@@ -461,7 +479,7 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
                         <div className="grid grid-cols-2 gap-4">
                             <p><strong>Courses/Sections Taught:</strong> {data.metrics?.coursesTaught || 0}</p>
                             <p><strong>Course Outlines Submitted:</strong> {data.metrics?.outlines || 0}</p>
-                            <p><strong>Invigilation Duties:</strong> {data.metrics?.invigilations || 0}</p>
+                            <p><strong>Learning Resources Uploaded:</strong> {data.metrics?.resources || 0}</p>
                             <p><strong>Moderations Finalized:</strong> {data.metrics?.moderations || 0}</p>
                         </div>
                     </div>

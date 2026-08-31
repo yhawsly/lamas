@@ -3,12 +3,13 @@
 import useSWR from "swr";
 import Link from "next/link";
 import { AlertCircle, BookOpen, GraduationCap, BarChart3 } from "lucide-react";
+import RefreshButton from "@/components/ui/RefreshButton";
 import { useTerm } from "@/context/TermContext";
 
 export default function LecturerCoursesPage() {
     const { selectedTermId } = useTerm();
     const urlKey = selectedTermId ? `/api/courses/my-sections?termId=${selectedTermId}` : "/api/courses/my-sections";
-    const { data, error: swrError, mutate } = useSWR(urlKey, (url) =>
+    const { data, error: swrError, mutate, isValidating } = useSWR(urlKey, (url) =>
         fetch(url).then(async (r) => {
             if (!r.ok) {
                 const d = await r.json().catch(() => ({}));
@@ -27,13 +28,23 @@ export default function LecturerCoursesPage() {
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
             {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
-                    Course Workspaces
-                </h1>
-                <p className="text-sm mt-1 max-w-2xl" style={{ color: "var(--text-secondary)" }}>
-                    Select an assigned course to manage its weekly topics, learning outcomes, and grading rubrics.
-                </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
+                        Course Workspaces
+                    </h1>
+                    <p className="text-sm mt-1 max-w-2xl" style={{ color: "var(--text-secondary)" }}>
+                        Select an assigned course to manage its weekly topics, learning outcomes, and grading rubrics.
+                    </p>
+                </div>
+                <RefreshButton
+                    onClick={() => mutate()}
+                    isRefreshing={isValidating}
+                    label="Refresh Courses"
+                    size="sm"
+                    variant="outline"
+                    title="Reload assigned courses"
+                />
             </div>
 
             {/* Error State */}

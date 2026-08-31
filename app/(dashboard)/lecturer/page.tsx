@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import KPICard from "@/components/ui/KPICard";
+import RefreshButton from "@/components/ui/RefreshButton";
 import useSWR from "swr";
 import { useTerm } from "@/context/TermContext";
 
@@ -34,12 +35,25 @@ export default function LecturerDashboard() {
     const termQuery = selectedTermId ? `?termId=${selectedTermId}` : "";
 
     // SWR Data Fetching with global cache
-    const { data: subsData } = useSWR(`/api/submissions${termQuery}`, fetcher);
-    const { data: dlsData } = useSWR(`/api/deadlines${termQuery}`, fetcher);
-    const { data: notifsData } = useSWR("/api/notifications", fetcher);
-    const { data: resData } = useSWR("/api/resources", fetcher);
-    const { data: mySectionsData } = useSWR(`/api/courses/my-sections${termQuery}`, fetcher);
-    const { data: invigilationData } = useSWR(`/api/lecturer/invigilation${termQuery}`, fetcher);
+    const { data: subsData, mutate: mutateSubs, isValidating: valSubs } = useSWR(`/api/submissions${termQuery}`, fetcher);
+    const { data: dlsData, mutate: mutateDls, isValidating: valDls } = useSWR(`/api/deadlines${termQuery}`, fetcher);
+    const { data: notifsData, mutate: mutateNotifs, isValidating: valNotifs } = useSWR("/api/notifications", fetcher);
+    const { data: resData, mutate: mutateRes, isValidating: valRes } = useSWR("/api/resources", fetcher);
+    const { data: mySectionsData, mutate: mutateSections, isValidating: valSections } = useSWR(`/api/courses/my-sections${termQuery}`, fetcher);
+    const { data: invigilationData, mutate: mutateInvig, isValidating: valInvig } = useSWR(`/api/lecturer/invigilation${termQuery}`, fetcher);
+
+    const isValidating = valSubs || valDls || valNotifs || valRes || valSections || valInvig;
+
+    const handleRefreshAll = async () => {
+        await Promise.all([
+            mutateSubs(),
+            mutateDls(),
+            mutateNotifs(),
+            mutateRes(),
+            mutateSections(),
+            mutateInvig()
+        ]);
+    };
 
     const submissions = useMemo(() => subsData?.data || [], [subsData]);
     const deadlines = useMemo(() => Array.isArray(dlsData) ? dlsData : [], [dlsData]);
@@ -71,7 +85,10 @@ export default function LecturerDashboard() {
         if (!deadlines || deadlines.length === 0) return 0;
         return deadlines.filter((d: any) =>
             submissions.some((s: Submission) =>
-                (s.deadlineId === d.id || s.type === d.type) && ON_TIME_STATUSES.includes(s.status)
+                (s.deadlineId === d.id || 
+                 s.type === d.type || 
+                 (s.type === "COURSE_TOPICS" && (d.type === "WEEKLY_TOPICS" || d.type === "COURSE_TOPICS" || d.type === "SEMESTER_CALENDAR"))
+                ) && ON_TIME_STATUSES.includes(s.status)
             )
         ).length;
     }, [deadlines, submissions]);
@@ -161,9 +178,19 @@ export default function LecturerDashboard() {
                     <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Lecturer Dashboard</h1>
                     <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Plan, prioritize, and oversee your course workspaces with ease.</p>
                 </div>
-                <Link href="/lecturer/courses" className="px-4 sm:px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5 shrink-0 w-full sm:w-fit cursor-pointer">
-                    <BookOpen className="w-4 h-4" /> Go to Courses
-                </Link>
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <RefreshButton
+                        onClick={handleRefreshAll}
+                        isRefreshing={isValidating}
+                        label="Refresh"
+                        size="sm"
+                        variant="outline"
+                        title="Reload lecturer dashboard data"
+                    />
+                    <Link href="/lecturer/courses" className="px-4 sm:px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5 shrink-0 flex-1 sm:flex-none cursor-pointer">
+                        <BookOpen className="w-4 h-4" /> Go to Courses
+                    </Link>
+                </div>
             </div>
 
             {/* ── Mobile-Only Quick Action Hub ── */}
@@ -496,62 +523,6 @@ export default function LecturerDashboard() {
                             </div>
                         )}
                     </div>
-
-                    {/* Invigilation Duties Widget */}
-                    {invigilationDuties.length > 0 && (
-                        <div className="rounded-[2rem] border p-6 bg-gradient-to-br from-emerald-500/5 to-teal-500/10 border-emerald-500/20 shadow-sm space-y-4">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="p-2 rounded-xl bg-emerald-500 text-white shadow-sm">
-                                        <CalendarIcon className="w-4 h-4" />
-                                    </div>
-                                    <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">Exam Invigilation Duties</h3>
-                                </div>
-                                <span className="px-2 py-0.5 text-[10px] font-black bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 rounded-full">
-                                    {invigilationDuties.length} Assigned
-                                </span>
-                            </div>
-
-                            <div className="space-y-2.5">
-                                {invigilationDuties.map((duty: any) => (
-                                    <div
-                                        key={duty.id}
-                                        className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-emerald-200/60 dark:border-emerald-800/40 shadow-xs space-y-1"
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-black text-xs text-slate-900 dark:text-white">
-                                                {duty.courseCode}
-                                            </span>
-                                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md ${
-                                                duty.roleInExam === "Chief Invigilator"
-                                                    ? "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300"
-                                                    : "bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300"
-                                            }`}>
-                                                {duty.roleInExam}
-                                            </span>
-                                        </div>
-
-                                        <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2 flex-wrap">
-                                            <span className="flex items-center gap-1">
-                                                <CalendarIcon className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400 shrink-0" />
-                                                <span>{new Date(duty.examDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
-                                            </span>
-                                            <span className="text-slate-300 dark:text-slate-700">•</span>
-                                            <span className="flex items-center gap-1">
-                                                <Clock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
-                                                <span>{duty.timeSlot}</span>
-                                            </span>
-                                        </div>
-
-                                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5 pt-0.5">
-                                            <MapPin className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400 shrink-0" />
-                                            <span>Venue: <strong className="text-slate-800 dark:text-slate-200 font-bold">{duty.hall?.name || "TBD"}</strong></span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
 
                     {/* Shortcuts Panel */}
                     <div className="rounded-[2rem] border p-6 flex flex-col gap-3 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">

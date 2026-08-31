@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Pagination from "@/components/ui/Pagination";
 import SearchableSelect from "@/components/ui/SearchableSelect";
+import RefreshButton from "@/components/ui/RefreshButton";
 import { Shield, User } from "lucide-react";
 
 interface AuditLog {
@@ -152,6 +153,16 @@ export default function AuditLogTab() {
                             style={{ color: "var(--text-primary)" }}
                         />
                     </div>
+                </div>
+                <div className="sm:ml-auto flex items-end">
+                    <RefreshButton
+                        onClick={() => loadLogs(page)}
+                        isRefreshing={loading}
+                        label="Refresh Logs"
+                        size="md"
+                        variant="outline"
+                        title="Reload audit activity"
+                    />
                 </div>
             </div>
 

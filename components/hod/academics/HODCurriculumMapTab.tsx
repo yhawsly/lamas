@@ -113,36 +113,6 @@ const ALL_UNIVERSITY_CLASSES = [
             { name: "B.Tech ICT Top-Up LVL 300 (Weekend)", session: "WEEKEND" as const },
             { name: "B.Tech ICT Top-Up LVL 400 (Weekend)", session: "WEEKEND" as const },
         ]
-    },
-    {
-        group: "Faculty of Engineering",
-        options: [
-            { name: "BEng Electrical LVL 100 (Regular)", session: "REGULAR" as const },
-            { name: "BEng Electrical LVL 200 (Regular)", session: "REGULAR" as const },
-            { name: "BEng Electrical LVL 300 (Regular)", session: "REGULAR" as const },
-            { name: "BEng Electrical LVL 400 (Regular)", session: "REGULAR" as const },
-            { name: "BEng Mechanical LVL 100 (Regular)", session: "REGULAR" as const },
-            { name: "BEng Mechanical LVL 200 (Regular)", session: "REGULAR" as const },
-            { name: "BEng Mechanical LVL 300 (Regular)", session: "REGULAR" as const },
-            { name: "BEng Mechanical LVL 400 (Regular)", session: "REGULAR" as const },
-            { name: "BEng Electrical LVL 300 (Weekend)", session: "WEEKEND" as const },
-            { name: "BEng Mechanical LVL 300 (Weekend)", session: "WEEKEND" as const },
-        ]
-    },
-    {
-        group: "Faculty of Business & Management",
-        options: [
-            { name: "BBA Accounting LVL 100 (Regular)", session: "REGULAR" as const },
-            { name: "BBA Accounting LVL 200 (Regular)", session: "REGULAR" as const },
-            { name: "BBA Accounting LVL 300 (Regular)", session: "REGULAR" as const },
-            { name: "BBA Accounting LVL 400 (Regular)", session: "REGULAR" as const },
-            { name: "BBA Marketing LVL 100 (Regular)", session: "REGULAR" as const },
-            { name: "BBA Marketing LVL 200 (Regular)", session: "REGULAR" as const },
-            { name: "BBA Marketing LVL 300 (Regular)", session: "REGULAR" as const },
-            { name: "BBA Marketing LVL 400 (Regular)", session: "REGULAR" as const },
-            { name: "BBA Accounting LVL 300 (Weekend)", session: "WEEKEND" as const },
-            { name: "BBA Marketing LVL 300 (Weekend)", session: "WEEKEND" as const },
-        ]
     }
 ];
 

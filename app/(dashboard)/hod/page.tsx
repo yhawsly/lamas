@@ -3,6 +3,7 @@ import { Users, BarChart2, AlertTriangle, ClipboardList, BookOpen, CheckCircle, 
 
 import { useState, useRef } from "react";
 import KPICard from "@/components/ui/KPICard";
+import RefreshButton from "@/components/ui/RefreshButton";
 import useSWR from "swr";
 import dynamic from "next/dynamic";
 import { useTerm } from "@/context/TermContext";
@@ -50,8 +51,13 @@ export default function HoDDashboard() {
     const coursesUrl = selectedTermId ? `/api/courses?termId=${selectedTermId}` : "/api/courses";
 
     // Use SWR for client-side caching of all dashboard datasets
-    const { data: analyticsData } = useSWR(analyticsUrl, fetcher);
-    const { data: coursesData } = useSWR(coursesUrl, fetcher);
+    const { data: analyticsData, mutate: mutateAnalytics, isValidating: validatingAnalytics } = useSWR(analyticsUrl, fetcher);
+    const { data: coursesData, mutate: mutateCourses, isValidating: validatingCourses } = useSWR(coursesUrl, fetcher);
+    const isValidating = validatingAnalytics || validatingCourses;
+
+    const handleRefresh = async () => {
+        await Promise.all([mutateAnalytics(), mutateCourses()]);
+    };
 
     const data = analyticsData;
     const courses = Array.isArray(coursesData) ? coursesData : [];
@@ -126,9 +132,18 @@ export default function HoDDashboard() {
 
     return (
         <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in duration-500">
-            <div className="mb-2 sm:mb-4">
-                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">HOD Dashboard</h1>
-                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Department compliance, curriculum distribution, and peer observation management.</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2 sm:mb-4">
+                <div>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">HOD Dashboard</h1>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Department compliance, curriculum distribution, and peer observation management.</p>
+                </div>
+                <RefreshButton 
+                    onClick={handleRefresh} 
+                    isRefreshing={isValidating} 
+                    label="Refresh Dashboard" 
+                    size="sm" 
+                    variant="outline"
+                />
             </div>
 
             {/* ── Mobile-Only Quick Actions ── */}

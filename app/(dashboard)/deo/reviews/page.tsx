@@ -17,9 +17,11 @@ import {
 } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
+import RefreshButton from "@/components/ui/RefreshButton";
 import { useRouter } from "next/navigation";
 import { useTerm } from "@/context/TermContext";
 import { useModal } from "@/context/ModalContext";
+import { getCourseTitle } from "@/lib/courses";
 
 const RegistrySkeleton = () => (
     <div className="space-y-3 animate-pulse">
@@ -114,6 +116,9 @@ export default function DEOReviewsPage() {
 
     useEffect(() => {
         loadData();
+        const onLiveRefresh = () => { loadData(); };
+        window.addEventListener("lamas:refresh-data", onLiveRefresh);
+        return () => window.removeEventListener("lamas:refresh-data", onLiveRefresh);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTermId]);
 
@@ -388,6 +393,14 @@ export default function DEOReviewsPage() {
                         Centralized dispatch for peer reviews, overdue reviewer alerts, and moderation monitoring.
                     </p>
                 </div>
+                <RefreshButton
+                    onClick={loadData}
+                    isRefreshing={loading}
+                    label="Refresh Hub"
+                    size="sm"
+                    variant="outline"
+                    title="Reload peer review assignments"
+                />
             </div>
 
             {/* Notification alert banner */}
@@ -711,8 +724,13 @@ export default function DEOReviewsPage() {
                                                                 </div>
 
                                                                 {/* Course & Status */}
-                                                                <div className="font-bold text-base mt-1 flex items-center gap-3.5" style={{ color: "var(--text-primary)" }}>
-                                                                    {o.courseCode}
+                                                                <div className="font-bold text-base mt-1 flex items-center flex-wrap gap-2.5" style={{ color: "var(--text-primary)" }}>
+                                                                    <span className="font-black text-blue-600 dark:text-blue-400">{o.courseCode}</span>
+                                                                    {(getCourseTitle(o.courseCode) || courses.find(c => c.code === o.courseCode)?.title) && (
+                                                                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                                                            — {getCourseTitle(o.courseCode) || courses.find(c => c.code === o.courseCode)?.title}
+                                                                        </span>
+                                                                    )}
                                                                     <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${statusColors[o.status]}`}>
                                                                         {o.status}
                                                                     </span>

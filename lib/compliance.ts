@@ -8,6 +8,7 @@ export interface ComplianceScore {
     department: string;
     score: number;
     totalRequired: number;
+    fulfilledDeadlines: number;
     submitted: number;
     late: number;
     missing: number;
@@ -39,6 +40,12 @@ export async function computeComplianceScores(
                 where: currentTermId ? { termId: currentTermId } : {},
                 include: { deadline: true } 
             },
+            observedBy: {
+                where: currentTermId ? { termId: currentTermId } : {}
+            },
+            teachingObserved: {
+                where: currentTermId ? { termId: currentTermId } : {}
+            },
             department: true,
         },
     });
@@ -67,11 +74,22 @@ export async function computeComplianceScores(
         let fulfilledLate = 0;
 
         for (const d of evaluatedDeadlines) {
-            const subsForDeadline = l.submissions.filter(
-                s => s.deadlineId === d.id || (s.type === d.type && s.termId === d.termId)
-            );
-            const hasOnTime = subsForDeadline.some(s => onTimeStatuses.includes(s.status));
-            const hasLate = subsForDeadline.some(s => s.status === SubmissionStatus.LATE);
+            let hasOnTime = false;
+            let hasLate = false;
+
+            if (d.type === "OBSERVATION_REPORT" || (d.type as any) === "OBSERVATION") {
+                const hasObs = (l.observedBy && l.observedBy.some(o => o.status === "COMPLETED" || o.status === "REVIEWED")) ||
+                               (l.teachingObserved && l.teachingObserved.some(o => o.status === "COMPLETED" || o.status === "REVIEWED"));
+                if (hasObs) hasOnTime = true;
+            } else {
+                const subsForDeadline = l.submissions.filter(
+                    s => s.deadlineId === d.id || 
+                         (s.type === d.type && s.termId === d.termId) ||
+                         (s.type === SubmissionType.COURSE_TOPICS && (d.type === SubmissionType.COURSE_TOPICS || d.type === SubmissionType.WEEKLY_TOPICS || (d.type as any) === "SEMESTER_CALENDAR"))
+                );
+                hasOnTime = subsForDeadline.some(s => onTimeStatuses.includes(s.status));
+                hasLate = subsForDeadline.some(s => s.status === SubmissionStatus.LATE);
+            }
 
             if (hasOnTime) {
                 fulfilledOnTime++;
@@ -84,6 +102,7 @@ export async function computeComplianceScores(
             onTimeStatuses.includes(s.status) || s.status === SubmissionStatus.LATE
         ).length;
         const totalLateSubs = l.submissions.filter(s => s.status === SubmissionStatus.LATE).length;
+        const fulfilledDeadlines = Math.min(totalRequired, fulfilledOnTime + fulfilledLate);
 
         const missing = Math.max(0, totalRequired - (fulfilledOnTime + fulfilledLate));
 
@@ -108,6 +127,7 @@ export async function computeComplianceScores(
             department: l.department?.name ?? "N/A",
             score,
             totalRequired,
+            fulfilledDeadlines,
             submitted: totalSubmittedSubs,
             late: totalLateSubs,
             missing,
@@ -122,47 +142,89 @@ export async function getDepartmentHeatmap(termId?: number, departmentId?: numbe
         include: { users: { where: { role: { in: ["LECTURER", "HOD"] }, isActive: true } } },
     });
 
-        const types = [
-            SubmissionType.SEMESTER_CALENDAR,
-            "TOPICS", // Internal key for both COURSE_TOPICS and WEEKLY_TOPICS
-            SubmissionType.OBSERVATION_REPORT
-        ];
+    return Promise.all(
+        departments.map(async (dept) => {
+            const lecturerIds = dept.users.map((u) => u.id);
+            const heatRow: Record<string, number | string | any> = { departmentId: dept.id };
+            heatRow.department = dept.name;
+            const totalLecturers = lecturerIds.length;
 
-        return Promise.all(
-            departments.map(async (dept) => {
-                const lecturerIds = dept.users.map((u) => u.id);
-                const heatRow: Record<string, number | string | any> = { departmentId: dept.id };
-                heatRow.department = dept.name;
-
-                for (const type of types) {
-                    let whereType: any = type;
-                    if (type === "TOPICS") {
-                        whereType = { in: [SubmissionType.COURSE_TOPICS, SubmissionType.WEEKLY_TOPICS] };
-                    }
-
-                    const distinctSubmissions = await prisma.submission.findMany({
-                        where: {
-                            lecturerId: { in: lecturerIds },
-                            type: whereType,
-                            status: { in: [SubmissionStatus.SUBMITTED, SubmissionStatus.LATE, SubmissionStatus.APPROVED, SubmissionStatus.REVIEWED] },
-                            termId: termId || undefined,
-                        },
-                        select: { lecturerId: true },
-                        distinct: ['lecturerId'],
-                    });
-                    
-                    const total = lecturerIds.length;
-                    const value = total > 0 ? Math.min(100, Math.round((distinctSubmissions.length / total) * 100)) : 0;
-                    
-                    // Map back to the keys the frontend expects
-                    if (type === "TOPICS") heatRow["COURSE_TOPICS"] = value;
-                    else heatRow[type] = value;
-                }
-
+            if (totalLecturers === 0) {
+                heatRow["COURSE_TOPICS"] = 0;
+                heatRow["OBSERVATIONS"] = 0;
+                heatRow["OBSERVATION_REPORT"] = 0;
+                heatRow["RESOURCES"] = 0;
+                heatRow["SEMESTER_CALENDAR"] = 0;
                 return heatRow;
-            })
-        );
+            }
 
+            // 1. Course Syllabi & Topics
+            const distinctSyllabusSubmissions = await prisma.submission.findMany({
+                where: {
+                    lecturerId: { in: lecturerIds },
+                    type: { in: [SubmissionType.COURSE_TOPICS, SubmissionType.WEEKLY_TOPICS] },
+                    status: { in: [SubmissionStatus.SUBMITTED, SubmissionStatus.LATE, SubmissionStatus.APPROVED, SubmissionStatus.REVIEWED] },
+                    ...(termId ? { termId } : {}),
+                },
+                select: { lecturerId: true },
+                distinct: ['lecturerId'],
+            });
+            const topicsRate = Math.min(100, Math.round((distinctSyllabusSubmissions.length / totalLecturers) * 100));
+            heatRow["COURSE_TOPICS"] = topicsRate;
+
+            // 2. Observations & Appraisals (Form A & Form B peer observations)
+            const [completedFormA, completedFormB] = await Promise.all([
+                prisma.observation.findMany({
+                    where: {
+                        OR: [
+                            { lecturerId: { in: lecturerIds } },
+                            { observerId: { in: lecturerIds } }
+                        ],
+                        status: { in: ["COMPLETED", "REVIEWED"] },
+                        ...(termId ? { termId } : {}),
+                    },
+                    select: { lecturerId: true, observerId: true },
+                }),
+                prisma.teachingObservation.findMany({
+                    where: {
+                        OR: [
+                            { lecturerId: { in: lecturerIds } },
+                            { observerId: { in: lecturerIds } }
+                        ],
+                        status: { in: ["COMPLETED", "REVIEWED"] },
+                        ...(termId ? { termId } : {}),
+                    },
+                    select: { lecturerId: true, observerId: true },
+                })
+            ]);
+            const observedLecturers = new Set<number>();
+            completedFormA.forEach(o => {
+                if (lecturerIds.includes(o.lecturerId)) observedLecturers.add(o.lecturerId);
+                if (lecturerIds.includes(o.observerId)) observedLecturers.add(o.observerId);
+            });
+            completedFormB.forEach(o => {
+                if (lecturerIds.includes(o.lecturerId)) observedLecturers.add(o.lecturerId);
+                if (lecturerIds.includes(o.observerId)) observedLecturers.add(o.observerId);
+            });
+            const observationRate = Math.min(100, Math.round((observedLecturers.size / totalLecturers) * 100));
+            heatRow["OBSERVATIONS"] = observationRate;
+            heatRow["OBSERVATION_REPORT"] = observationRate;
+
+            // 3. Educational Resources
+            const distinctResourceUploaders = await prisma.resource.findMany({
+                where: {
+                    lecturerId: { in: lecturerIds },
+                },
+                select: { lecturerId: true },
+                distinct: ['lecturerId'],
+            });
+            const resourceRate = Math.min(100, Math.round((distinctResourceUploaders.length / totalLecturers) * 100));
+            heatRow["RESOURCES"] = resourceRate;
+            heatRow["SEMESTER_CALENDAR"] = resourceRate;
+
+            return heatRow;
+        })
+    );
 }
 
 export async function getMonthlyTrend(termId?: number) {

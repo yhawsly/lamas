@@ -16,6 +16,7 @@ type Class = { id: string, name: string, modules: Module[] };
 import { useParams, useRouter } from "next/navigation";
 import { useTerm } from "@/context/TermContext";
 import { useModal } from "@/context/ModalContext";
+import RefreshButton from "@/components/ui/RefreshButton";
 
 const fetcher = (url: string) => fetch(url).then(res => res.ok ? res.json() : null);
 
@@ -997,6 +998,20 @@ export default function CourseOutlinePrototype() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                        <RefreshButton
+                            onClick={async () => {
+                                if (!courseId) return;
+                                await Promise.all([
+                                    mutate(`/api/courses/${courseId}`),
+                                    mutate(selectedTermId ? `/api/courses/my-sections?termId=${selectedTermId}` : "/api/courses/my-sections"),
+                                    mutate(`/api/courses/${courseId}/syllabus${selectedTermId ? '?termId=' + selectedTermId : ''}`)
+                                ]);
+                            }}
+                            label="Refresh"
+                            size="md"
+                            variant="outline"
+                            title="Reload course syllabus and sections"
+                        />
                         <button 
                             type="button"
                             onClick={openHistoryModal} 
@@ -1010,14 +1025,14 @@ export default function CourseOutlinePrototype() {
                         <button 
                             onClick={() => handleSaveToDB(false)} 
                             disabled={isSaving || isArchiveMode} 
-                            className="flex-1 md:flex-none px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 transition-all font-bold flex items-center justify-center gap-2 shadow-sm text-sm border border-slate-200 hover:border-slate-300 disabled:opacity-50"
+                            className="flex-1 md:flex-none px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 transition-all font-bold flex items-center justify-center gap-2 shadow-sm text-sm border border-slate-200 hover:border-slate-300 disabled:opacity-50 cursor-pointer"
                         >
                             {isSaving ? "Saving..." : "Save Draft"}
                         </button>
                         <button 
                             onClick={() => handleSaveToDB(true)} 
                             disabled={isSaving || submissionStatus === "SUBMITTED" || isArchiveMode} 
-                            className={`flex-1 md:flex-none px-5 py-2.5 rounded-xl ${submissionStatus === "SUBMITTED" ? "bg-green-100 text-green-700 border-green-200 cursor-not-allowed" : isArchiveMode ? "bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30"} transition-all font-bold flex items-center justify-center gap-2 text-sm border border-transparent`}
+                            className={`flex-1 md:flex-none px-5 py-2.5 rounded-xl ${submissionStatus === "SUBMITTED" ? "bg-green-100 text-green-700 border-green-200 cursor-not-allowed" : isArchiveMode ? "bg-slate-100 text-slate-500 border-slate-200 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30 cursor-pointer"} transition-all font-bold flex items-center justify-center gap-2 text-sm border border-transparent`}
                         >
                             {isArchiveMode ? "Archive (Read Only)" : submissionStatus === "SUBMITTED" ? "Submitted" : "Submit"}
                         </button>

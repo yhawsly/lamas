@@ -1,8 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
+import { TableSkeleton } from "@/components/ui/Skeleton";
 import KPICard from "@/components/ui/KPICard";
-import { AlertCircle, Trash2, Key, Users, CheckCircle, Search, UserPlus } from "lucide-react";
+import RefreshButton from "@/components/ui/RefreshButton";
+import { AlertCircle, Trash2, Key, Users, CheckCircle, Search, UserPlus, ShieldCheck } from "lucide-react";
 
 
 
@@ -100,6 +102,7 @@ export default function AllUsersTab() {
     const totalUsers = users.length;
     const adminCount = users.filter(u => u.role === "ADMIN" || u.role === "SUPER_ADMIN").length;
     const hodCount = users.filter(u => u.role === "HOD").length;
+    const deoCount = users.filter(u => u.role === "DEO").length;
     const lecturerCount = users.filter(u => u.role === "LECTURER").length;
 
     return (
@@ -110,11 +113,12 @@ export default function AllUsersTab() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                 {[
                     { label: "Total Users", value: totalUsers, icon: <Users className="w-6 h-6" />, color: "#3b82f6" },
                     { label: "Administrators", value: adminCount, icon: <Key className="w-6 h-6" />, color: "#a855f7" },
                     { label: "HODs", value: hodCount, icon: <CheckCircle className="w-6 h-6" />, color: "#f59e0b" },
+                    { label: "Exam Officers (DEO)", value: deoCount, icon: <ShieldCheck className="w-6 h-6" />, color: "#06b6d4" },
                     { label: "Lecturers", value: lecturerCount, icon: <Users className="w-6 h-6" />, color: "#10b981" },
                 ].map((stat, i) => (
                     <KPICard key={stat.label} delay={i * 100} size="sm" {...stat} />
@@ -133,14 +137,24 @@ export default function AllUsersTab() {
                         style={{ color: "var(--text-primary)" }} 
                     />
                 </div>
-                <button
-                    onClick={() => setIsCreateModalOpen(true)}
-                    className="px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all hover:opacity-90 active:scale-95 text-white shadow-md shadow-blue-500/20"
-                    style={{ backgroundColor: "var(--primary)" }}
-                >
-                    <UserPlus className="w-5 h-5" />
-                    Add User
-                </button>
+                <div className="flex items-center gap-3">
+                    <RefreshButton
+                        onClick={fetchUsers}
+                        isRefreshing={loading}
+                        label="Refresh"
+                        size="md"
+                        variant="outline"
+                        title="Reload users list"
+                    />
+                    <button
+                        onClick={() => setIsCreateModalOpen(true)}
+                        className="px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all hover:opacity-90 active:scale-95 text-white shadow-md shadow-blue-500/20 cursor-pointer"
+                        style={{ backgroundColor: "var(--primary)" }}
+                    >
+                        <UserPlus className="w-5 h-5" />
+                        Add User
+                    </button>
+                </div>
             </div>
 
             {/* Professional List UI */}
@@ -156,7 +170,7 @@ export default function AllUsersTab() {
 
                 <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
                     {loading ? (
-                        <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" /></div>
+                        <TableSkeleton rows={5} />
                     ) : filteredUsers.length > 0 ? (
                         filteredUsers.map((u: any) => (
                             <div key={u.id} className="group flex flex-col transition-colors hover:bg-[var(--bg-hover)]" style={{ backgroundColor: "var(--bg-base)" }}>

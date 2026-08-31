@@ -4,6 +4,7 @@ import { Users, ClipboardList, Clock, BarChart2, AlertTriangle, TrendingUp, Mega
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import KPICard from "@/components/ui/KPICard";
+import RefreshButton from "@/components/ui/RefreshButton";
 import useSWR from "swr";
 import { useTerm } from "@/context/TermContext";
 import { useModal } from "@/context/ModalContext";
@@ -52,7 +53,7 @@ export default function AdminDashboard() {
     const analyticsUrl = selectedTermId ? `/api/admin/analytics?termId=${selectedTermId}` : "/api/admin/analytics";
 
     // Use SWR for client-side caching of institution analytics
-    const { data: analyticsData } = useSWR<Analytics>(analyticsUrl, fetcher);
+    const { data: analyticsData, mutate, isValidating } = useSWR<Analytics>(analyticsUrl, fetcher);
 
     const data = analyticsData;
     const loading = !analyticsData;
@@ -87,9 +88,18 @@ export default function AdminDashboard() {
 
     return (
         <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in duration-500">
-            <div className="mb-4 sm:mb-8">
-                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Admin Dashboard</h1>
-                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Institution-wide academic compliance overview and governance.</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-8">
+                <div>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Admin Dashboard</h1>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Institution-wide academic compliance overview and governance.</p>
+                </div>
+                <RefreshButton 
+                    onClick={() => mutate()} 
+                    isRefreshing={isValidating} 
+                    label="Refresh Analytics" 
+                    size="sm" 
+                    variant="outline"
+                />
             </div>
 
             {/* KPI Strip */}

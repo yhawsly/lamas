@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { AlertTriangle, AlertCircle, Calendar } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 import ReviewDossierViewer from "@/components/workspace/ReviewDossierViewer";
+import { getCourseTitle } from "@/lib/courses";
 
 const DetailWorkspaceSkeleton = () => (
     <div className="max-w-4xl mx-auto space-y-8 animate-pulse pb-20 pt-6 px-4">
@@ -384,8 +385,11 @@ export default function ConductTeachingObservationPage() {
                         <p className="font-semibold" style={{ color: "var(--text-primary)" }}>{lecturer}</p>
                     </div>
                     <div>
-                        <p className="text-sm font-medium mb-1" style={{ color: "var(--text-muted)" }}>Course Code:</p>
-                        <p className="font-semibold" style={{ color: "var(--text-primary)" }}>{data.courseCode}</p>
+                        <p className="text-sm font-medium mb-1" style={{ color: "var(--text-muted)" }}>Course:</p>
+                        <p className="font-semibold" style={{ color: "var(--text-primary)" }}>
+                            <span className="font-bold text-blue-600 dark:text-blue-400">{data.courseCode}</span>
+                            {getCourseTitle(data.courseCode) && <span className="font-medium text-slate-700 dark:text-slate-300"> — {getCourseTitle(data.courseCode)}</span>}
+                        </p>
                     </div>
                     {data.sessionDate && (
                         <div>

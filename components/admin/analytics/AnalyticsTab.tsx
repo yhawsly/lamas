@@ -9,6 +9,7 @@ import {
     RefreshCw, Layers, ArrowUpRight, Sparkles, Building, Check, X 
 } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
+import RefreshButton from "@/components/ui/RefreshButton";
 
 export function LiveAnalyticsSkeleton() {
     return (
@@ -305,14 +306,13 @@ export default function AnalyticsTab() {
                             </select>
                         </div>
 
-                        <button
-                            type="button"
+                        <RefreshButton
                             onClick={fetchAnalytics}
-                            className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer"
+                            isRefreshing={loading}
+                            label="Refresh"
+                            size="sm"
                             title="Refresh Analytics"
-                        >
-                            <RefreshCw className="w-4 h-4" />
-                        </button>
+                        />
                     </div>
                 </div>
 
@@ -418,9 +418,9 @@ export default function AnalyticsTab() {
                                             contentStyle={{ background: "var(--bg-surface)", border: "1px solid var(--bg-border)", borderRadius: "12px", color: "var(--text-primary)", fontSize: "12px", fontWeight: "bold" }} 
                                         />
                                         <Legend wrapperStyle={{ paddingTop: "15px", fontWeight: "bold", fontSize: "11px" }} />
-                                        <Bar dataKey="SEMESTER_CALENDAR" name="Calendar" fill="#60a5fa" radius={[6, 6, 0, 0]} maxBarSize={32} />
-                                        <Bar dataKey="COURSE_TOPICS" name="Topics" fill="#34d399" radius={[6, 6, 0, 0]} maxBarSize={32} />
-                                        <Bar dataKey="OBSERVATION_REPORT" name="Observation" fill="#f59e0b" radius={[6, 6, 0, 0]} maxBarSize={32} />
+                                        <Bar dataKey="COURSE_TOPICS" name="Topics & Syllabus" fill="#34d399" radius={[6, 6, 0, 0]} maxBarSize={32} />
+                                        <Bar dataKey="OBSERVATIONS" name="Peer Observations" fill="#60a5fa" radius={[6, 6, 0, 0]} maxBarSize={32} />
+                                        <Bar dataKey="RESOURCES" name="Educational Resources" fill="#f59e0b" radius={[6, 6, 0, 0]} maxBarSize={32} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>

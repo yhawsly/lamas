@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FileText, Download, Table2, Users, AlertCircle } from "lucide-react";
+import RefreshButton from "@/components/ui/RefreshButton";
 import { useTerm } from "@/context/TermContext";
 
 const ReportsSkeleton = () => (
@@ -63,20 +64,23 @@ export default function HODReportsPage() {
     const [loading, setLoading] = useState(true);
     const [exporting, setExporting] = useState(false);
 
-    useEffect(() => {
+    const loadReport = useCallback(async () => {
         setLoading(true);
-        const url = selectedTermId ? `/api/reports/department-summary?termId=${selectedTermId}` : "/api/reports/department-summary";
-        fetch(url)
-            .then(res => res.json())
-            .then(res => {
-                if (res.data) setData(res.data);
-                setLoading(false);
-            })
-            .catch(err => {
-                console.error(err);
-                setLoading(false);
-            });
+        try {
+            const url = selectedTermId ? `/api/reports/department-summary?termId=${selectedTermId}` : "/api/reports/department-summary";
+            const res = await fetch(url);
+            const json = await res.json();
+            if (json.data) setData(json.data);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
     }, [selectedTermId]);
+
+    useEffect(() => {
+        loadReport();
+    }, [loadReport]);
 
     const exportPDF = () => {
         window.print();
@@ -160,11 +164,19 @@ export default function HODReportsPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-3 print:hidden">
-                    <button onClick={exportExcel} disabled={exporting} className="flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20 text-sm font-bold transition-all shadow-sm active:scale-[0.98] disabled:opacity-50 disabled:cursor-wait">
+                    <RefreshButton
+                        onClick={loadReport}
+                        isRefreshing={loading}
+                        label="Refresh"
+                        size="md"
+                        variant="outline"
+                        title="Reload department report"
+                    />
+                    <button onClick={exportExcel} disabled={exporting} className="flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20 text-sm font-bold transition-all shadow-sm active:scale-[0.98] disabled:opacity-50 disabled:cursor-wait cursor-pointer">
                         {exporting ? <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" /> : <Table2 className="w-4 h-4" />}
                         {exporting ? "Exporting…" : "Export Excel"}
                     </button>
-                    <button onClick={exportPDF} className="flex items-center gap-2 px-5 py-3 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:hover:bg-rose-500/20 text-sm font-bold transition-all shadow-sm active:scale-[0.98]">
+                    <button onClick={exportPDF} className="flex items-center gap-2 px-5 py-3 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:hover:bg-rose-500/20 text-sm font-bold transition-all shadow-sm active:scale-[0.98] cursor-pointer">
                         <Download className="w-4 h-4" /> Export PDF
                     </button>
                 </div>

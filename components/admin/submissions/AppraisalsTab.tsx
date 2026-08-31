@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import KPICard from "@/components/ui/KPICard";
+import RefreshButton from "@/components/ui/RefreshButton";
 import { CheckCircle, Clock, AlertCircle, FileText, Search } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 import { useModal } from "@/context/ModalContext";
@@ -188,6 +189,15 @@ export default function AppraisalsTab() {
                             ]}
                         />
                     </div>
+
+                    <RefreshButton
+                        onClick={fetchSubmissions}
+                        isRefreshing={loading}
+                        label="Refresh"
+                        size="sm"
+                        variant="outline"
+                        title="Reload appraisals list"
+                    />
                 </div>
             </div>
 

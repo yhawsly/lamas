@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 import { useModal } from "@/context/ModalContext";
+import RefreshButton from "@/components/ui/RefreshButton";
 
 interface ExamHall {
     id: number;
@@ -452,9 +453,18 @@ export default function InvigilationMatrixTab({
                 </div>
 
                 <div className="flex items-center gap-2.5">
+                    <RefreshButton
+                        onClick={fetchData}
+                        isRefreshing={loading}
+                        label="Refresh"
+                        size="sm"
+                        variant="outline"
+                        title="Reload invigilation matrix"
+                    />
+
                     <button
                         onClick={onOpenHallsModal}
-                        className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition flex items-center gap-1.5"
+                        className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition flex items-center gap-1.5 cursor-pointer"
                     >
                         <Building2 className="w-4 h-4 text-emerald-500" />
                         Manage Halls ({halls.length})
@@ -462,7 +472,7 @@ export default function InvigilationMatrixTab({
 
                     <button
                         onClick={exportToExcel}
-                        className="px-4 py-2 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-sm"
+                        className="px-4 py-2 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-sm cursor-pointer"
                     >
                         <Download className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                         Export Excel
@@ -470,7 +480,7 @@ export default function InvigilationMatrixTab({
 
                     <button
                         onClick={handlePrint}
-                        className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-sm"
+                        className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-sm cursor-pointer"
                     >
                         <Printer className="w-4 h-4 text-blue-500" />
                         Print Timetable
@@ -479,7 +489,7 @@ export default function InvigilationMatrixTab({
                     {!isArchiveMode && (
                         <button
                             onClick={() => setShowCreateDrawer(!showCreateDrawer)}
-                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-sm flex items-center gap-1.5"
+                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-sm flex items-center gap-1.5 cursor-pointer"
                         >
                             <Plus className="w-4 h-4" />
                             Schedule Exam Session

@@ -46,8 +46,8 @@ const navByRole: Record<string, { label: string; href: string; icon: React.React
     DEO: [
         { label: "Course Allocations", href: "/deo", icon: <BookOpen className="w-5 h-5 shrink-0" /> },
         { label: "Curriculum Vetting", href: "/deo/vetting", icon: <FileText className="w-5 h-5 shrink-0" /> },
+        { label: "Resource Moderation", href: "/deo/resources", icon: <Library className="w-5 h-5 shrink-0" /> },
         { label: "Peer Review Hub", href: "/deo/reviews", icon: <ClipboardList className="w-5 h-5 shrink-0" /> },
-        { label: "Invigilation Matrix", href: "/deo/invigilation", icon: <Calendar className="w-5 h-5 shrink-0" /> },
         { label: "Notifications", href: "/notifications", icon: <Bell className="w-5 h-5 shrink-0" /> },
     ],
     ADMIN: [

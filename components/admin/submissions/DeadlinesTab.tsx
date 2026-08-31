@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
+import RefreshButton from "@/components/ui/RefreshButton";
 import { Clock, Plus, Calendar, AlertTriangle, Zap, CheckCircle2, AlertCircle } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 
@@ -36,16 +37,18 @@ export default function DeadlinesTab() {
     const [saving, setSaving] = useState(false);
     const [msg, setMsg] = useState("");
 
-    useEffect(() => {
-        async function load() {
-            const termParam = selectedTermId ? `?termId=${selectedTermId}` : "";
-            const r = await fetch(`/api/deadlines${termParam}`);
-            const d = await r.ok ? r.json().catch(() => []) : [];
-            setDeadlines(Array.isArray(d) ? d : []);
-            setLoading(false);
-        }
-        load();
+    const loadDeadlines = useCallback(async () => {
+        setLoading(true);
+        const termParam = selectedTermId ? `?termId=${selectedTermId}` : "";
+        const r = await fetch(`/api/deadlines${termParam}`);
+        const d = await r.ok ? r.json().catch(() => []) : [];
+        setDeadlines(Array.isArray(d) ? d : []);
+        setLoading(false);
     }, [selectedTermId]);
+
+    useEffect(() => {
+        loadDeadlines();
+    }, [loadDeadlines]);
 
     async function createDeadline(e: React.FormEvent) {
         e.preventDefault(); 
@@ -242,6 +245,20 @@ export default function DeadlinesTab() {
 
                 {/* Deadlines List - Grid of Cards */}
                 <div className="w-full space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            <h3 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>Active Submission Deadlines</h3>
+                        </div>
+                        <RefreshButton
+                            onClick={loadDeadlines}
+                            isRefreshing={loading}
+                            label="Refresh"
+                            size="sm"
+                            variant="outline"
+                            title="Reload active deadlines"
+                        />
+                    </div>
                     {loading ? (
                         <DeadlinesSkeleton />
                     ) : deadlines.length === 0 ? (

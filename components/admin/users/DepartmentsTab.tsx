@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import KPICard from "@/components/ui/KPICard";
+import { TableSkeleton } from "@/components/ui/Skeleton";
+import RefreshButton from "@/components/ui/RefreshButton";
 import { Building, Search, FolderPlus } from "lucide-react";
 
 export default function DepartmentsTab() {
@@ -106,14 +108,24 @@ export default function DepartmentsTab() {
                         style={{ color: "var(--text-primary)" }} 
                     />
                 </div>
-                <button
-                    onClick={() => setIsCreateModalOpen(true)}
-                    className="px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all hover:opacity-90 active:scale-95 text-white shadow-md shadow-blue-500/20"
-                    style={{ backgroundColor: "var(--primary)" }}
-                >
-                    <FolderPlus className="w-5 h-5" />
-                    Add Department
-                </button>
+                <div className="flex items-center gap-3">
+                    <RefreshButton
+                        onClick={fetchDepartments}
+                        isRefreshing={loading}
+                        label="Refresh"
+                        size="md"
+                        variant="outline"
+                        title="Reload departments list"
+                    />
+                    <button
+                        onClick={() => setIsCreateModalOpen(true)}
+                        className="px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all hover:opacity-90 active:scale-95 text-white shadow-md shadow-blue-500/20 cursor-pointer"
+                        style={{ backgroundColor: "var(--primary)" }}
+                    >
+                        <FolderPlus className="w-5 h-5" />
+                        Add Department
+                    </button>
+                </div>
             </div>
 
             {/* Professional List UI */}
@@ -128,7 +140,7 @@ export default function DepartmentsTab() {
 
                 <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
                     {loading ? (
-                        <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" /></div>
+                        <TableSkeleton rows={4} />
                     ) : filteredDepartments.length > 0 ? (
                         filteredDepartments.map((d: any) => (
                             <div key={d.id} className="group flex flex-col transition-colors hover:bg-[var(--bg-hover)]" style={{ backgroundColor: "var(--bg-base)" }}>

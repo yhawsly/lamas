@@ -3,7 +3,9 @@ import { ClipboardList, BookOpen, Video, ShieldCheck, Inbox } from "lucide-react
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import RefreshButton from "@/components/ui/RefreshButton";
 import { useTerm } from "@/context/TermContext";
+import { getCourseTitle } from "@/lib/courses";
 
 export default function AppraisalsPage() {
     const { data: session } = useSession();
@@ -11,6 +13,19 @@ export default function AppraisalsPage() {
     const { selectedTermId } = useTerm();
     const userId = parseInt(session?.user?.id || "0");
     const [assignments, setAssignments] = useState<any[]>([]);
+    const [courseMap, setCourseMap] = useState<Record<string, string>>({
+        "CS101": "Introduction to Computer Science & Systems",
+        "CS102": "Programming Fundamentals in C/C++",
+        "CS201": "Data Structures & Algorithms",
+        "CS202": "Object-Oriented Programming with Java",
+        "CS203": "Discrete Mathematics & Logic",
+        "CS301": "Web Development & Cloud Architecture",
+        "CS302": "Database Systems & SQL Programmability",
+        "CS303": "Operating Systems & Systems Programming",
+        "CS401": "Artificial Intelligence & Neural Networks",
+        "CS402": "Software Engineering & DevOps Practices",
+        "CS403": "Computer Networks & Distributed Systems"
+    });
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<"ALL" | "A" | "B" | "C">("ALL");
     const [activeRoleTab, setActiveRoleTab] = useState<"ALL" | "EVALUATE" | "TARGET">("ALL");
@@ -21,16 +36,27 @@ export default function AppraisalsPage() {
             const termQuery = selectedTermId ? `?termId=${selectedTermId}` : "";
             const obsQuery = selectedTermId ? `?termId=${selectedTermId}&limit=100` : "?limit=100";
 
-            const [obsRes, teachRes, modRes] = await Promise.all([
-                fetch(`/api/observations${obsQuery}`).then(r => r.json()),
-                fetch(`/api/teaching-observations${termQuery}`).then(r => r.json()),
-                fetch(`/api/moderations${termQuery}`).then(r => r.json())
+            const [obsRes, teachRes, modRes, coursesRes] = await Promise.all([
+                fetch(`/api/observations${obsQuery}`).then(r => r.json()).catch(() => ({})),
+                fetch(`/api/teaching-observations${termQuery}`).then(r => r.json()).catch(() => []),
+                fetch(`/api/moderations${termQuery}`).then(r => r.json()).catch(() => []),
+                fetch("/api/courses").then(r => r.json()).catch(() => [])
             ]);
             
-            const obs = (obsRes.data || (Array.isArray(obsRes) ? obsRes : [])).map((o: any) => ({...o, formType: "A", typeName: "Peer Observation"}));
+            const obs = (obsRes?.data || (Array.isArray(obsRes) ? obsRes : [])).map((o: any) => ({...o, formType: "A", typeName: "Peer Observation"}));
             const teach = (Array.isArray(teachRes) ? teachRes : []).map((o: any) => ({...o, formType: "B", typeName: "Teaching Observation", observerId: o.observerId, lecturerId: o.lecturerId}));
             const mod = (Array.isArray(modRes) ? modRes : []).map((o: any) => ({...o, formType: "C", typeName: "Exam Moderation", observerId: o.moderatorId, lecturerId: o.lecturerId}));
             
+            if (Array.isArray(coursesRes)) {
+                const map: Record<string, string> = {};
+                coursesRes.forEach((c: any) => { if (c.code && c.title) map[c.code] = c.title; });
+                setCourseMap(prev => ({ ...prev, ...map }));
+            } else if (coursesRes?.data && Array.isArray(coursesRes.data)) {
+                const map: Record<string, string> = {};
+                coursesRes.data.forEach((c: any) => { if (c.code && c.title) map[c.code] = c.title; });
+                setCourseMap(prev => ({ ...prev, ...map }));
+            }
+
             setAssignments([...obs, ...teach, ...mod].sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
         } finally {
             setLoading(false);
@@ -39,6 +65,9 @@ export default function AppraisalsPage() {
 
     useEffect(() => {
         load();
+        const onLiveRefresh = () => { load(); };
+        window.addEventListener("lamas:refresh-data", onLiveRefresh);
+        return () => window.removeEventListener("lamas:refresh-data", onLiveRefresh);
     }, [load]);
 
     const statusColors: Record<string, string> = {
@@ -56,9 +85,19 @@ export default function AppraisalsPage() {
 
     return (
         <div className="w-full space-y-6 sm:space-y-8 animate-in fade-in duration-500">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>Appraisals & Reviews</h1>
-                <p className="mt-1" style={{ color: "var(--text-secondary)" }}>Track all your peer observations, teaching observations, and exam moderations.</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                <div>
+                    <h1 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>Appraisals & Reviews</h1>
+                    <p className="mt-1" style={{ color: "var(--text-secondary)" }}>Track all your peer observations, teaching observations, and exam moderations.</p>
+                </div>
+                <RefreshButton
+                    onClick={load}
+                    isRefreshing={loading}
+                    label="Refresh"
+                    size="sm"
+                    variant="outline"
+                    title="Reload appraisal reviews"
+                />
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-8">
@@ -221,9 +260,14 @@ export default function AppraisalsPage() {
                                                     </span>
                                                 </div>
 
-                                                {/* Course, Status, & Role - Secondary Important */}
-                                                <div className="font-bold text-base mt-1.5 flex items-center flex-wrap gap-2.5" style={{ color: "var(--text-primary)" }}>
-                                                    <span>{o.courseCode}</span>
+                                                {/* Course, Title, Status, & Role - Secondary Important */}
+                                                <div className="font-bold text-base mt-1.5 flex items-center flex-wrap gap-2" style={{ color: "var(--text-primary)" }}>
+                                                    <span className="font-black text-blue-600 dark:text-blue-400">{o.courseCode}</span>
+                                                    {(getCourseTitle(o.courseCode) || courseMap[o.courseCode] || o.courseTitle) && (
+                                                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                                            — {getCourseTitle(o.courseCode) || courseMap[o.courseCode] || o.courseTitle}
+                                                        </span>
+                                                    )}
                                                     <span className={`text-[9px] px-2 py-0.5 rounded-md font-black tracking-widest uppercase ${isObserver ? 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300'}`}>
                                                         {isObserver ? (o.formType === "C" ? 'MODERATOR' : 'OBSERVER') : 'LECTURER'}
                                                     </span>

@@ -4,13 +4,15 @@ import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { User, Settings, LogOut, ChevronDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useSWRConfig } from "swr";
 import Sidebar from "@/components/layout/Sidebar";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import MobileActionDrawer from "@/components/layout/MobileActionDrawer";
 import NotificationBell from "@/components/ui/NotificationBell";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import TermSwitcher from "@/components/workspace/TermSwitcher";
+import RefreshButton from "@/components/ui/RefreshButton";
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -55,6 +57,21 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     const { data: session } = useSession();
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const pathname = usePathname();
+    const router = useRouter();
+    const { mutate } = useSWRConfig();
+
+    const handleGlobalRefresh = async () => {
+        try {
+            // Silently revalidate active SWR caches for live cards and lists
+            await mutate(() => true, undefined, { revalidate: true });
+            // Notify active components to re-fetch live data queries
+            if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("lamas:refresh-data"));
+            }
+        } catch (e) {
+            console.error("Global refresh error:", e);
+        }
+    };
 
     const getRoleFromPath = (path: string | null): string => {
         if (!path) return "";
@@ -152,7 +169,15 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                     </div> {/* End left side flex */}
 
                     {/* Right side global actions */}
-                    <div className="flex items-center gap-2.5 sm:gap-3">
+                    <div className="flex items-center gap-2 sm:gap-2.5">
+                        <RefreshButton 
+                            onClick={handleGlobalRefresh} 
+                            iconOnly 
+                            variant="ghost" 
+                            size="icon" 
+                            title="Refresh data (re-sync)" 
+                            className="rounded-xl border border-slate-200/80 dark:border-slate-800"
+                        />
                         <TermSwitcher />
                         <ThemeToggle />
                         <NotificationBell />

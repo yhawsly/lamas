@@ -41,9 +41,9 @@ export default function AdminDashboardCharts({ data, type }: AdminDashboardChart
                     <XAxis dataKey="department" tick={{ fill: "var(--text-secondary)", fontSize: 12 }} />
                     <YAxis tick={{ fill: "var(--text-secondary)", fontSize: 12 }} domain={[0, 100]} />
                     <Tooltip contentStyle={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--bg-border)", borderRadius: "8px", color: "var(--text-primary)" }} />
-                    <Bar dataKey="SEMESTER_CALENDAR" name="Calendar" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="COURSE_TOPICS" name="Topics" fill="#10b981" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="OBSERVATION_REPORT" name="Observation" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="COURSE_TOPICS" name="Topics & Syllabus" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="OBSERVATIONS" name="Peer Observations" fill="#10b981" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="RESOURCES" name="Educational Resources" fill="#f59e0b" radius={[4, 4, 0, 0]} />
                     <Legend formatter={(v) => <span style={{ color: "var(--text-secondary)", fontSize: 12 }}>{v}</span>} />
                 </BarChart>
             </ResponsiveContainer>

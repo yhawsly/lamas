@@ -6,6 +6,7 @@ import {
     Sparkles, Mail, Bell, Clock, RefreshCw, 
     Check, AlertTriangle, Info, ArrowRight, Paperclip, X, FileText, Upload
 } from "lucide-react";
+import RefreshButton from "@/components/ui/RefreshButton";
 
 interface RecentBroadcast {
     id: number;
@@ -59,6 +60,7 @@ export default function AdminNotifyPage() {
     const [result, setResult] = useState<{ sent: number } | null>(null);
     const [error, setError] = useState("");
     const [recentBroadcasts, setRecentBroadcasts] = useState<RecentBroadcast[]>([]);
+    const [loadingRecent, setLoadingRecent] = useState(false);
     const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
     const [attachmentUrl, setAttachmentUrl] = useState<string | null>(null);
     const [attachmentName, setAttachmentName] = useState<string | null>(null);
@@ -84,6 +86,7 @@ export default function AdminNotifyPage() {
     }, [form]);
 
     const loadRecentBroadcasts = async () => {
+        setLoadingRecent(true);
         try {
             const res = await fetch("/api/audit?action=DEPARTMENT_BROADCAST&limit=5");
             if (res.ok) {
@@ -94,7 +97,7 @@ export default function AdminNotifyPage() {
                         targetRole: item.detail?.targetRole || "All Faculty",
                         message: item.details || (typeof item.detail === "string" ? item.detail : "Institutional Announcement"),
                         createdAt: item.createdAt,
-                        recipientCount: item.detail?.recipientCount || 24,
+                        recipientCount: typeof item.detail === "object" && item.detail?.recipientCount ? item.detail.recipientCount : null,
                         senderName: item.user?.name || "System Admin",
                     }));
                     setRecentBroadcasts(formatted);
@@ -102,6 +105,8 @@ export default function AdminNotifyPage() {
             }
         } catch {
             // Non-blocking fallback
+        } finally {
+            setLoadingRecent(false);
         }
     };
 
@@ -206,7 +211,6 @@ export default function AdminNotifyPage() {
             subtitle: "Lecturers & Heads of Department",
             icon: Users,
             badge: "All Departments",
-            count: "~24 Recipients"
         },
         {
             id: "LECTURER",
@@ -214,7 +218,6 @@ export default function AdminNotifyPage() {
             subtitle: "Teaching & course-assigned faculty",
             icon: GraduationCap,
             badge: "Lecturers",
-            count: "~18 Recipients"
         },
         {
             id: "HOD",
@@ -222,7 +225,6 @@ export default function AdminNotifyPage() {
             subtitle: "Department chairs & moderators",
             icon: Shield,
             badge: "HODs",
-            count: "~6 Recipients"
         }
     ];
 
@@ -394,7 +396,7 @@ export default function AdminNotifyPage() {
                                                             {opt.title}
                                                         </div>
                                                         <div className="text-[10px] text-slate-400 mt-0.5">
-                                                            {opt.count}
+                                                            {opt.subtitle}
                                                         </div>
                                                     </div>
                                                 </button>
@@ -609,27 +611,6 @@ export default function AdminNotifyPage() {
                                 <span>HTU Academic Management</span>
                             </div>
                         </div>
-
-                        {/* Reach Estimates */}
-                        <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
-                            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                                Distribution Coverage
-                            </div>
-                            <div className="grid grid-cols-2 gap-2 text-xs">
-                                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                                    <div className="text-slate-400 text-[10px]">Estimated Reach</div>
-                                    <div className="font-black text-slate-900 dark:text-white mt-0.5">
-                                        {form.targetRole === "LECTURER" ? "18 Lecturers" : form.targetRole === "HOD" ? "6 HODs" : "24 Total Faculty"}
-                                    </div>
-                                </div>
-                                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                                    <div className="text-slate-400 text-[10px]">Delivery SLA</div>
-                                    <div className="font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
-                                        &lt; 500ms Instant
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -643,9 +624,19 @@ export default function AdminNotifyPage() {
                             Recent Institutional Broadcasts & Audit Records
                         </h3>
                     </div>
-                    <span className="text-xs font-bold text-slate-400">
-                        Past 5 Dispatches
-                    </span>
+                    <div className="flex items-center gap-3">
+                        <span className="text-xs font-bold text-slate-400 hidden sm:inline">
+                            Past 5 Dispatches
+                        </span>
+                        <RefreshButton
+                            onClick={loadRecentBroadcasts}
+                            isRefreshing={loadingRecent}
+                            label="Refresh"
+                            size="sm"
+                            variant="outline"
+                            title="Reload recent broadcasts"
+                        />
+                    </div>
                 </div>
 
                 {recentBroadcasts.length === 0 ? (
@@ -676,7 +667,7 @@ export default function AdminNotifyPage() {
                                 <div className="flex items-center gap-3 shrink-0">
                                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                                         <Check className="w-3 h-3" />
-                                        Dispatched ({bc.recipientCount} reach)
+                                        {bc.recipientCount ? `Dispatched (${bc.recipientCount} recipient${bc.recipientCount > 1 ? 's' : ''})` : "Dispatched"}
                                     </span>
                                 </div>
                             </div>

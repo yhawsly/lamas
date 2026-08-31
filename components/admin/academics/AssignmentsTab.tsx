@@ -24,6 +24,7 @@ import {
     Edit3
 } from "lucide-react";
 import KPICard from "@/components/ui/KPICard";
+import RefreshButton from "@/components/ui/RefreshButton";
 import { useTerm } from "@/context/TermContext";
 
 const AssignmentsSkeleton = () => (
@@ -177,7 +178,7 @@ function CohortPresetSelector({ value, onChange, onSelectCustom }: CohortPresetS
                 }`}
             >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className={`p-2 rounded-xl shrink-0 ${value ? "bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-sm shadow-blue-600/30" : "bg-slate-100 dark:bg-slate-800 text-slate-400"}`}>
+                    <div className={`p-2 rounded-xl shrink-0 ${value ? "bg-blue-600 text-white shadow-sm shadow-blue-600/20" : "bg-slate-100 dark:bg-slate-800 text-slate-400"}`}>
                         <GraduationCap className="w-4 h-4" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -424,7 +425,7 @@ function FacultySelector({ lecturers, selectedLecturerId, onChange }: FacultySel
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                     {selectedLecturer ? (
                         <>
-                            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm shadow-blue-600/30">
+                            <div className="w-8 h-8 rounded-xl bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm shadow-blue-600/20">
                                 {selectedLecturer.name.substring(0, 2).toUpperCase()}
                             </div>
                             <div className="min-w-0 flex-1">
@@ -542,7 +543,7 @@ function FacultySelector({ lecturers, selectedLecturerId, onChange }: FacultySel
                                         }`}
                                     >
                                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0">
+                                            <div className="w-7 h-7 rounded-lg bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0">
                                                 {lecturer.name.substring(0, 2).toUpperCase()}
                                             </div>
                                             <div className="min-w-0 flex-1">
@@ -948,6 +949,15 @@ export default function AssignmentsTab() {
                                 {lvl === "All" ? "All Levels" : `LVL ${lvl}`}
                             </button>
                         ))}
+                        <RefreshButton
+                            onClick={fetchData}
+                            isRefreshing={loading}
+                            label="Refresh"
+                            size="md"
+                            variant="outline"
+                            title="Reload course assignments"
+                            className="ml-1"
+                        />
                     </div>
                 </div>
 
@@ -1051,7 +1061,7 @@ export default function AssignmentsTab() {
                                                 setModalLecturerId(null);
                                             }}
                                             disabled={isArchiveMode}
-                                            className="flex items-center gap-1.5 px-4 py-2 rounded-2xl border-2 border-blue-500/40 dark:border-blue-400/40 bg-blue-50/90 dark:bg-blue-950/50 hover:bg-blue-600 hover:text-white hover:border-blue-600 text-blue-700 dark:text-blue-300 text-xs font-black transition-all shadow-sm hover:shadow-md cursor-pointer disabled:opacity-50 active:scale-95"
+                                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 dark:bg-blue-950/40 dark:hover:bg-blue-600 text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 active:scale-95"
                                         >
                                             <Plus className="w-4 h-4" />
                                             <span>Add Section</span>
@@ -1068,12 +1078,12 @@ export default function AssignmentsTab() {
                                             return (
                                                 <div
                                                     key={section.id}
-                                                    className="rounded-2xl border-2 p-4 transition-all hover:shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                                                    className="rounded-2xl border p-4 transition-all hover:shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                                                     style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}
                                                 >
                                                     {/* Section Info */}
                                                     <div className="flex items-center gap-3.5 flex-1 min-w-0">
-                                                        <div className={`w-2.5 h-10 rounded-full shrink-0 ${section.session === 'WEEKEND' ? 'bg-amber-500 shadow-sm shadow-amber-500/30' : 'bg-blue-600 shadow-sm shadow-blue-600/30'}`} />
+                                                        <div className={`w-2 h-10 rounded-full shrink-0 ${section.session === 'WEEKEND' ? 'bg-amber-500' : 'bg-blue-600'}`} />
                                                         <div className="min-w-0 flex-1">
                                                             <div className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
                                                                 {section.name}
@@ -1097,33 +1107,33 @@ export default function AssignmentsTab() {
                                                                 type="button"
                                                                 onClick={() => setAssignStaffModal({ isOpen: true, course, section })}
                                                                 disabled={isArchiveMode}
-                                                                className="group flex items-center gap-3 px-4 py-2 rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-md transition-all text-left cursor-pointer"
+                                                                className="group flex items-center gap-3 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-xs transition-all text-left cursor-pointer"
                                                             >
-                                                                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm shadow-blue-600/30">
+                                                                <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
                                                                     {currentLecturer.name.substring(0, 2).toUpperCase()}
                                                                 </div>
                                                                 <div className="min-w-0">
-                                                                    <div className="text-xs font-extrabold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate max-w-[150px]">
+                                                                    <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate max-w-[150px]">
                                                                         {currentLecturer.name}
                                                                     </div>
-                                                                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate max-w-[150px]">
+                                                                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate max-w-[150px]">
                                                                         {currentLecturer.department?.name?.replace('Department of ', '') || "Faculty"}
                                                                     </div>
                                                                 </div>
-                                                                <span className="text-[11px] font-black text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded-xl bg-blue-50/90 dark:bg-blue-950/50 border-2 border-blue-500/40 dark:border-blue-400/40 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all ml-1">
+                                                                <span className="text-xs font-bold text-blue-600 dark:text-blue-400 px-3 py-1 rounded-lg border border-blue-200 dark:border-blue-800/80 bg-blue-50/60 dark:bg-blue-950/40 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all ml-1">
                                                                     Change →
                                                                 </span>
                                                             </button>
                                                         ) : (
                                                             <div className="flex items-center gap-2">
-                                                                <span className="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-2 border-amber-300 dark:border-amber-700/80 shadow-xs flex items-center gap-1.5">
+                                                                <span className="px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700/80 shadow-xs flex items-center gap-1.5">
                                                                     <AlertCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> Unassigned
                                                                 </span>
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => setAssignStaffModal({ isOpen: true, course, section })}
                                                                     disabled={isArchiveMode}
-                                                                    className="flex items-center gap-1.5 px-4 py-2 rounded-2xl border-2 border-blue-500/40 dark:border-blue-400/40 bg-blue-50/90 dark:bg-blue-950/50 hover:bg-blue-600 hover:text-white hover:border-blue-600 text-blue-700 dark:text-blue-300 text-xs font-black transition-all shadow-sm hover:shadow-md cursor-pointer disabled:opacity-50 active:scale-95"
+                                                                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 dark:bg-blue-950/40 dark:hover:bg-blue-600 text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 active:scale-95"
                                                                 >
                                                                     <UserPlus className="w-4 h-4" />
                                                                     <span>Assign Staff</span>
@@ -1266,7 +1276,7 @@ export default function AssignmentsTab() {
                                             style={{ backgroundColor: isAssignedToThisSection ? undefined : "var(--bg-surface-elevated, var(--bg-hover))" }}
                                         >
                                             <div className="flex items-center gap-3.5 min-w-0">
-                                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-md shadow-blue-600/30">
+                                                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
                                                     {lecturer.name.substring(0, 2).toUpperCase()}
                                                 </div>
                                                 <div className="min-w-0">
@@ -1303,7 +1313,7 @@ export default function AssignmentsTab() {
                                                         type="button"
                                                         disabled={isAssigning}
                                                         onClick={() => handleAssignLecturer(assignStaffModal.course.id, assignStaffModal.section.id, null)}
-                                                        className="px-4 py-2 rounded-xl text-xs font-black border-2 border-rose-300 dark:border-rose-700 text-rose-700 dark:text-rose-300 bg-rose-50/80 dark:bg-rose-950/50 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                                                        className="px-4 py-2 rounded-xl text-xs font-bold border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
                                                     >
                                                         <UserMinus className="w-3.5 h-3.5" />
                                                         <span>Unassign Staff</span>
@@ -1313,7 +1323,7 @@ export default function AssignmentsTab() {
                                                         type="button"
                                                         disabled={isAssigning}
                                                         onClick={() => handleAssignLecturer(assignStaffModal.course.id, assignStaffModal.section.id, lecturer.id)}
-                                                        className="px-4 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white transition flex items-center gap-1.5 shadow-md shadow-blue-500/25 border border-blue-400/40 cursor-pointer active:scale-95"
+                                                        className="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white transition flex items-center gap-1.5 shadow-sm shadow-blue-600/20 cursor-pointer active:scale-95"
                                                     >
                                                         <UserCheck className="w-3.5 h-3.5" />
                                                         <span>Assign to Section</span>
@@ -1493,7 +1503,7 @@ export default function AssignmentsTab() {
                                 type="button"
                                 disabled={isCreatingSection || (!modalClassName.trim() && !modalClassPreset.trim())}
                                 onClick={handleCreateSectionFromModal}
-                                className="px-6 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white transition flex items-center gap-2 shadow-md shadow-blue-600/30 border border-blue-400/40 disabled:opacity-50 cursor-pointer active:scale-95"
+                                className="px-6 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white transition flex items-center gap-2 shadow-sm shadow-blue-600/20 disabled:opacity-50 cursor-pointer active:scale-95"
                             >
                                 <Plus className="w-4 h-4" />
                                 <span>{isCreatingSection ? "Creating Section..." : "Create Section"}</span>

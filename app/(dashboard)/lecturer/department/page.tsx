@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Pagination from "@/components/ui/Pagination";
+import RefreshButton from "@/components/ui/RefreshButton";
 import { Search, Send, Users, Megaphone, X, CheckCircle2, AlertCircle } from "lucide-react";
 
 interface Colleague {
@@ -116,7 +117,7 @@ export default function LecturerDepartmentPage() {
                     <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Colleagues</h1>
                     <p className="text-slate-500 mt-1 text-sm">Connect with your academic colleagues and send direct updates.</p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-3">
                     <div className="relative">
                         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input
@@ -127,9 +128,17 @@ export default function LecturerDepartmentPage() {
                             className="w-full md:w-64 pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-sm text-slate-900 dark:text-white transition-all shadow-sm"
                         />
                     </div>
+                    <RefreshButton
+                        onClick={() => loadColleagues(page)}
+                        isRefreshing={loading}
+                        label="Refresh"
+                        size="md"
+                        variant="outline"
+                        title="Reload department colleagues"
+                    />
                     <button 
                         onClick={() => openModal("ALL", "Entire Department")}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 text-sm shrink-0"
+                        className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 text-sm shrink-0 cursor-pointer"
                     >
                         <Megaphone className="w-4 h-4" />
                         <span className="hidden sm:inline">Broadcast Message</span>

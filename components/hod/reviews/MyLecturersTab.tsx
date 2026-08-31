@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Users, AlertCircle } from "lucide-react";
+import RefreshButton from "@/components/ui/RefreshButton";
 import { useTerm } from "@/context/TermContext";
 
 const MyLecturersSkeleton = () => (
@@ -38,36 +39,48 @@ export default function MyLecturersTab() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        async function load() {
-            setLoading(true);
-            try {
-                const url = selectedTermId ? `/api/admin/analytics?termId=${selectedTermId}` : "/api/admin/analytics";
-                const r = await fetch(url);
-                if (!r.ok) {
-                    const err = await r.json().catch(() => ({}));
-                    throw new Error(err.error || `Server error: ${r.status}`);
-                }
-                const d = await r.json();
-                setData(d);
-            } catch (e: any) {
-                console.error("Fetch error:", e);
-                setError(e.message);
-            } finally {
-                setLoading(false);
+    const loadLecturers = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const url = selectedTermId ? `/api/admin/analytics?termId=${selectedTermId}` : "/api/admin/analytics";
+            const r = await fetch(url);
+            if (!r.ok) {
+                const err = await r.json().catch(() => ({}));
+                throw new Error(err.error || `Server error: ${r.status}`);
             }
+            const d = await r.json();
+            setData(d);
+        } catch (e: any) {
+            console.error("Fetch error:", e);
+            setError(e.message);
+        } finally {
+            setLoading(false);
         }
-        load();
     }, [selectedTermId]);
+
+    useEffect(() => {
+        loadLecturers();
+    }, [loadLecturers]);
 
     const scores = data?.scores ?? [];
     const deptName = scores.length > 0 ? scores[0].department : "Department";
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            <div>
-                <h2 className="text-2xl font-bold tracking-tight mb-2" style={{ color: "var(--text-primary)" }}>My Lecturers</h2>
-                <p className="text-sm" style={{ color: "var(--text-muted)" }}>Compliance overview and risk monitoring for {deptName}.</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight mb-2" style={{ color: "var(--text-primary)" }}>My Lecturers</h2>
+                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>Compliance overview and risk monitoring for {deptName}.</p>
+                </div>
+                <RefreshButton
+                    onClick={loadLecturers}
+                    isRefreshing={loading}
+                    label="Refresh"
+                    size="sm"
+                    variant="outline"
+                    title="Reload department lecturers"
+                />
             </div>
 
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800/60 overflow-hidden shadow-sm flex flex-col" style={{ backgroundColor: "var(--bg-surface)" }}>
@@ -86,7 +99,7 @@ export default function MyLecturersTab() {
                             <AlertCircle className="w-10 h-10 text-red-500 mb-4" />
                             <h3 className="text-lg font-bold mb-2 text-red-500">Database Synchronization Error</h3>
                             <p className="text-sm text-red-400 mb-4">{error}</p>
-                            <button onClick={() => window.location.reload()} className="px-4 py-2 rounded-xl bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 font-bold text-xs transition-colors hover:bg-red-100 dark:hover:bg-red-500/20">
+                            <button onClick={() => loadLecturers()} className="px-4 py-2 rounded-xl bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 font-bold text-xs transition-colors hover:bg-red-100 dark:hover:bg-red-500/20 cursor-pointer">
                                 Retry Connection
                             </button>
                         </div>
@@ -127,7 +140,9 @@ export default function MyLecturersTab() {
                                         <div className="flex items-center justify-between mb-1.5">
                                             <div className="text-sm font-black" style={{ color: s.score >= 70 ? "#10b981" : "#ef4444" }}>{Math.min(100, Math.max(0, s.score))}%</div>
                                             <div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-                                                {s.submitted} / {s.totalRequired} submitted
+                                                {s.totalRequired > 0 
+                                                    ? `${s.fulfilledDeadlines ?? Math.min(s.submitted, s.totalRequired)} / ${s.totalRequired} Deliverables Met`
+                                                    : `${s.submitted} Submitted`}
                                             </div>
                                         </div>
                                         <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">

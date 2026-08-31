@@ -183,7 +183,7 @@ export default function SubmissionAuditWorkspace({
                     <button
                         type="button"
                         onClick={() => setActiveTab("AUDIT")}
-                        className="px-5 py-2.5 rounded-2xl text-xs font-black bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white transition-all flex items-center gap-2 shadow-md shadow-amber-500/25 border border-amber-400/40 active:scale-95 cursor-pointer"
+                        className="px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white transition-all flex items-center gap-2 shadow-sm shadow-amber-600/20 active:scale-95 cursor-pointer"
                     >
                         <ShieldCheck className="w-4 h-4" />
                         <span>Perform Audit</span>
@@ -207,12 +207,12 @@ export default function SubmissionAuditWorkspace({
                             key={tab.id}
                             type="button"
                             onClick={() => setActiveTab(tab.id as any)}
-                            className={`px-4 py-3 rounded-2xl text-xs font-black transition-all flex items-center gap-2 whitespace-nowrap border-2 ${
+                            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap border ${
                                 isActive
                                     ? tab.highlight
-                                        ? "bg-gradient-to-r from-amber-500 to-amber-600 border-amber-400 text-white shadow-md shadow-amber-500/25 scale-102"
-                                        : "bg-gradient-to-r from-indigo-600 to-blue-600 border-indigo-400 text-white shadow-md shadow-indigo-600/25 scale-102"
-                                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/30"
+                                        ? "bg-amber-600 border-amber-600 text-white shadow-sm shadow-amber-600/20"
+                                        : "bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-600/20"
+                                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/40 dark:hover:bg-blue-950/30"
                             }`}
                         >
                             <Icon className="w-4 h-4" />
@@ -782,7 +782,7 @@ export default function SubmissionAuditWorkspace({
                                         type="button"
                                         onClick={() => handleAuditDecision("APPROVED")}
                                         disabled={isSubmitting}
-                                        className="py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-emerald-600/30 border border-emerald-400/40 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                                        className="py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider shadow-sm shadow-emerald-600/20 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
                                     >
                                         <Check className="w-4 h-4" />
                                         <span>{isSubmitting ? "Certifying..." : "Approve Syllabus"}</span>

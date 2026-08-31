@@ -11,6 +11,9 @@ import {
     Paperclip, 
     Download, 
     Eye,
+    Check,
+    X,
+    RotateCcw,
     FileSpreadsheet,
     Search,
     Filter,
@@ -21,12 +24,13 @@ import {
     Calendar,
     UserCheck,
     Library,
-    Users,
+    ShieldCheck,
     Clock,
-    ShieldCheck
+    Sparkles
 } from "lucide-react";
 import RefreshButton from "@/components/ui/RefreshButton";
 import { TableSkeleton } from "@/components/ui/Skeleton";
+import Modal from "@/components/ui/Modal";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import KPICard from "@/components/ui/KPICard";
 import { useTerm } from "@/context/TermContext";
@@ -40,7 +44,7 @@ interface Resource {
     url: string;
     status: string;
     createdAt: string;
-    lecturer: { id: number; name: string; email?: string; role?: string };
+    lecturer: { id: number; name: string; email?: string; role?: string; department?: { name: string; code: string } };
 }
 
 const typeConfig: Record<string, { icon: React.ReactNode, bgClass: string, borderClass: string, textClass: string }> = {
@@ -56,30 +60,37 @@ const typeConfig: Record<string, { icon: React.ReactNode, bgClass: string, borde
 };
 
 const statusColors: Record<string, { badge: string; label: string }> = {
-    APPROVED: { badge: "bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20", label: "Approved by DEO" },
     PENDING: { badge: "bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20", label: "Pending DEO Review" },
+    APPROVED: { badge: "bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20", label: "Approved by DEO" },
     REJECTED: { badge: "bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20", label: "Revision Requested" },
 };
 
-export default function HODResourcesPage() {
-    const { selectedTermId } = useTerm();
+export default function DEOResourcesPage() {
+    const { isArchiveMode, selectedTermId } = useTerm();
     const [resources, setResources] = useState<Resource[]>([]);
     const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(false);
+    const [msg, setMsg] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
-    const [lecturerFilter, setLecturerFilter] = useState<string>("ALL");
+    const [statusFilter, setStatusFilter] = useState<string>("ALL");
     const [typeFilter, setTypeFilter] = useState<string>("ALL");
+
+    // Modal state for revision request
+    const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+    const [targetResource, setTargetResource] = useState<Resource | null>(null);
+    const [feedbackText, setFeedbackText] = useState("");
 
     const fetchResources = useCallback(async () => {
         setLoading(true);
         try {
-            const url = selectedTermId ? `/api/hod/resources?termId=${selectedTermId}` : "/api/hod/resources";
+            const url = selectedTermId ? `/api/deo/resources?termId=${selectedTermId}` : "/api/deo/resources";
             const res = await fetch(url);
             if (res.ok) {
                 const data = await res.json();
                 setResources(Array.isArray(data) ? data : []);
             }
         } catch (e) {
-            console.error("Failed to load HOD resources:", e);
+            console.error("Failed to load DEO resources:", e);
         } finally {
             setLoading(false);
         }
@@ -91,6 +102,47 @@ export default function HODResourcesPage() {
         window.addEventListener("lamas:refresh-data", onLiveRefresh);
         return () => window.removeEventListener("lamas:refresh-data", onLiveRefresh);
     }, [fetchResources]);
+
+    const updateStatus = async (id: number, status: "APPROVED" | "REJECTED" | "PENDING", feedback?: string) => {
+        if (isArchiveMode) {
+            setMsg("Action Disabled: Historical archive mode is read-only.");
+            setTimeout(() => setMsg(""), 3500);
+            return;
+        }
+
+        setActionLoading(true);
+        try {
+            const res = await fetch(`/api/deo/resources/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status, feedback }),
+            });
+
+            if (res.ok) {
+                setMsg(status === "APPROVED" ? "Resource approved successfully!" : "Revision request sent to lecturer.");
+                fetchResources();
+                if (isFeedbackModalOpen) {
+                    setIsFeedbackModalOpen(false);
+                    setTargetResource(null);
+                    setFeedbackText("");
+                }
+            } else {
+                const err = await res.json().catch(() => ({}));
+                setMsg(err.error || "Failed to update resource moderation status.");
+            }
+        } catch {
+            setMsg("Network error occurred. Please try again.");
+        } finally {
+            setActionLoading(false);
+            setTimeout(() => setMsg(""), 4000);
+        }
+    };
+
+    const openFeedbackModal = (res: Resource) => {
+        setTargetResource(res);
+        setFeedbackText("");
+        setIsFeedbackModalOpen(true);
+    };
 
     const handleDownloadClick = async (e: React.MouseEvent, url: string, filename: string) => {
         e.preventDefault();
@@ -116,18 +168,6 @@ export default function HODResourcesPage() {
         }
     };
 
-    // Extract unique lecturers for filtering
-    const lecturersMap = new Map<string, string>();
-    resources.forEach(r => {
-        if (r.lecturer?.name) {
-            lecturersMap.set(r.lecturer.name, r.lecturer.name);
-        }
-    });
-    const lecturerOptions = [
-        { label: "All Lecturers", value: "ALL" },
-        ...Array.from(lecturersMap.entries()).map(([name]) => ({ label: name, value: name }))
-    ];
-
     // Filter resources
     const filteredResources = resources.filter(r => {
         const matchesSearch = !searchQuery.trim() || 
@@ -135,15 +175,15 @@ export default function HODResourcesPage() {
             r.lecturer?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             r.description?.toLowerCase().includes(searchQuery.toLowerCase());
         
-        const matchesLecturer = lecturerFilter === "ALL" || r.lecturer?.name === lecturerFilter;
+        const matchesStatus = statusFilter === "ALL" || r.status === statusFilter;
         const matchesType = typeFilter === "ALL" || r.type === typeFilter;
 
-        return matchesSearch && matchesLecturer && matchesType;
+        return matchesSearch && matchesStatus && matchesType;
     });
 
-    const approvedResources = resources.filter(r => r.status === "APPROVED");
-    const pendingResources = resources.filter(r => r.status === "PENDING");
-    const totalLecturersWithResources = new Set(resources.map(r => r.lecturer?.name)).size;
+    const pendingCount = resources.filter(r => r.status === "PENDING").length;
+    const approvedCount = resources.filter(r => r.status === "APPROVED").length;
+    const rejectedCount = resources.filter(r => r.status === "REJECTED").length;
 
     return (
         <div className="w-full space-y-8 animate-in fade-in duration-400 pb-12">
@@ -151,15 +191,15 @@ export default function HODResourcesPage() {
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
                 <div>
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-amber-600/10 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30 flex items-center justify-center shadow-xs">
-                            <Library className="w-5 h-5" />
+                        <div className="w-10 h-10 rounded-2xl bg-teal-600/10 dark:bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-500/30 flex items-center justify-center shadow-xs">
+                            <ShieldCheck className="w-5 h-5" />
                         </div>
                         <div>
                             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                                Department Educational Resources
+                                Educational Resource Moderation
                             </h1>
                             <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                                View educational materials and lecture assets organized by lecturer, verified and approved by the Department Exam Officer (DEO).
+                                Review, vet, and moderate lecture slides, course outlines, and materials submitted by departmental faculty.
                             </p>
                         </div>
                     </div>
@@ -170,14 +210,14 @@ export default function HODResourcesPage() {
                     label="Refresh"
                     size="sm"
                     variant="outline"
-                    title="Reload department resources"
+                    title="Reload submitted resources"
                 />
             </header>
 
-            {/* KPI Overview */}
+            {/* KPI Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                 <KPICard
-                    label="Total Department Files"
+                    label="Total Uploads"
                     value={resources.length}
                     icon={<Library className="w-5 h-5" />}
                     color="#3b82f6"
@@ -185,57 +225,73 @@ export default function HODResourcesPage() {
                     size="sm"
                 />
                 <KPICard
-                    label="Approved by DEO"
-                    value={approvedResources.length}
-                    icon={<ShieldCheck className="w-5 h-5" />}
-                    color="#10b981"
+                    label="Pending Vetting"
+                    value={pendingCount}
+                    icon={<Clock className="w-5 h-5" />}
+                    color="#f59e0b"
                     delay={100}
                     size="sm"
                 />
                 <KPICard
-                    label="Awaiting DEO Vetting"
-                    value={pendingResources.length}
-                    icon={<Clock className="w-5 h-5" />}
-                    color="#f59e0b"
+                    label="Approved Resources"
+                    value={approvedCount}
+                    icon={<CheckCircle2 className="w-5 h-5" />}
+                    color="#10b981"
                     delay={200}
                     size="sm"
                 />
                 <KPICard
-                    label="Contributing Lecturers"
-                    value={totalLecturersWithResources}
-                    icon={<Users className="w-5 h-5" />}
-                    color="#a855f7"
+                    label="Revision Requested"
+                    value={rejectedCount}
+                    icon={<AlertCircle className="w-5 h-5" />}
+                    color="#ef4444"
                     delay={300}
                     size="sm"
                 />
             </div>
 
-            {/* Filter Bar */}
+            {msg && (
+                <div className={`p-4 rounded-xl text-sm border flex items-center gap-2.5 font-semibold transition-all animate-in slide-in-from-top-2 ${
+                    msg.includes("approved") || msg.includes("successfully")
+                        ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                        : "bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400"
+                }`}>
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    <span>{msg}</span>
+                </div>
+            )}
+
+            {/* Filter Toolbar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
                 <div className="relative flex-1 max-w-md">
                     <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                         type="text"
-                        placeholder="Search resources by title, keywords, or lecturer..."
+                        placeholder="Search resource title, lecturer, or keyword..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="w-full pl-9 pr-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                     />
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
                     <SearchableSelect
-                        value={lecturerFilter}
-                        onChange={val => setLecturerFilter(String(val))}
-                        placeholder="Filter by Lecturer"
-                        options={lecturerOptions}
+                        value={statusFilter}
+                        onChange={val => setStatusFilter(String(val))}
+                        placeholder="All Statuses"
+                        options={[
+                            { label: "All Statuses", value: "ALL" },
+                            { label: "Pending DEO Review", value: "PENDING" },
+                            { label: "Approved", value: "APPROVED" },
+                            { label: "Revision Requested", value: "REJECTED" },
+                        ]}
                     />
                     <SearchableSelect
                         value={typeFilter}
                         onChange={val => setTypeFilter(String(val))}
-                        placeholder="All Types"
+                        placeholder="All File Types"
                         options={[
-                            { label: "All Types", value: "ALL" },
+                            { label: "All File Types", value: "ALL" },
                             { label: "PDF Document", value: "PDF" },
                             { label: "Presentation Slides", value: "SLIDES" },
                             { label: "Source Code", value: "CODE" },
@@ -247,13 +303,13 @@ export default function HODResourcesPage() {
                 </div>
             </div>
 
-            {/* Resources Grouped by Lecturer */}
+            {/* Resources List / Table */}
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs">
                 <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <Library className="w-4 h-4 text-amber-500" />
+                        <Library className="w-4 h-4 text-teal-500" />
                         <h2 className="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">
-                            Faculty Educational Materials ({filteredResources.length})
+                            Department Submissions Queue ({filteredResources.length})
                         </h2>
                     </div>
                 </div>
@@ -265,9 +321,9 @@ export default function HODResourcesPage() {
                         <Library className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
                         <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No resources found</h3>
                         <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                            {searchQuery || lecturerFilter !== "ALL" || typeFilter !== "ALL"
-                                ? "No uploaded materials match your active search or filter selection."
-                                : "No educational materials uploaded for this department yet."}
+                            {searchQuery || statusFilter !== "ALL" || typeFilter !== "ALL" 
+                                ? "No items match your active search or filter criteria."
+                                : "There are currently no educational resources submitted for review."}
                         </p>
                     </div>
                 ) : (
@@ -303,7 +359,7 @@ export default function HODResourcesPage() {
 
                                             <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 pt-1">
                                                 <span className="font-semibold text-slate-700 dark:text-slate-300">
-                                                    Lecturer: <span className="font-bold text-amber-600 dark:text-amber-400">{res.lecturer?.name || "Faculty Member"}</span>
+                                                    Lecturer: <span className="font-bold text-teal-600 dark:text-teal-400">{res.lecturer?.name || "Faculty Member"}</span>
                                                 </span>
                                                 <span>•</span>
                                                 <span>{new Date(res.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
@@ -311,16 +367,16 @@ export default function HODResourcesPage() {
                                         </div>
                                     </div>
 
-                                    {/* Action Buttons: View & Download (Read-only for HOD) */}
-                                    <div className="flex items-center gap-2 shrink-0 self-end lg:self-center">
+                                    {/* Action Buttons */}
+                                    <div className="flex flex-wrap items-center gap-2 shrink-0 self-end lg:self-center">
                                         {isBrowserViewable(res.url, res.type) && (
                                             <button
                                                 onClick={(e) => {
                                                     e.preventDefault();
                                                     window.open(res.url, "_blank", "noopener,noreferrer");
                                                 }}
-                                                className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition flex items-center gap-1.5 cursor-pointer"
-                                                title="Preview material in new tab"
+                                                className="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition flex items-center gap-1.5 cursor-pointer"
+                                                title="Preview in new tab"
                                             >
                                                 <Eye className="w-3.5 h-3.5" />
                                                 <span>View</span>
@@ -329,12 +385,36 @@ export default function HODResourcesPage() {
 
                                         <button
                                             onClick={(e) => handleDownloadClick(e, res.url, res.title)}
-                                            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition flex items-center gap-1.5 cursor-pointer"
-                                            title="Download material"
+                                            className="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition flex items-center gap-1.5 cursor-pointer"
+                                            title="Download file"
                                         >
                                             <Download className="w-3.5 h-3.5" />
                                             <span>Download</span>
                                         </button>
+
+                                        {res.status !== "APPROVED" && (
+                                            <button
+                                                onClick={() => updateStatus(res.id, "APPROVED")}
+                                                disabled={actionLoading || isArchiveMode}
+                                                className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm shadow-emerald-600/20 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                                                title="Approve resource for departmental use"
+                                            >
+                                                <Check className="w-3.5 h-3.5" />
+                                                <span>Approve</span>
+                                            </button>
+                                        )}
+
+                                        {res.status !== "REJECTED" && (
+                                            <button
+                                                onClick={() => openFeedbackModal(res)}
+                                                disabled={actionLoading || isArchiveMode}
+                                                className="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                                                title="Request changes from lecturer"
+                                            >
+                                                <RotateCcw className="w-3.5 h-3.5" />
+                                                <span>Request Revision</span>
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             );
@@ -342,6 +422,61 @@ export default function HODResourcesPage() {
                     </div>
                 )}
             </div>
+
+            {/* Revision Request Feedback Modal */}
+            <Modal
+                isOpen={isFeedbackModalOpen}
+                onClose={() => {
+                    setIsFeedbackModalOpen(false);
+                    setTargetResource(null);
+                }}
+                title="Request Resource Revision"
+                size="md"
+            >
+                <div className="space-y-4">
+                    <p className="text-xs text-slate-500">
+                        Provide constructive notes to <span className="font-bold text-slate-800 dark:text-white">{targetResource?.lecturer?.name}</span> regarding what needs updating in <span className="font-semibold text-teal-600 dark:text-teal-400">&quot;{targetResource?.title}&quot;</span>.
+                    </p>
+
+                    <div>
+                        <label htmlFor="deo-feedback-notes" className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                            Moderation Feedback Notes
+                        </label>
+                        <textarea
+                            id="deo-feedback-notes"
+                            value={feedbackText}
+                            onChange={e => setFeedbackText(e.target.value)}
+                            placeholder="e.g., Please update the syllabus week 5 reference and re-upload with high-resolution diagrams..."
+                            rows={4}
+                            className="w-full p-3 rounded-xl text-xs border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        />
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsFeedbackModalOpen(false);
+                                setTargetResource(null);
+                            }}
+                            className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition cursor-pointer"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (!targetResource) return;
+                                updateStatus(targetResource.id, "REJECTED", feedbackText.trim());
+                            }}
+                            disabled={actionLoading}
+                            className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white transition shadow-sm cursor-pointer disabled:opacity-50"
+                        >
+                            {actionLoading ? "Submitting..." : "Send Revision Request"}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }

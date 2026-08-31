@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
+import { TableSkeleton } from "@/components/ui/Skeleton";
 import KPICard from "@/components/ui/KPICard";
+import RefreshButton from "@/components/ui/RefreshButton";
 import { AlertCircle, BarChart, CheckCircle, Clock, Search, AlertTriangle, UserPlus } from "lucide-react";
 
 export default function LecturerComplianceTab() {
@@ -98,14 +100,24 @@ export default function LecturerComplianceTab() {
                         style={{ color: "var(--text-primary)" }} 
                     />
                 </div>
-                <button
-                    onClick={() => setIsCreateModalOpen(true)}
-                    className="px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all hover:opacity-90 active:scale-95 text-white shadow-md shadow-blue-500/20"
-                    style={{ backgroundColor: "var(--primary)" }}
-                >
-                    <UserPlus className="w-5 h-5" />
-                    Add Lecturer
-                </button>
+                <div className="flex items-center gap-3">
+                    <RefreshButton
+                        onClick={fetchData}
+                        isRefreshing={loading}
+                        label="Refresh"
+                        size="md"
+                        variant="outline"
+                        title="Reload compliance scores"
+                    />
+                    <button
+                        onClick={() => setIsCreateModalOpen(true)}
+                        className="px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all hover:opacity-90 active:scale-95 text-white shadow-md shadow-blue-500/20 cursor-pointer"
+                        style={{ backgroundColor: "var(--primary)" }}
+                    >
+                        <UserPlus className="w-5 h-5" />
+                        Add Lecturer
+                    </button>
+                </div>
             </div>
 
             {/* Professional List UI */}
@@ -121,7 +133,7 @@ export default function LecturerComplianceTab() {
 
                 <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
                     {loading ? (
-                        <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" /></div>
+                        <TableSkeleton rows={5} />
                     ) : scores.length > 0 ? (
                         scores.map((s: any) => (
                             <div key={s.lecturerId} className="group flex flex-col transition-colors hover:bg-[var(--bg-hover)]" style={{ backgroundColor: "var(--bg-base)" }}>
