@@ -152,7 +152,7 @@ export default function ReviewCenterTab() {
                     { id: "pending", label: "Inbox", icon: <Inbox className="w-4 h-4" /> },
                     { id: "reviewed", label: "Archive", icon: <Folder className="w-4 h-4" /> }
                 ].map(t => (
-                    <button key={t.id} onClick={() => { setTab(t.id as any); setPage(1); }}
+                    <button key={t.id} onClick={() => { setTab(t.id as any); setPage(1); setSubmissions([]); }}
                         className="px-6 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-2"
                         style={{
                             backgroundColor: tab === t.id ? "var(--primary)" : "transparent",

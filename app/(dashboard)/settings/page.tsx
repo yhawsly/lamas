@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import SettingsClient from "./SettingsClient";
+import { SettingsClient } from "@/features/settings";
 
 export const metadata = {
     title: "Settings | LAMAS",

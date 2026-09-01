@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 // Bundle analyzer integration (enabled with `ANALYZE=true` env)
-const withBundleAnalyzer = require('@next/bundle-analyzer')({ enabled: process.env.ANALYZE === 'true' });
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const withBundleAnalyzer = require("@next/bundle-analyzer")({
+    enabled: process.env.ANALYZE === "true",
+});
 
 const nextConfig: NextConfig = {
     // Don't leak Next.js version in response headers
@@ -9,6 +12,16 @@ const nextConfig: NextConfig = {
 
     // Enable gzip/brotli compression
     compress: true,
+
+    // Disable production source maps to prevent leaking client source code
+    productionBrowserSourceMaps: false,
+
+    // Development logging optimization
+    logging: {
+        fetches: {
+            fullUrl: process.env.NODE_ENV === "development",
+        },
+    },
 
     // Image optimisation
     images: {

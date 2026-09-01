@@ -136,7 +136,7 @@ const getBaseTemplate = (content: string, title: string) => `
             <table width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td valign="middle" width="40">
-                  <img src="\${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/htu-logo.png" alt="LAMAS Logo" class="logo-img" />
+                  <img src="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/htu-logo.png" alt="LAMAS Logo" class="logo-img" />
                 </td>
                 <td valign="middle">
                   <span class="brand-logo">LAMAS</span>

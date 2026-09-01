@@ -111,7 +111,6 @@ export default function DEOReviewsPage() {
     const [form, setForm] = useState({ lecturerId: "", observerId: "", courseCode: "" });
     const [msg, setMsg] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isProvisioningAll, setIsProvisioningAll] = useState(false);
     const [viewMode, setViewMode] = useState<"DISPATCH" | "MATRIX">("DISPATCH");
     const [activeTab, setActiveTab] = useState<"ALL" | "A" | "B" | "C">("ALL");
     const [page, setPage] = useState(1);
@@ -263,44 +262,6 @@ export default function DEOReviewsPage() {
         }
     };
 
-    // 1-Click Batch Provisioning of All 3 Review Types across All Courses
-    const handleAutoProvisionAll = () => {
-        if (isArchiveMode) {
-            showWarning("Action Disabled", "You are viewing a read-only historical archive.");
-            return;
-        }
-
-        showConfirm({
-            title: "Auto-Provision All 3 Reviews",
-            message: "This will automatically initialize Form A (Materials Audit), Form B (Peer Observation), and Form C (Exam Moderation) across all department courses in the active semester.\n\nAssigned instructors from course sections will be automatically matched, and existing reviews will be safely preserved.\n\nProceed with batch provisioning?",
-            confirmText: "Auto-Provision All Reviews",
-            onConfirm: async () => {
-                setIsProvisioningAll(true);
-                try {
-                    const res = await fetch("/api/deo/assignments/bulk", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ termId: selectedTermId }),
-                    });
-                    const data = await res.json();
-                    if (res.ok) {
-                        showSuccess(
-                            "Batch Provisioning Completed",
-                            data.message || "All 3 review types successfully provisioned across courses!"
-                        );
-                        loadData();
-                    } else {
-                        showError("Provisioning Failed", data.error || "Failed to auto-provision reviews.");
-                    }
-                } catch {
-                    showError("Network Error", "Network error during batch review provisioning.");
-                } finally {
-                    setIsProvisioningAll(false);
-                }
-            }
-        });
-    };
-
     const statusColors: Record<string, string> = { 
         PENDING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300", 
         COMPLETED: "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300", 
@@ -443,16 +404,6 @@ export default function DEOReviewsPage() {
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                    <button
-                        type="button"
-                        onClick={handleAutoProvisionAll}
-                        disabled={isProvisioningAll}
-                        className="px-4 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-sm shadow-blue-600/20 flex items-center gap-2 active:scale-95 disabled:opacity-50 cursor-pointer"
-                        title="Automatically provision Form A, Form B, and Form C for all curriculum courses"
-                    >
-                        <Sparkles className={`w-4 h-4 ${isProvisioningAll ? "animate-spin" : ""}`} />
-                        <span>{isProvisioningAll ? "Provisioning..." : "Auto-Provision All 3 Reviews"}</span>
-                    </button>
                     <RefreshButton
                         onClick={loadData}
                         isRefreshing={loading}

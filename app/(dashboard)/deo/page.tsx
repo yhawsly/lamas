@@ -1,11 +1,10 @@
-"use client";
+import { DeoDashboardClient } from "@/features/deo-dashboard";
 
-import AssignmentsTab from "@/components/admin/academics/AssignmentsTab";
+export const metadata = {
+    title: "DEO Dashboard | LAMAS",
+    description: "Data Entry Operator dashboard for managing records and allocations.",
+};
 
-export default function DeoDashboardPage() {
-    return (
-        <div className="w-full space-y-6 animate-in fade-in duration-500">
-            <AssignmentsTab />
-        </div>
-    );
+export default function DeoPage() {
+    return <DeoDashboardClient />;
 }

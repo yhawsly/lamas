@@ -30,15 +30,15 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
+!.env.example
 
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
 
 /app/generated/prisma
 
@@ -48,16 +48,11 @@ prisma/*.db
 prisma/prisma/
 
 # uploads
-public/uploads/*.mp4
-public/uploads/*.mov
-public/uploads/*.avi
-public/uploads/*.zip
-public/uploads/*.7z
-public/uploads/*.tar
-public/uploads/*.gz
+public/uploads/*
+!public/uploads/.gitkeep
 
 # Playwright
 /playwright-report/
 /test-results/
 
-public/uploads/ManuelVormaworAformaley_REFERENCES-1784388727856.pdf
+public/docs/

@@ -690,120 +690,6 @@ async function main() {
         });
     }
 
-    // =========================================================================
-    // 8. EXAM HALLS & INVIGILATION MATRIX
-    // =========================================================================
-    console.log("   ➤ Syncing exam halls and invigilation matrix...");
-    const hallAR = await prisma.examHall.upsert({
-        where: { name: "AR Block" },
-        update: { capacity: 180 },
-        create: { name: "AR Block", capacity: 180, code: "AR-BLK", location: "Main Academic Quad", departmentId: cs.id }
-    });
-    const hallLab1 = await prisma.examHall.upsert({
-        where: { name: "Computer Lab 1" },
-        update: { capacity: 60 },
-        create: { name: "Computer Lab 1", capacity: 60, code: "CS-LAB1", location: "CS Department Building", departmentId: cs.id }
-    });
-    const hallLab2 = await prisma.examHall.upsert({
-        where: { name: "Computer Lab 2" },
-        update: { capacity: 60 },
-        create: { name: "Computer Lab 2", capacity: 60, code: "CS-LAB2", location: "CS Department Building", departmentId: cs.id }
-    });
-    const hallLT2 = await prisma.examHall.upsert({
-        where: { name: "Lecture Theatre 2" },
-        update: { capacity: 120 },
-        create: { name: "Lecture Theatre 2", capacity: 120, code: "LT-2", location: "Faculty of Engineering", departmentId: cs.id }
-    });
-
-    await prisma.examSessionInvigilation.deleteMany();
-
-    // Live Term 2 Invigilation Matrix
-    await prisma.examSessionInvigilation.createMany({
-        data: [
-            {
-                termId: term2.id,
-                courseCode: "CS201",
-                courseTitle: "Data Structures & Algorithms",
-                examDate: new Date("2026-11-24T09:00:00Z"),
-                timeSlot: "09:00 - 12:00",
-                sessionType: "MAIN",
-                hallId: hallAR.id,
-                chiefInvigilatorId: dherId,
-                assistantInvigilatorIds: [slyId],
-                targetClass: "200 Level — B.Tech Computer Science",
-                studentCount: 120,
-                notes: "Practical coding section followed by written paper in AR Block."
-            },
-            {
-                termId: term2.id,
-                courseCode: "CS301",
-                courseTitle: "Web Development & Cloud Architecture",
-                examDate: new Date("2026-11-25T14:00:00Z"),
-                timeSlot: "14:00 - 17:00",
-                sessionType: "MAIN",
-                hallId: hallLab1.id,
-                chiefInvigilatorId: slyId,
-                assistantInvigilatorIds: [sarahId],
-                targetClass: "300 Level — B.Tech Computer Science",
-                studentCount: 55,
-                notes: "Lab-based practical exam. Ensure internet connectivity is restricted."
-            },
-            {
-                termId: term2.id,
-                courseCode: "CS401",
-                courseTitle: "Artificial Intelligence & Neural Networks",
-                examDate: new Date("2026-11-27T09:00:00Z"),
-                timeSlot: "09:00 - 12:00",
-                sessionType: "MAIN",
-                hallId: hallLT2.id,
-                chiefInvigilatorId: slyId,
-                assistantInvigilatorIds: [dherId],
-                targetClass: "400 Level — B.Tech Computer Science",
-                studentCount: 65,
-                notes: "Calculators allowed. Answer booklets to be returned immediately."
-            },
-            // Archived Term 1 Invigilations (Historical Archive)
-            {
-                termId: term1.id,
-                courseCode: "CS101",
-                courseTitle: "Introduction to Computer Science",
-                examDate: new Date("2026-05-18T09:00:00Z"),
-                timeSlot: "09:00 - 12:00",
-                sessionType: "MAIN",
-                hallId: hallLT2.id,
-                chiefInvigilatorId: slyId,
-                assistantInvigilatorIds: [dherId],
-                targetClass: "100 Level — B.Tech Computer Science",
-                studentCount: 110,
-            },
-            {
-                termId: term1.id,
-                courseCode: "CS203",
-                courseTitle: "Discrete Mathematics & Logic",
-                examDate: new Date("2026-05-20T14:00:00Z"),
-                timeSlot: "14:00 - 17:00",
-                sessionType: "MAIN",
-                hallId: hallAR.id,
-                chiefInvigilatorId: dherId,
-                assistantInvigilatorIds: [sarahId],
-                targetClass: "200 Level — B.Tech Computer Science",
-                studentCount: 95,
-            },
-            {
-                termId: term1.id,
-                courseCode: "CS303",
-                courseTitle: "Operating Systems & Systems Programming",
-                examDate: new Date("2026-05-22T09:00:00Z"),
-                timeSlot: "09:00 - 12:00",
-                sessionType: "MAIN",
-                hallId: hallLab2.id,
-                chiefInvigilatorId: sarahId,
-                assistantInvigilatorIds: [slyId],
-                targetClass: "300 Level — B.Tech Computer Science",
-                studentCount: 48,
-            }
-        ]
-    });
 
     // =========================================================================
     // 9. VERIFIED EDUCATIONAL RESOURCES & LECTURE FILES
@@ -934,18 +820,19 @@ async function main() {
     for (const sec of activeSections) {
         if (!sec.lecturerId) continue;
         const key = `${sec.lecturerId}_${sec.courseId}`;
-        if (!lecturerSectionsMap[key]) {
+        const existing = lecturerSectionsMap[key];
+        if (!existing) {
             lecturerSectionsMap[key] = {
                 lecturerId: sec.lecturerId,
                 course: sec.course,
-                sections: []
+                sections: [sec]
             };
+        } else {
+            existing.sections.push(sec);
         }
-        lecturerSectionsMap[key].sections.push(sec);
     }
 
-    for (const key of Object.keys(lecturerSectionsMap)) {
-        const item = lecturerSectionsMap[key];
+    for (const item of Object.values(lecturerSectionsMap)) {
         const rawTopics = csCourseTopicsMap[item.course.code]?.topics || [
             { id: 1, title: "Course Introduction & Fundamentals", description: "Foundational concepts and principles." },
             { id: 2, title: "Theoretical Foundations", description: "Core paradigms and models." },

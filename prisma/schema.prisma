@@ -40,7 +40,6 @@ model User {
   submissions    Submission[]
   department     Department?    @relation("UserDepartment", fields: [departmentId], references: [id])
   assignedSections CourseSection[] @relation("SectionLecturer")
-  chiefInvigilations ExamSessionInvigilation[] @relation("ChiefInvigilator")
 
   @@index([departmentId])
   @@index([role])
@@ -237,7 +236,6 @@ model AcademicTerm {
   teachingObservations TeachingObservation[]
   submissions  Submission[]
   courseSections CourseSection[]
-  examInvigilations ExamSessionInvigilation[]
 }
 
 /// Lecturers academic submissions (calendars, topics, etc.)
@@ -396,56 +394,9 @@ model ActivityLog {
   @@index([userId, createdAt])
 }
 
-/// Generated system reports
-model Report {
-  id          Int        @id @default(autoincrement())
-  generatedBy Int
-  filePath    String
-  generatedAt DateTime   @default(now())
-  type        ReportType
-  filters     Json?
-}
 
-/// Examination halls and venues
-model ExamHall {
-  id            Int                       @id @default(autoincrement())
-  name          String                    @unique
-  code          String?
-  capacity      Int                       @default(50)
-  location      String?
-  departmentId  Int?
-  createdAt     DateTime                  @default(now())
-  updatedAt     DateTime                  @default(now()) @updatedAt
-  invigilations ExamSessionInvigilation[]
-}
 
-/// Scheduled exam session with room allocation and invigilator roster
-model ExamSessionInvigilation {
-  id                     Int          @id @default(autoincrement())
-  termId                 Int
-  courseCode             String
-  courseTitle            String?
-  examDate               DateTime
-  timeSlot               String       // e.g. "09:00 - 12:00" | "14:00 - 17:00"
-  sessionType            String       @default("MAIN") // "MAIN" | "MAKEUP" | "PRACTICAL"
-  hallId                 Int
-  chiefInvigilatorId     Int?
-  assistantInvigilatorIds Int[]       @default([])
-  targetClass            String?      // e.g. "300 Level", "Year 2 CS", "Class A"
-  studentCount           Int?
-  notes                  String?
-  createdAt              DateTime     @default(now())
-  updatedAt              DateTime     @default(now()) @updatedAt
 
-  term                   AcademicTerm @relation(fields: [termId], references: [id])
-  hall                   ExamHall     @relation(fields: [hallId], references: [id])
-  chiefInvigilator       User?        @relation("ChiefInvigilator", fields: [chiefInvigilatorId], references: [id])
-
-  @@index([termId])
-  @@index([hallId])
-  @@index([chiefInvigilatorId])
-  @@index([examDate, timeSlot])
-}
 
 enum Role {
   LECTURER
@@ -498,8 +449,4 @@ enum ObservationStatus {
 
 
 
-enum ReportType {
-  lecturer_summary
-  department_compliance
-  audit_report
-}
+
