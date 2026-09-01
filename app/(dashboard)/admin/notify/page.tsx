@@ -40,11 +40,11 @@ const TEMPLATES = [
         message: "Heads of Department are reminded that the peer teaching observation exercise (Form B) is now in progress. Please review your assigned faculty schedules and submit completed rubrics."
     },
     {
-        id: "invigilation_duty",
-        name: "Invigilation Matrix Notice",
-        tag: "Exams & Proctors",
+        id: "allocation_matrix_notice",
+        name: "Course Allocation Matrix Notice",
+        tag: "Academics & Teaching",
         targetRole: "LECTURER",
-        message: "The official examination invigilation schedule has been finalized. Please check your assigned proctoring venues and reporting times in your Lecturer Workspace."
+        message: "The official academic course allocation matrix has been finalized. Please check your assigned courses and teaching sections in your Lecturer Workspace."
     }
 ];
 

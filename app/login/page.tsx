@@ -106,7 +106,7 @@ export default function LoginPage() {
                                 <Users className="w-5 h-5 text-emerald-300" />
                             </div>
                             <span className="text-xs sm:text-sm font-medium">
-                                Coordinate teaching observations & invigilation rosters
+                                Coordinate teaching observations & course allocations
                             </span>
                         </div>
 

@@ -40,9 +40,8 @@ export default function LecturerDashboard() {
     const { data: notifsData, mutate: mutateNotifs, isValidating: valNotifs } = useSWR("/api/notifications", fetcher);
     const { data: resData, mutate: mutateRes, isValidating: valRes } = useSWR("/api/resources", fetcher);
     const { data: mySectionsData, mutate: mutateSections, isValidating: valSections } = useSWR(`/api/courses/my-sections${termQuery}`, fetcher);
-    const { data: invigilationData, mutate: mutateInvig, isValidating: valInvig } = useSWR(`/api/lecturer/invigilation${termQuery}`, fetcher);
 
-    const isValidating = valSubs || valDls || valNotifs || valRes || valSections || valInvig;
+    const isValidating = valSubs || valDls || valNotifs || valRes || valSections;
 
     const handleRefreshAll = async () => {
         await Promise.all([
@@ -50,8 +49,7 @@ export default function LecturerDashboard() {
             mutateDls(),
             mutateNotifs(),
             mutateRes(),
-            mutateSections(),
-            mutateInvig()
+            mutateSections()
         ]);
     };
 
@@ -61,7 +59,6 @@ export default function LecturerDashboard() {
     const resources = useMemo(() => resData?.data || [], [resData]);
     const lecturerSections = useMemo(() => mySectionsData?.sections || [], [mySectionsData]);
     const lecturerCourses = useMemo(() => mySectionsData?.courses || [], [mySectionsData]);
-    const invigilationDuties = useMemo(() => invigilationData?.data || [], [invigilationData]);
 
     const loading = !subsData || !dlsData || !notifsData || !resData || !mySectionsData;
     const [mounted, setMounted] = useState(false);

@@ -112,14 +112,10 @@ async function main() {
     const archMod = await prisma.examModeration.findMany({ where: { termId: archiveTerm.id } });
     console.log(`   Live Form C Moderations: ${liveMod.length} | Archived Form C: ${archMod.length}`);
 
-    // C. Invigilation Matrix
-    const liveInv = await prisma.examSessionInvigilation.findMany({ where: { termId: activeTerm.id } });
-    const archInv = await prisma.examSessionInvigilation.findMany({ where: { termId: archiveTerm.id } });
-    console.log(`   Live Invigilation Sessions: ${liveInv.length} | Archived Invigilations: ${archInv.length}`);
-
-    // D. Exam Halls
-    const halls = await prisma.examHall.findMany();
-    console.log(`   Examination Halls: ${halls.length} verified physical venues`);
+    // C. Course Section Allocations
+    const liveSec = await prisma.courseSection.findMany({ where: { termId: activeTerm.id } });
+    const archSec = await prisma.courseSection.findMany({ where: { termId: archiveTerm.id } });
+    console.log(`   Live Course Section Allocations: ${liveSec.length} | Archived Sections: ${archSec.length}`);
 
     console.log("\n-----------------------------------------------------------------");
     console.log("4. ADMIN & SUPER_ADMIN ROLE DATA FETCHING");

@@ -1465,7 +1465,7 @@ async function main() {
         },
         {
             userId: slyId,
-            message: "You have been assigned as Chief Invigilator for CS301 Examination in Computer Lab 1 on Nov 25.",
+            message: "You have been assigned as Peer Observer for CS302 (Web Development) on Oct 14.",
             read: true,
             createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
         },
@@ -1489,7 +1489,7 @@ async function main() {
         },
         {
             userId: deo.id,
-            message: "Final Invigilation Matrix for Semester 2 2025/2026 successfully published across Computer Science exam halls.",
+            message: "Final Course Allocation Matrix for Semester 2 2025/2026 successfully published across Computer Science department.",
             read: true,
             createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48), // 2 days ago
         }
@@ -1551,13 +1551,13 @@ async function main() {
         {
             userId: hod.id,
             action: "DEPARTMENT_BROADCAST",
-            detail: "Broadcasted faculty reminder: 'End-of-semester examination moderation questions due by Friday 5:00 PM.'",
+            detail: "Broadcasted faculty reminder: 'Mid-semester continuous assessment reports due by Friday 5:00 PM.'",
             createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48),
         },
         {
             userId: deo.id,
-            action: "INVIGILATION_MATRIX_UPDATED",
-            detail: "Updated and published examination invigilation schedule across AR Block, Computer Lab 1 & 2, LT 2.",
+            action: "ALLOCATION_MATRIX_UPDATED",
+            detail: "Updated and published semester course allocation matrix across Computer Science faculty.",
             createdAt: new Date(Date.now() - 1000 * 60 * 60 * 72),
         },
         {
