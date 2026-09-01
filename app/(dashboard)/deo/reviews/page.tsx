@@ -20,11 +20,11 @@ import { useEffect, useState, useMemo } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import RefreshButton from "@/components/ui/RefreshButton";
 import Pagination from "@/components/ui/Pagination";
-import PairingMatrixTab from "@/components/deo/PairingMatrixTab";
+import { PairingMatrixTab } from "@/features/allocations";
 import { useRouter } from "next/navigation";
 import { useTerm } from "@/context/TermContext";
 import { useModal } from "@/context/ModalContext";
-import { getCourseTitle } from "@/lib/courses";
+import { getCourseTitle } from "@/features/curriculum";
 
 const RegistrySkeleton = () => (
     <div className="space-y-3 animate-pulse">

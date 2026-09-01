@@ -1,6 +1,6 @@
 "use client";
 
-import AssignmentsTab from "@/components/admin/academics/AssignmentsTab";
+import { AssignmentsTab } from "@/features/allocations";
 
 export default function DeoAllocationsPage() {
     return (

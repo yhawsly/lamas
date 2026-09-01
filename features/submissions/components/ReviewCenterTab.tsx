@@ -5,7 +5,7 @@ import Pagination from "@/components/ui/Pagination";
 import RefreshButton from "@/components/ui/RefreshButton";
 import { useTerm } from "@/context/TermContext";
 import { useModal } from "@/context/ModalContext";
-import SubmissionAuditWorkspace, { SubmissionAuditData } from "@/components/hod/reviews/SubmissionAuditWorkspace";
+import SubmissionAuditWorkspace, { SubmissionAuditData } from "./SubmissionAuditWorkspace";
 
 const ReviewCenterSkeleton = () => (
     <div className="space-y-8 animate-pulse">

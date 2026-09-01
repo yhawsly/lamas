@@ -1,6 +1,6 @@
 "use client";
 
-import ReviewCenterTab from "@/components/hod/reviews/ReviewCenterTab";
+import { ReviewCenterTab } from "@/features/submissions";
 
 export default function DeoVettingPage() {
     return (

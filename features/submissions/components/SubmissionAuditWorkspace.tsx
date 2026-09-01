@@ -29,7 +29,7 @@ import {
     Filter,
     X
 } from "lucide-react";
-import ReviewDossierViewer from "@/components/workspace/ReviewDossierViewer";
+import { ReviewDossierViewer } from "@/features/observations";
 import { useTerm } from "@/context/TermContext";
 
 export interface SubmissionAuditData {

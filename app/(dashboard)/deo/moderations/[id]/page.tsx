@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import ReviewDossierViewer from "@/components/workspace/ReviewDossierViewer";
+import { ReviewDossierViewer } from "@/features/observations";
 
 const DetailWorkspaceSkeleton = () => (
     <div className="max-w-4xl mx-auto space-y-8 animate-pulse pb-20 pt-6 px-4">

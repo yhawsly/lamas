@@ -4,8 +4,8 @@ import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { AlertTriangle, AlertCircle, Calendar } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
-import ReviewDossierViewer from "@/components/workspace/ReviewDossierViewer";
-import { getCourseTitle } from "@/lib/courses";
+import { ReviewDossierViewer } from "@/features/observations";
+import { getCourseTitle } from "@/features/curriculum";
 
 const DetailWorkspaceSkeleton = () => (
     <div className="max-w-4xl mx-auto space-y-8 animate-pulse pb-20 pt-6 px-4">

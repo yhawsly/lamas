@@ -7,7 +7,7 @@ import {
     computeComplianceScores,
     getDepartmentHeatmap,
     getMonthlyTrend,
-} from "@/lib/compliance";
+} from "@/features/submissions";
 import { prisma } from "@/lib/prisma";
 
 // GET /api/admin/analytics

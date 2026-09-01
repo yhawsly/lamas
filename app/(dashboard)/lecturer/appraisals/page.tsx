@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import RefreshButton from "@/components/ui/RefreshButton";
 import { useTerm } from "@/context/TermContext";
-import { getCourseTitle } from "@/lib/courses";
+import { getCourseTitle } from "@/features/curriculum";
 
 export default function AppraisalsPage() {
     const { data: session } = useSession();

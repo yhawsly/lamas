@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import MyLecturersTab from "@/components/hod/reviews/MyLecturersTab";
-import ObservationsTab from "@/components/hod/reviews/ObservationsTab";
-import ReviewCenterTab from "@/components/hod/reviews/ReviewCenterTab";
+import { ObservationsTab } from "@/features/observations";
+import { ReviewCenterTab } from "@/features/submissions";
 
 export default function HODStaffManagementPage() {
     const [activeTab, setActiveTab] = useState("lecturers");

@@ -7,7 +7,7 @@ import Pagination from "@/components/ui/Pagination";
 import { CheckCircle, Clock, AlertCircle, FileText, Search } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 import { useModal } from "@/context/ModalContext";
-import SubmissionAuditWorkspace, { SubmissionAuditData } from "@/components/hod/reviews/SubmissionAuditWorkspace";
+import SubmissionAuditWorkspace, { SubmissionAuditData } from "./SubmissionAuditWorkspace";
 
 const AppraisalsSkeleton = () => (
     <div className="divide-y divide-slate-100 dark:divide-slate-800/60 animate-pulse">

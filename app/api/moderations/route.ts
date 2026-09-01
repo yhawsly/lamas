@@ -74,7 +74,7 @@ export async function POST(req: Request) {
         }
 
         // Validate Department-Level Boundary (Approach 1) & Conflict of Interest
-        const { validateDepartmentBoundary } = await import("@/lib/pairing");
+        const { validateDepartmentBoundary } = await import("@/features/allocations");
         const deptValidation = await validateDepartmentBoundary({
             courseCode,
             lecturerId: Number(lecturerId),

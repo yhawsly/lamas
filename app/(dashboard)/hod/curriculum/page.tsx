@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import CourseDirectoryTab from "@/components/admin/academics/CourseDirectoryTab";
-import AssignmentsTab from "@/components/admin/academics/AssignmentsTab";
+import { CourseDirectoryTab } from "@/features/curriculum";
+import { AssignmentsTab } from "@/features/allocations";
 import AcademicTermsTab from "@/components/admin/academics/AcademicTermsTab";
 
 export default function HODAcademicsPage() {

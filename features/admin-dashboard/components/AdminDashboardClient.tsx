@@ -10,7 +10,7 @@ import { useTerm } from "@/context/TermContext";
 import { useModal } from "@/context/ModalContext";
 
 const ComplianceChart = dynamic(() => import("@/components/analytics/ComplianceChart"), { ssr: false });
-const ObservationRadar = dynamic(() => import("@/components/analytics/ObservationRadar"), { ssr: false });
+const ObservationRadar = dynamic(() => import("@/features/observations").then(m => ({ default: m.ObservationRadar })), { ssr: false });
 const AdminDashboardCharts = dynamic(() => import("@/components/admin/analytics/AdminDashboardCharts"), { ssr: false });
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());

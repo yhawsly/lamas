@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 import { useModal } from "@/context/ModalContext";
-import { buildReciprocalPairingMap } from "@/lib/pairing-utils";
+import { buildReciprocalPairingMap } from "../services/pairing-utils";
 
 /* ─── Types ─────────────────────────────────────────────────────── */
 interface CourseRow {

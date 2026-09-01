@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
-import AppraisalsTab from "@/components/admin/submissions/AppraisalsTab";
-import DeadlinesTab from "@/components/admin/submissions/DeadlinesTab";
+import { AppraisalsTab, DeadlinesTab } from "@/features/submissions";
 
 export default function AdminSubmissionsPage() {
     const [activeTab, setActiveTab] = useState("appraisals");

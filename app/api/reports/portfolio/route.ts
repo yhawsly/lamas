@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { computeComplianceScores } from "@/lib/compliance";
+import { computeComplianceScores } from "@/features/submissions";
 import { SubmissionType, SubmissionStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";

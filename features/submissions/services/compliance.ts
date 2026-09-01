@@ -19,7 +19,7 @@ export async function computeComplianceScores(
     departmentId?: number,
     termId?: number
 ): Promise<ComplianceScore[]> {
-    const { checkAndGetActiveTerm } = await import("./active-term");
+    const { checkAndGetActiveTerm } = await import("@/lib/active-term");
     const activeTerm = await checkAndGetActiveTerm();
     const activeTermId = termId ?? activeTerm?.id;
     const currentTermId = activeTermId;
