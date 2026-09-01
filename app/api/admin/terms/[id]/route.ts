@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { headers, cookies } from "next/headers";
 
-import { generateAutomatedDeadlinesForTerm } from "@/features/submissions";
+import { generateAutomatedDeadlinesForTerm } from "@/features/submissions/server";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

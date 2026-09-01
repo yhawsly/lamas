@@ -17,12 +17,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
 
-    // Read stored collapse preference
     useEffect(() => {
         try {
             const saved = localStorage.getItem("sidebar_collapsed");
             if (saved !== null) {
-                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setIsCollapsed(saved === "true");
             }
         } catch {}

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { computeComplianceScores } from "@/features/submissions";
+import { computeComplianceScores } from "@/features/submissions/server";
 import { SubmissionType, SubmissionStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -267,7 +267,7 @@ export async function GET() {
         let moderationCount = 0;
 
         // 8. End of Semester Clearance — real data per item
-        let clearance = {
+        const clearance = {
             syllabuses: { done: false, submitted: 0, total: 0, detail: "" },
             observations: { done: false, completed: 0, total: 0, detail: "" },
             moderations: { done: false, finalized: 0, total: 0, detail: "" },

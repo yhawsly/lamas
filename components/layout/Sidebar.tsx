@@ -80,7 +80,6 @@ interface SidebarProps {
 export default function Sidebar({ isOpen = false, onClose, isCollapsed = false, onToggleCollapse }: SidebarProps) {
     const [mounted, setMounted] = useState(false);
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 

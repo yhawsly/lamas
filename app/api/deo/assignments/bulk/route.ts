@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { headers, cookies } from "next/headers";
 import { logAction } from "@/lib/audit";
-import { buildReciprocalPairingMap } from "@/features/allocations";
+import { buildReciprocalPairingMap } from "@/features/allocations/server";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

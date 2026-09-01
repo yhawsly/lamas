@@ -121,7 +121,6 @@ export default function AuditLogTab() {
     }, [actionFilter, userFilter]);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         loadLogs(1);
     }, [loadLogs]);
 

@@ -47,11 +47,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Initialize theme from localStorage on mount
     useEffect(() => {
         const saved = localStorage.getItem("lamas-theme");
-        // Migrate any legacy 'sage' to 'glass'
         const normalized = saved === "sage" ? "glass" : saved;
         const valid = THEMES.includes(normalized as Theme) ? (normalized as Theme) : "light";
-        
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setThemeState(valid);
         applyTheme(valid);
         setMounted(true);
