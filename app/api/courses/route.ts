@@ -59,6 +59,7 @@ export async function GET(req: Request) {
         const courses = await prisma.course.findMany({
             where: whereClause,
             include: { 
+                department: { select: { id: true, name: true, code: true } },
                 sections: {
                     where: termWhere,
                     select: { id: true, name: true, session: true, lecturerId: true, lecturer: { select: { name: true } } }
@@ -164,6 +165,9 @@ export async function POST(req: Request) {
                 domain: domain || null,
                 credits: credits || 3,
                 departmentId: departmentId
+            },
+            include: {
+                department: { select: { id: true, name: true, code: true } }
             }
         });
 

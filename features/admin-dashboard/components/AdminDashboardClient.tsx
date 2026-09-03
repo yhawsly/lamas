@@ -187,7 +187,7 @@ export default function AdminDashboard() {
                                 <th className="pb-3">Score</th><th className="pb-3">Submitted</th>
                                 <th className="pb-3">Late</th><th className="pb-3">Missing</th><th className="pb-3">Status</th>
                             </tr></thead>
-                            <tbody style={{ borderBottomColor: "var(--bg-border)" }} className="divide-y">
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                                 {data.scores.map(s => (
                                     <tr key={s.lecturerId} style={{ color: "var(--text-secondary)" }}>
                                         <td className="py-3"><div>{s.lecturerName}</div><div className="text-xs" style={{ color: "var(--text-muted)" }}>{s.email}</div></td>

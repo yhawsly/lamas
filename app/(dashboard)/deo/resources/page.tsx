@@ -191,15 +191,18 @@ export default function DEOResourcesPage() {
 
     return (
         <div className="w-full space-y-8 animate-in fade-in duration-400 pb-12">
-            {/* Header */}
-            <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+            {/* Header Card */}
+            <div 
+                className="rounded-2xl sm:rounded-3xl border p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all"
+                style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}
+            >
                 <div>
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-teal-600/10 dark:bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-500/30 flex items-center justify-center shadow-xs">
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-11 h-11 rounded-2xl bg-teal-600/10 dark:bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-500/30 flex items-center justify-center shadow-xs shrink-0">
                             <ShieldCheck className="w-5 h-5" />
                         </div>
                         <div>
-                            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                            <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                                 Educational Resource Moderation
                             </h1>
                             <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
@@ -216,7 +219,7 @@ export default function DEOResourcesPage() {
                     variant="outline"
                     title="Reload submitted resources"
                 />
-            </header>
+            </div>
 
             {/* KPI Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">

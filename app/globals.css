@@ -348,7 +348,8 @@ textarea::-webkit-input-placeholder {
 }
 
 /* Glass Header, Sidebar & Navigation Bars */
-.glass header {
+.glass header.sticky,
+.glass header[data-layout="header"] {
   background: rgba(255, 255, 255, 0.58) !important;
   backdrop-filter: blur(28px) saturate(200%) !important;
   -webkit-backdrop-filter: blur(28px) saturate(200%) !important;

@@ -13,6 +13,7 @@ interface SearchableSelectProps {
     onChange: (value: string | number) => void;
     placeholder?: string;
     className?: string;
+    buttonClassName?: string;
     disabledValues?: (string | number)[];
     searchable?: boolean;
     disabled?: boolean;
@@ -24,6 +25,7 @@ export default function SearchableSelect({
     onChange,
     placeholder = "Select...",
     className = "",
+    buttonClassName = "",
     disabledValues = [],
     searchable = true,
     disabled = false
@@ -53,13 +55,13 @@ export default function SearchableSelect({
             {/* Toggle Button */}
             <div
                 onClick={() => !disabled && setIsOpen(!isOpen)}
-                className={`w-full px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-between transition-all duration-200 border gap-2 shadow-sm ${
+                className={`w-full h-11 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-between transition-all duration-200 border gap-2 shadow-xs ${
                     disabled
                         ? "opacity-50 cursor-not-allowed bg-slate-100 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800"
                         : isOpen
                             ? "bg-white dark:bg-slate-900 border-indigo-500 ring-2 ring-indigo-500/20 cursor-pointer shadow-md"
-                            : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:border-indigo-500/70 dark:hover:border-indigo-400/70 hover:shadow cursor-pointer"
-                }`}
+                            : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:border-indigo-500/70 dark:hover:border-indigo-400/70 hover:shadow-xs cursor-pointer"
+                } ${buttonClassName}`}
                 style={{
                     color: selectedOption ? "var(--text-primary)" : "var(--text-muted)",
                 }}

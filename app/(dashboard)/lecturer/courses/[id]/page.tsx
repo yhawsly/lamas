@@ -1075,7 +1075,7 @@ export default function CourseOutlinePrototype() {
 
               {activeTab === "topics" && (
                 <section id="topics" className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-                  <header className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
                     <div>
                       <h2 className="text-2xl font-bold text-slate-800">Course Topics</h2>
                       <p className="text-slate-500">Define the main subjects covered in this course.</p>
@@ -1088,7 +1088,7 @@ export default function CourseOutlinePrototype() {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                       {isExporting ? "Exporting..." : "Export to Excel"}
                     </button>
-                  </header>
+                  </div>
 
                   {topics.length === 0 && !isAddingTopic ? (
                     isArchiveMode ? (
@@ -1321,7 +1321,7 @@ export default function CourseOutlinePrototype() {
                         Back to Classes
                       </button>
 
-                      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
                         <div>
                           <h2 className="text-2xl font-bold text-slate-800">{activeClass?.name}</h2>
                           <p className="text-slate-500 text-sm">Weekly Syllabus Modules & Teaching Schedule</p>
@@ -1347,7 +1347,7 @@ export default function CourseOutlinePrototype() {
                             </button>
                           )}
                         </div>
-                      </header>
+                      </div>
 
                       <div className="space-y-4">
                         {activeClass?.modules.map((m) => (
