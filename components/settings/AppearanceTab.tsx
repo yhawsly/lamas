@@ -3,52 +3,27 @@
 import { useState } from "react";
 import { 
     Palette, Sun, Moon, 
-    Sparkles, CheckCircle2, Sliders, Check 
+    Sparkles, CheckCircle2, Check 
 } from "lucide-react";
 import { useTheme, Theme } from "@/components/ThemeProvider";
 
 export default function AppearanceTab() {
     const { theme, setTheme } = useTheme();
-    const [compactMode, setCompactMode] = useState<boolean>(() => {
-        if (typeof window !== "undefined") {
-            return localStorage.getItem("lamas_compact_mode") === "true";
-        }
-        return false;
-    });
-    const [reduceMotion, setReduceMotion] = useState<boolean>(() => {
-        if (typeof window !== "undefined") {
-            return localStorage.getItem("lamas_reduce_motion") === "true";
-        }
-        return false;
-    });
+
     const [savedMsg, setSavedMsg] = useState<string | null>(null);
 
     const handleThemeChange = (newTheme: Theme) => {
         setTheme(newTheme);
         const themeLabels: Record<Theme, string> = {
             light: "Light Mode",
-            dark: "Dark Mode (Twitter Dim)",
+            dark: "Dark Mode",
             glass: "Frost Mode"
         };
         setSavedMsg(`Switched to ${themeLabels[newTheme]}.`);
         setTimeout(() => setSavedMsg(null), 2500);
     };
 
-    const handleToggleCompact = () => {
-        const newVal = !compactMode;
-        setCompactMode(newVal);
-        localStorage.setItem("lamas_compact_mode", String(newVal));
-        setSavedMsg("Display density updated.");
-        setTimeout(() => setSavedMsg(null), 2500);
-    };
 
-    const handleToggleMotion = () => {
-        const newVal = !reduceMotion;
-        setReduceMotion(newVal);
-        localStorage.setItem("lamas_reduce_motion", String(newVal));
-        setSavedMsg("Motion preferences updated.");
-        setTimeout(() => setSavedMsg(null), 2500);
-    };
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -125,7 +100,7 @@ export default function AppearanceTab() {
                         </div>
                         <div className="mt-4">
                             <div className="font-extrabold text-sm" style={{ color: theme === "dark" ? "#FFFFFF" : "var(--text-primary)" }}>Dark Mode</div>
-                            <p className="text-xs mt-0.5" style={{ color: theme === "dark" ? "#8B98A5" : "var(--text-muted)" }}>Twitter Dim dark navy view</p>
+                            <p className="text-xs mt-0.5" style={{ color: theme === "dark" ? "#8B98A5" : "var(--text-muted)" }}>Dark navy view</p>
                         </div>
                     </button>
 
@@ -148,62 +123,12 @@ export default function AppearanceTab() {
                         </div>
                         <div className="mt-4">
                             <div className="font-extrabold text-sm" style={{ color: "var(--text-primary)" }}>Frost Mode</div>
-                            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>iPhone frosted glass & acrylic look</p>
+                            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Frosted glass & acrylic look</p>
                         </div>
                     </button>
                 </div>
             </div>
 
-            {/* Accessibility & Interface Density */}
-            <div className="rounded-2xl border p-6 shadow-xs space-y-6" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
-                <div className="flex items-center gap-3 border-b pb-4" style={{ borderColor: "var(--bg-border)" }}>
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                        <Sliders className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>Workspace Density & Accessibility</h3>
-                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>Fine-tune dashboard density and visual comfort</p>
-                    </div>
-                </div>
-
-                <div className="divide-y" style={{ borderColor: "var(--bg-border)" }}>
-                    <div className="py-4 flex items-center justify-between">
-                        <div>
-                            <h4 className="font-bold text-xs" style={{ color: "var(--text-primary)" }}>Compact Table & Form Density</h4>
-                            <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>Reduce padding on courses, timetables, and submission lists to fit more data on screen.</p>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={handleToggleCompact}
-                            className={`w-12 h-6 rounded-full transition-colors relative shrink-0 ml-4 cursor-pointer ${
-                                compactMode ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-600"
-                            }`}
-                        >
-                            <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                                compactMode ? "left-7" : "left-1"
-                            }`} />
-                        </button>
-                    </div>
-
-                    <div className="py-4 flex items-center justify-between">
-                        <div>
-                            <h4 className="font-bold text-xs" style={{ color: "var(--text-primary)" }}>Reduce Dynamic Animations</h4>
-                            <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>Disable smooth sliding and fade transitions for lower battery consumption or motion sensitivity.</p>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={handleToggleMotion}
-                            className={`w-12 h-6 rounded-full transition-colors relative shrink-0 ml-4 cursor-pointer ${
-                                reduceMotion ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-600"
-                            }`}
-                        >
-                            <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                                reduceMotion ? "left-7" : "left-1"
-                            }`} />
-                        </button>
-                    </div>
-                </div>
-            </div>
         </div>
     );
 }
