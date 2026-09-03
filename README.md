@@ -20,14 +20,13 @@ LAMAS is a comprehensive, enterprise-grade academic management, monitoring, and 
 
 ### 📋 Data Entry Officer (DEO)
 * **Appraisal Dispatch Center:** Fast dispatch and assignment of evaluation workflows (Form A, Form B, Form C).
-* **Invigilation Matrix & Scheduling:** Build examination invigilation schedules, assign chief/assistant invigilators, and track venues.
 * **Assignments Registry:** Live search, filtering, and assignment tracking with responsive skeleton loaders.
 
 ### 🎓 Lecturer Portal
 * **Course Workspaces:** Manage course topics, syllabus completion, and learning resource uploads.
 * **Appraisal Submissions:** Submit syllabus compliance reports, course files, and appraisal self-evaluations.
 * **Peer Reviews & Moderations:** Perform assigned internal exam moderation and teaching observation reviews.
-* **Schedule & Calendar:** View upcoming classes, invigilation duties, and observation dates.
+* **Schedule & Calendar:** View upcoming classes and observation dates.
 
 ---
 
@@ -147,7 +146,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ├── components/               # Modular UI Components
 │   ├── admin/                # Admin views (Academics, Deadlines, At-Risk, Logs)
 │   ├── hod/                  # HOD views (Review Center, Observations, Reports)
-│   ├── deo/                  # DEO views (Forms dispatch, Invigilation matrix)
+│   ├── deo/                  # DEO views (Forms dispatch)
 │   ├── lecturer/             # Lecturer views (Courses, Appraisals, Submissions)
 │   ├── layout/               # Global Header, Sidebar, and Breadcrumbs
 │   └── ui/                   # Reusable UI primitives (Buttons, Modals, Skeletons)

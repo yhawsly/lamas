@@ -4,22 +4,15 @@ import React, { useState } from "react";
 import {
     ArrowLeft,
     CheckCircle2,
-    AlertTriangle,
     FileText,
     BookOpen,
     Layers,
-    Calendar,
     Award,
-    Download,
-    Eye,
     Printer,
     Clock,
     Sparkles,
     ShieldCheck,
-    CheckSquare,
     XCircle,
-    Send,
-    Tag,
     User,
     Mail,
     Building,
@@ -70,11 +63,11 @@ export default function SubmissionAuditWorkspace({
     const [feedback, setFeedback] = useState(submission.feedback || "");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [auditChecklist, setAuditChecklist] = useState({
-        cloAligned: true,
-        topicsCoverage: true,
-        assessmentPolicy: true,
-        resourcesAdequate: true,
-        pacingBalanced: true
+        formatConforms: true,
+        descConforms: true,
+        objSpecific: true,
+        outcomesAchievable: true,
+        topicsRelevant: true
     });
 
     const content = submission.content || {};
@@ -103,9 +96,7 @@ export default function SubmissionAuditWorkspace({
         }
     };
 
-    const handlePrint = () => {
-        window.print();
-    };
+
 
     const getStatusBadge = (st: string) => {
         switch (st) {
@@ -693,11 +684,11 @@ export default function SubmissionAuditWorkspace({
 
                             <div className="space-y-3">
                                 {[
-                                    { key: "cloAligned", title: "Learning Outcomes (CLOs) Compliance", desc: "Course outcomes conform to Bloom's taxonomy & faculty accreditation criteria." },
-                                    { key: "topicsCoverage", title: "Comprehensive Curriculum Coverage", desc: "Weekly modules cover all mandatory master syllabus themes and topics." },
-                                    { key: "assessmentPolicy", title: "Assessment Weighting & Policy Adherence", desc: "Continuous and final exam weights sum to 100% and follow departmental limits." },
-                                    { key: "resourcesAdequate", title: "Instructional Resources & Materials Currency", desc: "Uploaded PDFs, notes, slides, and textbook editions are current and accessible." },
-                                    { key: "pacingBalanced", title: "Laboratory & Contact Hours Pacing", desc: "Schedule balances theoretical instruction with hands-on practical lab activities." }
+                                    { key: "formatConforms", title: "Format Compliance", desc: "The course outline conforms to the prescribed format of the University." },
+                                    { key: "descConforms", title: "Curriculum Alignment", desc: "The course description conforms with the approved curriculum." },
+                                    { key: "objSpecific", title: "Objective Specificity", desc: "The course objectives are specific." },
+                                    { key: "outcomesAchievable", title: "Achievable Outcomes", desc: "The learning outcomes are achievable." },
+                                    { key: "topicsRelevant", title: "Topic Relevance", desc: "The topics are relevant to the course." }
                                 ].map(item => (
                                     <label
                                         key={item.key}

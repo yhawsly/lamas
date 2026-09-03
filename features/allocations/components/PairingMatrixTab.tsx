@@ -11,17 +11,14 @@ import {
     Eye,
     ShieldCheck,
     ChevronDown,
-    Scale,
     Users,
-    Zap,
-    RotateCcw,
     Link2,
     Unlink,
     Tag,
 } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 import { useModal } from "@/context/ModalContext";
-import { buildReciprocalPairingMap } from "../services/pairing-utils";
+
 
 /* ─── Types ─────────────────────────────────────────────────────── */
 interface CourseRow {
@@ -154,37 +151,6 @@ export default function PairingMatrixTab({ onRefresh }: { onRefresh?: () => void
         });
     };
 
-    /* auto-pair: reciprocal */
-    const autoReciprocal = () => {
-        const map = buildReciprocalPairingMap(faculty);
-        const next = { ...draftPairings };
-        matrix.forEach(row => {
-            const iid = row.instructor?.id;
-            if (!iid) return;
-            const pid = map[iid];
-            const peer = pid ? faculty.find(f => f.id === pid) : faculty.find(f => f.id !== iid && (!row.departmentId || f.departmentId === row.departmentId));
-            if (peer) next[row.courseCode] = { observerAId: peer.id, observerBId: peer.id, moderatorCId: peer.id };
-        });
-        setDraftPairings(next);
-        showSuccess("Auto-Paired", "Reciprocal pairs assigned for all 3 review types.");
-    };
-
-    /* auto-pair: workload balance */
-    const autoWorkload = () => {
-        const counts: Record<number, number> = {};
-        faculty.forEach(f => { counts[f.id] = 0; });
-        const next = { ...draftPairings };
-        matrix.forEach(row => {
-            const iid = row.instructor?.id;
-            const pool = faculty.filter(f => f.id !== iid && (!row.departmentId || f.departmentId === row.departmentId));
-            if (!pool.length) return;
-            const pick = [...pool].sort((a, b) => (counts[a.id] || 0) - (counts[b.id] || 0))[0];
-            counts[pick.id] = (counts[pick.id] || 0) + 3;
-            next[row.courseCode] = { observerAId: pick.id, observerBId: pick.id, moderatorCId: pick.id };
-        });
-        setDraftPairings(next);
-        showSuccess("Workload Balanced", "Review load distributed equally across faculty.");
-    };
 
     /* save */
     const save = () => {
@@ -288,7 +254,6 @@ export default function PairingMatrixTab({ onRefresh }: { onRefresh?: () => void
                     </div>
 
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
-                        <ToolBtn icon={<Zap size={13} />} label="Auto-Pair All" onClick={autoReciprocal} primary disabled={isArchiveMode} />
                         <ToolBtn icon={<Save size={13} />} label={isSaving ? "Saving..." : "Save Pairings"} onClick={save} success disabled={isSaving || isArchiveMode} />
                     </div>
                 </div>
@@ -459,7 +424,15 @@ export default function PairingMatrixTab({ onRefresh }: { onRefresh?: () => void
 
                                         {/* Expand button */}
                                         <button
-                                            onClick={() => setExpandedIds(prev => { const n = new Set(prev); n.has(entry.id) ? n.delete(entry.id) : n.add(entry.id); return n; })}
+                                            onClick={() => setExpandedIds(prev => { 
+                                                const n = new Set(prev); 
+                                                if (n.has(entry.id)) {
+                                                    n.delete(entry.id);
+                                                } else {
+                                                    n.add(entry.id);
+                                                }
+                                                return n; 
+                                            })}
                                             title={expanded ? "Collapse" : "Per-course control"}
                                             style={{
                                                 width: 32, height: 32, borderRadius: 9, border: "1px solid var(--bg-border, #e2e8f0)",

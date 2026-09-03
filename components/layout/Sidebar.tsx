@@ -11,7 +11,6 @@ import {
     Users, 
     BarChart2,
     BookOpen,
-    Calendar,
     PanelLeftClose,
     PanelLeftOpen
 } from "lucide-react";

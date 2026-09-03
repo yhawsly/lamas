@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { User, Settings, LogOut, ChevronDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import MobileActionDrawer from "@/components/layout/MobileActionDrawer";
@@ -53,7 +53,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     const { data: session } = useSession();
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const pathname = usePathname();
-    const router = useRouter();
+
 
     const getRoleFromPath = (path: string | null): string => {
         if (!path) return "";

@@ -1,5 +1,5 @@
 "use client";
-import { FileText, Library, Bell, BookOpen, Clock, PartyPopper, ClipboardList, Calendar as CalendarIcon, Eye, Plus, ArrowUpRight, TrendingUp, CheckCircle2, AlertCircle, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { FileText, Library, Bell, BookOpen, Clock, PartyPopper, ClipboardList, Calendar as CalendarIcon, Eye, ArrowUpRight, TrendingUp, CheckCircle2, AlertCircle, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { useEffect, useState, useMemo } from "react";

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { 
-    Folder, 
     FileText, 
     BarChart2, 
     Code, 
@@ -12,21 +11,15 @@ import {
     Download, 
     Eye,
     Check,
-    X,
     RotateCcw,
     FileSpreadsheet,
     Search,
-    Filter,
     Image as ImageIcon,
     CheckCircle2,
     AlertCircle,
-    Building2,
-    Calendar,
-    UserCheck,
     Library,
     ShieldCheck,
     Clock,
-    Sparkles
 } from "lucide-react";
 import RefreshButton from "@/components/ui/RefreshButton";
 import { TableSkeleton } from "@/components/ui/Skeleton";
@@ -75,12 +68,13 @@ export default function DEOResourcesPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("ALL");
     const [typeFilter, setTypeFilter] = useState<string>("ALL");
+    const [lecturerFilter, setLecturerFilter] = useState<string>("ALL");
     const [page, setPage] = useState(1);
     const ITEMS_PER_PAGE = 10;
 
     useEffect(() => {
         setPage(1);
-    }, [searchQuery, statusFilter, typeFilter, selectedTermId]);
+    }, [searchQuery, statusFilter, typeFilter, lecturerFilter, selectedTermId]);
 
     // Modal state for revision request
     const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
@@ -184,9 +178,12 @@ export default function DEOResourcesPage() {
         
         const matchesStatus = statusFilter === "ALL" || r.status === statusFilter;
         const matchesType = typeFilter === "ALL" || r.type === typeFilter;
+        const matchesLecturer = lecturerFilter === "ALL" || String(r.lecturer?.id) === lecturerFilter;
 
-        return matchesSearch && matchesStatus && matchesType;
+        return matchesSearch && matchesStatus && matchesType && matchesLecturer;
     });
+
+    const uniqueLecturers = Array.from(new Map(resources.filter(r => r.lecturer).map(r => [r.lecturer.id, r.lecturer.name])).entries());
 
     const pendingCount = resources.filter(r => r.status === "PENDING").length;
     const approvedCount = resources.filter(r => r.status === "APPROVED").length;
@@ -282,6 +279,15 @@ export default function DEOResourcesPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
+                    <SearchableSelect
+                        value={lecturerFilter}
+                        onChange={val => setLecturerFilter(String(val))}
+                        placeholder="All Lecturers"
+                        options={[
+                            { label: "All Lecturers", value: "ALL" },
+                            ...uniqueLecturers.map(([id, name]) => ({ label: name, value: String(id) }))
+                        ]}
+                    />
                     <SearchableSelect
                         value={statusFilter}
                         onChange={val => setStatusFilter(String(val))}

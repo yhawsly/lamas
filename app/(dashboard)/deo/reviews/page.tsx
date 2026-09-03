@@ -100,7 +100,7 @@ const DeoDashboardSkeleton = () => (
 export default function DEOReviewsPage() {
     const router = useRouter();
     const { selectedTermId, isArchiveMode } = useTerm();
-    const { showWarning, showError, showSuccess, showConfirm } = useModal();
+    const { showWarning, showError, showSuccess } = useModal();
     const [assignments, setAssignments] = useState<any[]>([]);
     const [courses, setCourses] = useState<any[]>([]);
     const [lecturers, setLecturers] = useState<any[]>([]);

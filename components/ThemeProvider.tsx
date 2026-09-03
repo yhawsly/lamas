@@ -42,7 +42,7 @@ function applyTheme(t: Theme) {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const [theme, setThemeState] = useState<Theme>("light");
-    const [mounted, setMounted] = useState(false);
+    const [, setMounted] = useState(false);
 
     // Initialize theme from localStorage on mount
     useEffect(() => {

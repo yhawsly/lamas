@@ -6,7 +6,7 @@ import {
 } from "recharts";
 import { 
     TrendingUp, Users, AlertTriangle, CheckCircle2, Search, Filter, 
-    RefreshCw, Layers, ArrowUpRight, Sparkles, Building, Check, X 
+    Layers, ArrowUpRight, Sparkles, Building, Check, X 
 } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 import RefreshButton from "@/components/ui/RefreshButton";

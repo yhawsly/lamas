@@ -19,7 +19,7 @@ export async function GET(req: Request) {
         const url = new URL(req.url, "http://localhost");
         const courseCode = url.searchParams.get("courseCode");
         const lecturerIdParam = url.searchParams.get("lecturerId");
-        const reviewType = url.searchParams.get("type") || "A"; // "A", "B", or "C"
+
 
         if (!courseCode) {
             return NextResponse.json({ error: "Missing courseCode parameter" }, { status: 400 });

@@ -77,6 +77,7 @@ export default function AppraisalsTab() {
 
     useEffect(() => {
         fetchSubmissions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filter, selectedTermId]);
 
     const handleStatusUpdate = async (submissionId: number, status: string, auditFeedback: string) => {

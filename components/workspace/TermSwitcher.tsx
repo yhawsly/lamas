@@ -79,7 +79,7 @@ export default function TermSwitcher() {
                 title={
                     isArchiveMode
                         ? `Viewing Read-Only Archive: ${selectedTerm?.name} (Commenced: ${formatDate(selectedTerm?.startDate || "")})`
-                        : `Viewing Live Workspace: ${selectedTerm?.name} (Commenced: ${formatDate(selectedTerm?.startDate || "")})`
+                        : `Viewing Active Workspace: ${selectedTerm?.name} (Commenced: ${formatDate(selectedTerm?.startDate || "")})`
                 }
             >
                 {/* Indicator Icon */}
@@ -98,7 +98,7 @@ export default function TermSwitcher() {
                 <div className="flex flex-col text-left max-w-[190px] sm:max-w-[270px] truncate">
                     <div className="flex items-center gap-1.5 truncate">
                         <span className="text-[10px] uppercase tracking-wider font-extrabold opacity-70">
-                            {isArchiveMode ? "ARCHIVE:" : "LIVE:"}
+                            {isArchiveMode ? "ARCHIVE:" : "ACTIVE:"}
                         </span>
                         <span className="truncate font-bold">{selectedTerm?.name || liveTerm?.name || "Select Workspace"}</span>
                     </div>
@@ -137,7 +137,7 @@ export default function TermSwitcher() {
                         {/* Live Workspace Section (Strictly 1 Live Term) */}
                         <div>
                             <div className="px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                                <Sparkles className="w-3 h-3" /> Live Workspace
+                                <Sparkles className="w-3 h-3" /> ACTIVE
                             </div>
                             <div className="mt-1 space-y-1">
                                 {!liveTerm ? (
@@ -282,7 +282,7 @@ export default function TermSwitcher() {
                                 }}
                                 className="font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-0.5"
                             >
-                                <RefreshCw className="w-3 h-3" /> Live Mode
+                                <RefreshCw className="w-3 h-3" /> Active Mode
                             </button>
                         )}
                     </div>

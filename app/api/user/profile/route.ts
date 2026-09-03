@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 const ALLOWED_AVATAR_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg"];
 const MAX_AVATAR_SIZE = 4 * 1024 * 1024; // 4MB
 
-export async function POST(req: NextRequest) {
+export async function PATCH(req: NextRequest) {
     try {
         const rateLimit = checkRateLimit(req, "general");
         if (!rateLimit.allowed) {

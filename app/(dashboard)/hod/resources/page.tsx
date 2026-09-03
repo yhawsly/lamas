@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { 
-    Folder, 
     FileText, 
     BarChart2, 
     Code, 
@@ -13,13 +12,7 @@ import {
     Eye,
     FileSpreadsheet,
     Search,
-    Filter,
     Image as ImageIcon,
-    CheckCircle2,
-    AlertCircle,
-    Building2,
-    Calendar,
-    UserCheck,
     Library,
     Users,
     Clock,
