@@ -95,17 +95,19 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             )}
 
             {/* ── Sidebar (fixed on all screens) ── */}
-            <Sidebar 
-                isOpen={sidebarOpen} 
-                onClose={() => setSidebarOpen(false)}
-                isCollapsed={isCollapsed}
-                onToggleCollapse={toggleCollapse}
-            />
+            <div className="print:hidden">
+                <Sidebar 
+                    isOpen={sidebarOpen} 
+                    onClose={() => setSidebarOpen(false)}
+                    isCollapsed={isCollapsed}
+                    onToggleCollapse={toggleCollapse}
+                />
+            </div>
 
             {/* ── Main content area (pushed right by fixed sidebar on desktop) ── */}
-            <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isCollapsed ? "lg:ml-20" : "lg:ml-64"}`}>
-                {/* Top bar (Visible on all screens) */}
-                <header className="flex items-center justify-between px-4 lg:px-8 py-3 lg:py-4 border-b sticky top-0 z-30"
+            <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isCollapsed ? "lg:ml-20" : "lg:ml-64"} print:!ml-0 print:!p-0 print:!m-0 print:!w-full`}>
+                {/* Top bar (Hidden on print) */}
+                <header className="flex items-center justify-between px-4 lg:px-8 py-3 lg:py-4 border-b sticky top-0 z-30 print:hidden"
                     style={{ background: "var(--bg-base)", borderColor: "var(--bg-border)" }}>
                     <div className="flex items-center gap-3">
                         {/* Mobile hamburger menu */}
@@ -210,18 +212,22 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-x-hidden overflow-y-auto pb-28 lg:pb-8">
-                    <div className="px-3.5 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8 w-full">{children}</div>
+                <main className="flex-1 overflow-x-hidden overflow-y-auto pb-28 lg:pb-8 print:!p-0 print:!pb-0 print:!overflow-visible">
+                    <div className="px-3.5 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8 w-full print:!p-0">{children}</div>
                 </main>
 
                 {/* ── Native Mobile Bottom Navigation Bar ── */}
-                <MobileBottomNav onOpenDrawer={() => setMobileDrawerOpen(true)} />
+                <div className="print:hidden">
+                    <MobileBottomNav onOpenDrawer={() => setMobileDrawerOpen(true)} />
+                </div>
 
                 {/* ── Native Mobile Slide-Up Quick Action Drawer ── */}
-                <MobileActionDrawer 
-                    isOpen={mobileDrawerOpen} 
-                    onClose={() => setMobileDrawerOpen(false)} 
-                />
+                <div className="print:hidden">
+                    <MobileActionDrawer 
+                        isOpen={mobileDrawerOpen} 
+                        onClose={() => setMobileDrawerOpen(false)} 
+                    />
+                </div>
             </div>
         </div>
     );

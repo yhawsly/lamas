@@ -608,51 +608,51 @@ async function main() {
 
     const sectionsData = [
         // CS101 - Sylvester Yhaw & Dr. Redeemer
-        { code: "CS101", name: "B.Tech Computer Science LVL 100 (Regular)", session: "REGULAR" as const, lecturerId: slyId, dayOfWeek: "Tuesday", startTime: "08:30 AM", endTime: "10:30 AM", venue: "Computer Lab 1" },
-        { code: "CS101", name: "B.Tech ICT LVL 100 (Weekend)", session: "WEEKEND" as const, lecturerId: slyId, dayOfWeek: "Saturday", startTime: "08:30 AM", endTime: "11:30 AM", venue: "CS Lab 1" },
-        { code: "CS101", name: "HND Computer Science LVL 100 (Regular)", session: "REGULAR" as const, lecturerId: dherId, dayOfWeek: "Thursday", startTime: "10:45 AM", endTime: "12:45 PM", venue: "Computer Lab 2" },
+        { code: "CS101", name: "B.Tech Computer Science LVL 100 (Regular)", session: "REGULAR" as const, lecturerId: slyId, dayOfWeek: "Tuesday", startTime: "08:30 AM", endTime: "10:30 AM", venue: "AVIC LAB" },
+        { code: "CS101", name: "B.Tech ICT LVL 100 (Weekend)", session: "WEEKEND" as const, lecturerId: slyId, dayOfWeek: "Saturday", startTime: "08:30 AM", endTime: "11:30 AM", venue: "ARAD LAB" },
+        { code: "CS101", name: "HND Computer Science LVL 100 (Regular)", session: "REGULAR" as const, lecturerId: dherId, dayOfWeek: "Thursday", startTime: "10:45 AM", endTime: "12:45 PM", venue: "MAIN OCTAGON" },
         
         // CS102 - Dr. Redeemer
-        { code: "CS102", name: "B.Tech Computer Science LVL 100 (Regular)", session: "REGULAR" as const, lecturerId: dherId, dayOfWeek: "Monday", startTime: "10:45 AM", endTime: "12:45 PM", venue: "Computer Lab 1" },
-        { code: "CS102", name: "B.Tech ICT LVL 100 (Regular)", session: "REGULAR" as const, lecturerId: dherId, dayOfWeek: "Wednesday", startTime: "01:30 PM", endTime: "03:30 PM", venue: "Science Block Rm 102" },
-        { code: "CS102", name: "HND ICT LVL 100 (Weekend)", session: "WEEKEND" as const, lecturerId: dherId, dayOfWeek: "Saturday", startTime: "12:00 PM", endTime: "03:00 PM", venue: "Main Hall A" },
+        { code: "CS102", name: "B.Tech Computer Science LVL 100 (Regular)", session: "REGULAR" as const, lecturerId: dherId, dayOfWeek: "Monday", startTime: "10:45 AM", endTime: "12:45 PM", venue: "FAD LAB" },
+        { code: "CS102", name: "B.Tech ICT LVL 100 (Regular)", session: "REGULAR" as const, lecturerId: dherId, dayOfWeek: "Wednesday", startTime: "01:30 PM", endTime: "03:30 PM", venue: "BASEMENT" },
+        { code: "CS102", name: "HND ICT LVL 100 (Weekend)", session: "WEEKEND" as const, lecturerId: dherId, dayOfWeek: "Saturday", startTime: "12:00 PM", endTime: "03:00 PM", venue: "DIGITAL LAB" },
 
         // CS201 - Dr. Redeemer
-        { code: "CS201", name: "B.Tech Computer Science LVL 200 (Regular)", session: "REGULAR" as const, lecturerId: dherId, dayOfWeek: "Wednesday", startTime: "08:30 AM", endTime: "10:30 AM", venue: "Computer Lab 2" },
-        { code: "CS201", name: "B.Tech ICT LVL 200 (Weekend)", session: "WEEKEND" as const, lecturerId: dherId, dayOfWeek: "Sunday", startTime: "08:30 AM", endTime: "11:30 AM", venue: "CS Lab 1" },
+        { code: "CS201", name: "B.Tech Computer Science LVL 200 (Regular)", session: "REGULAR" as const, lecturerId: dherId, dayOfWeek: "Wednesday", startTime: "08:30 AM", endTime: "10:30 AM", venue: "OCTAGON WING" },
+        { code: "CS201", name: "B.Tech ICT LVL 200 (Weekend)", session: "WEEKEND" as const, lecturerId: dherId, dayOfWeek: "Sunday", startTime: "08:30 AM", endTime: "11:30 AM", venue: "V BLOCK" },
 
         // CS202 - Dr. Sarah Lim
-        { code: "CS202", name: "B.Tech Computer Science LVL 200 (Regular)", session: "REGULAR" as const, lecturerId: sarahId, dayOfWeek: "Tuesday", startTime: "01:30 PM", endTime: "03:30 PM", venue: "Computer Lab 1" },
-        { code: "CS202", name: "B.Tech ICT LVL 200 (Regular)", session: "REGULAR" as const, lecturerId: sarahId, dayOfWeek: "Thursday", startTime: "08:30 AM", endTime: "10:30 AM", venue: "Lecture Theatre 2" },
-        { code: "CS202", name: "HND Computer Science LVL 200 (Weekend)", session: "WEEKEND" as const, lecturerId: sarahId, dayOfWeek: "Saturday", startTime: "08:30 AM", endTime: "11:30 AM", venue: "Computer Lab 3" },
+        { code: "CS202", name: "B.Tech Computer Science LVL 200 (Regular)", session: "REGULAR" as const, lecturerId: sarahId, dayOfWeek: "Tuesday", startTime: "01:30 PM", endTime: "03:30 PM", venue: "AVIC LAB" },
+        { code: "CS202", name: "B.Tech ICT LVL 200 (Regular)", session: "REGULAR" as const, lecturerId: sarahId, dayOfWeek: "Thursday", startTime: "08:30 AM", endTime: "10:30 AM", venue: "ARAD LAB" },
+        { code: "CS202", name: "HND Computer Science LVL 200 (Weekend)", session: "WEEKEND" as const, lecturerId: sarahId, dayOfWeek: "Saturday", startTime: "08:30 AM", endTime: "11:30 AM", venue: "MAIN OCTAGON" },
 
         // CS203 - Dr. Redeemer
-        { code: "CS203", name: "B.Tech Computer Science LVL 200 (Regular)", session: "REGULAR" as const, lecturerId: dherId, dayOfWeek: "Friday", startTime: "08:30 AM", endTime: "10:30 AM", venue: "Science Block Rm 102" },
-        { code: "CS203", name: "HND ICT LVL 200 (Regular)", session: "REGULAR" as const, lecturerId: dherId, dayOfWeek: "Friday", startTime: "11:00 AM", endTime: "01:00 PM", venue: "Computer Lab 2" },
+        { code: "CS203", name: "B.Tech Computer Science LVL 200 (Regular)", session: "REGULAR" as const, lecturerId: dherId, dayOfWeek: "Friday", startTime: "08:30 AM", endTime: "10:30 AM", venue: "FAD LAB" },
+        { code: "CS203", name: "HND ICT LVL 200 (Regular)", session: "REGULAR" as const, lecturerId: dherId, dayOfWeek: "Friday", startTime: "11:00 AM", endTime: "01:00 PM", venue: "BASEMENT" },
 
         // CS301 - Sylvester Yhaw
-        { code: "CS301", name: "B.Tech Computer Science LVL 300 (Regular)", session: "REGULAR" as const, lecturerId: slyId, dayOfWeek: "Monday", startTime: "01:30 PM", endTime: "03:30 PM", venue: "Software Engineering Lab" },
-        { code: "CS301", name: "B.Tech Computer Science Top-Up LVL 300 (Weekend)", session: "WEEKEND" as const, lecturerId: slyId, dayOfWeek: "Saturday", startTime: "03:30 PM", endTime: "06:30 PM", venue: "CS Lab 1" },
+        { code: "CS301", name: "B.Tech Computer Science LVL 300 (Regular)", session: "REGULAR" as const, lecturerId: slyId, dayOfWeek: "Monday", startTime: "01:30 PM", endTime: "03:30 PM", venue: "DIGITAL LAB" },
+        { code: "CS301", name: "B.Tech Computer Science Top-Up LVL 300 (Weekend)", session: "WEEKEND" as const, lecturerId: slyId, dayOfWeek: "Saturday", startTime: "03:30 PM", endTime: "06:30 PM", venue: "OCTAGON WING" },
 
         // CS302 - Dr. Sarah Lim
-        { code: "CS302", name: "B.Tech Computer Science LVL 300 (Regular)", session: "REGULAR" as const, lecturerId: sarahId, dayOfWeek: "Tuesday", startTime: "10:45 AM", endTime: "12:45 PM", venue: "Computer Lab 2" },
-        { code: "CS302", name: "B.Tech ICT Top-Up LVL 300 (Weekend)", session: "WEEKEND" as const, lecturerId: sarahId, dayOfWeek: "Sunday", startTime: "03:30 PM", endTime: "06:30 PM", venue: "CS Lab 2" },
+        { code: "CS302", name: "B.Tech Computer Science LVL 300 (Regular)", session: "REGULAR" as const, lecturerId: sarahId, dayOfWeek: "Tuesday", startTime: "10:45 AM", endTime: "12:45 PM", venue: "V BLOCK" },
+        { code: "CS302", name: "B.Tech ICT Top-Up LVL 300 (Weekend)", session: "WEEKEND" as const, lecturerId: sarahId, dayOfWeek: "Sunday", startTime: "03:30 PM", endTime: "06:30 PM", venue: "AVIC LAB" },
 
         // CS303 - Dr. Redeemer
-        { code: "CS303", name: "B.Tech Computer Science LVL 300 (Regular)", session: "REGULAR" as const, lecturerId: dherId, dayOfWeek: "Wednesday", startTime: "10:45 AM", endTime: "12:45 PM", venue: "Science Block Rm 102" },
-        { code: "CS303", name: "B.Tech ICT LVL 300 (Weekend)", session: "WEEKEND" as const, lecturerId: dherId, dayOfWeek: "Sunday", startTime: "12:00 PM", endTime: "03:00 PM", venue: "Auditorium Annex" },
+        { code: "CS303", name: "B.Tech Computer Science LVL 300 (Regular)", session: "REGULAR" as const, lecturerId: dherId, dayOfWeek: "Wednesday", startTime: "10:45 AM", endTime: "12:45 PM", venue: "ARAD LAB" },
+        { code: "CS303", name: "B.Tech ICT LVL 300 (Weekend)", session: "WEEKEND" as const, lecturerId: dherId, dayOfWeek: "Sunday", startTime: "12:00 PM", endTime: "03:00 PM", venue: "MAIN OCTAGON" },
 
         // CS401 - Sylvester Yhaw
-        { code: "CS401", name: "B.Tech Computer Science LVL 400 (Regular)", session: "REGULAR" as const, lecturerId: slyId, dayOfWeek: "Thursday", startTime: "01:30 PM", endTime: "03:30 PM", venue: "Computer Lab 1" },
-        { code: "CS401", name: "B.Tech Computer Science Top-Up LVL 400 (Weekend)", session: "WEEKEND" as const, lecturerId: slyId, dayOfWeek: "Saturday", startTime: "03:30 PM", endTime: "06:30 PM", venue: "Main Hall A" },
+        { code: "CS401", name: "B.Tech Computer Science LVL 400 (Regular)", session: "REGULAR" as const, lecturerId: slyId, dayOfWeek: "Thursday", startTime: "01:30 PM", endTime: "03:30 PM", venue: "FAD LAB" },
+        { code: "CS401", name: "B.Tech Computer Science Top-Up LVL 400 (Weekend)", session: "WEEKEND" as const, lecturerId: slyId, dayOfWeek: "Saturday", startTime: "03:30 PM", endTime: "06:30 PM", venue: "BASEMENT" },
 
         // CS402 - Dr. Sarah Lim
-        { code: "CS402", name: "B.Tech Computer Science LVL 400 (Regular)", session: "REGULAR" as const, lecturerId: sarahId, dayOfWeek: "Friday", startTime: "01:30 PM", endTime: "03:30 PM", venue: "Software Engineering Lab" },
-        { code: "CS402", name: "B.Tech ICT Top-Up LVL 400 (Weekend)", session: "WEEKEND" as const, lecturerId: sarahId, dayOfWeek: "Sunday", startTime: "03:30 PM", endTime: "06:30 PM", venue: "Computer Lab 3" },
+        { code: "CS402", name: "B.Tech Computer Science LVL 400 (Regular)", session: "REGULAR" as const, lecturerId: sarahId, dayOfWeek: "Friday", startTime: "01:30 PM", endTime: "03:30 PM", venue: "DIGITAL LAB" },
+        { code: "CS402", name: "B.Tech ICT Top-Up LVL 400 (Weekend)", session: "WEEKEND" as const, lecturerId: sarahId, dayOfWeek: "Sunday", startTime: "03:30 PM", endTime: "06:30 PM", venue: "OCTAGON WING" },
 
         // CS403 - Dr. Sarah Lim
-        { code: "CS403", name: "B.Tech ICT LVL 400 (Regular)", session: "REGULAR" as const, lecturerId: sarahId, dayOfWeek: "Monday", startTime: "08:30 AM", endTime: "10:30 AM", venue: "Lecture Theatre 2" },
-        { code: "CS403", name: "B.Tech Computer Science LVL 400 (Weekend)", session: "WEEKEND" as const, lecturerId: sarahId, dayOfWeek: "Saturday", startTime: "12:00 PM", endTime: "03:00 PM", venue: "CS Lab 1" },
+        { code: "CS403", name: "B.Tech ICT LVL 400 (Regular)", session: "REGULAR" as const, lecturerId: sarahId, dayOfWeek: "Monday", startTime: "08:30 AM", endTime: "10:30 AM", venue: "V BLOCK" },
+        { code: "CS403", name: "B.Tech Computer Science LVL 400 (Weekend)", session: "WEEKEND" as const, lecturerId: sarahId, dayOfWeek: "Saturday", startTime: "12:00 PM", endTime: "03:00 PM", venue: "AVIC LAB" },
     ];
 
     for (const sec of sectionsData) {
@@ -1063,7 +1063,7 @@ async function main() {
             lecturerId: dherId,
             observerId: slyId,
             sessionDate: new Date("2026-08-19T09:00:00Z"),
-            venue: "Computer Lab 2",
+            venue: "MAIN OCTAGON",
             status: ObservationStatus.COMPLETED,
             feedback: "Data structures syllabus covers all core algorithms with excellent theoretical and practical balance.",
             reviewData: {
@@ -1124,7 +1124,7 @@ async function main() {
             lecturerId: sarahId,
             observerId: slyId,
             sessionDate: new Date("2026-09-10T14:00:00Z"),
-            venue: "Software Engineering Lab",
+            venue: "DIGITAL LAB",
             status: ObservationStatus.PENDING,
         }
     });
@@ -1139,14 +1139,14 @@ async function main() {
             observerId: slyId,
             deoId: deo.id,
             sessionDate: new Date("2026-08-20T08:30:00Z"),
-            venue: "Computer Lab 2",
+            venue: "BASEMENT",
             status: ObservationStatus.COMPLETED,
             formBData: {
                 metadata: {
                     programme: "B.Tech Computer Science (Level 200)",
                     lessonTopic: "Binary Search Tree Traversal & Balancing Rotations",
                     modeOfDelivery: "Hybrid (Lecture Slides & Live Coding)",
-                    venue: "Computer Lab 2",
+                    venue: "BASEMENT",
                     lessonPeriodFrom: "08:30 AM",
                     lessonPeriodTo: "10:30 AM",
                     observationPeriodFrom: "08:30 AM",
@@ -1286,7 +1286,7 @@ async function main() {
             observerId: dherId,
             deoId: deo.id,
             sessionDate: new Date("2026-09-12T10:45:00Z"),
-            venue: "Computer Lab 2",
+            venue: "AVIC LAB",
             status: ObservationStatus.PENDING,
         }
     });
@@ -1477,7 +1477,7 @@ async function main() {
         },
         {
             userId: sarahId,
-            message: "Reminder: You have a scheduled Teaching Observation for CS302 on September 12 at 10:45 AM (Computer Lab 2).",
+            message: "Reminder: You have a scheduled Teaching Observation for CS302 on September 12 at 10:45 AM (AVIC LAB).",
             read: false,
             createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12 hours ago
         },

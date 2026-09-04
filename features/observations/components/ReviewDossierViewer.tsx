@@ -135,7 +135,7 @@ export default function ReviewDossierViewer({
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 self-end sm:self-auto">
+                <div className="flex items-center gap-2 self-end sm:self-auto print:hidden">
                     <button
                         type="button"
                         onClick={handlePrintSummary}

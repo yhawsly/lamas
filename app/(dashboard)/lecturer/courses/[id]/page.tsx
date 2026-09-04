@@ -47,8 +47,13 @@ function ModuleResourceDropzone({
 
         const newResources: ResourceFile[] = [...(module.resources || [])];
 
+        const MAX_FILE_SIZE = 10 * 1024 * 1024;
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
+            if (file.size > MAX_FILE_SIZE) {
+                setUploadError(`File "${file.name}" is too large (${(file.size / (1024 * 1024)).toFixed(1)}MB). Maximum allowed size is 10MB.`);
+                continue;
+            }
             const formData = new FormData();
             formData.append("file", file);
 
@@ -177,7 +182,7 @@ function ModuleResourceDropzone({
                             <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
                                 {isDragging ? "Release to upload" : "Drag files here, or"}
                             </p>
-                            <p className="text-xs text-slate-400 mt-0.5">PDF, PPT, DOC, PNG, ZIP — up to 20MB each</p>
+                            <p className="text-xs text-slate-400 mt-0.5">PDF, PPT, DOC, PNG, ZIP — up to 10MB each</p>
                         </div>
                         {/* Primary action: visible Browse button */}
                         <button
@@ -1341,7 +1346,7 @@ export default function CourseOutlinePrototype() {
                           {!isArchiveMode && (
                             <button 
                               onClick={() => activeClass && handleAddWeek(activeClass.id)}
-                              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition shadow-sm flex items-center gap-1.5 cursor-pointer"
+                              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-bold rounded-lg transition shadow-sm shadow-blue-600/20 flex items-center gap-1.5 cursor-pointer"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                               <span>Add Week</span>
@@ -1788,19 +1793,19 @@ export default function CourseOutlinePrototype() {
 
                                   <div className="flex flex-col gap-1.5">
                                     <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Venue / Room</label>
-                                    <select
+                                    <input
+                                      type="text"
+                                      list={`course-venue-list-${cls.id}`}
                                       value={form.venue}
                                       onChange={e => setSectionSchedules(prev => ({ ...prev, [cls.id]: { ...form, venue: e.target.value } }))}
-                                      className="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800 dark:text-slate-200 transition cursor-pointer"
-                                    >
-                                      <option value="">Select Venue...</option>
+                                      placeholder="Type or select venue (e.g. AVIC LAB)..."
+                                      className="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold bg-slate-50 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 transition"
+                                    />
+                                    <datalist id={`course-venue-list-${cls.id}`}>
                                       {INSTITUTIONAL_VENUES.map(v => (
                                         <option key={v.value} value={v.value}>{v.label}</option>
                                       ))}
-                                      {form.venue && !INSTITUTIONAL_VENUES.some(v => v.value === form.venue) && (
-                                        <option value={form.venue}>{form.venue}</option>
-                                      )}
-                                    </select>
+                                    </datalist>
                                   </div>
                                 </div>
 

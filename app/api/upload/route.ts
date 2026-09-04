@@ -58,7 +58,8 @@ export async function POST(req: NextRequest) {
             originalFilename: file.name,
             buffer,
             mimeType: file.type || "application/octet-stream",
-            folder: "resources"
+            folder: "resources",
+            maxBase64FallbackSize: MAX_FILE_SIZE
         });
 
         return NextResponse.json({

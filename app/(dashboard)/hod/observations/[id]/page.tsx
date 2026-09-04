@@ -198,8 +198,17 @@ export default function ConductObservationPage() {
                 const role = (session?.user as any)?.role;
                 if (role === "LECTURER") router.push("/lecturer/appraisals");
                 else router.push("/hod/observations");
+            } else {
+                let errorMsg = "Failed to save. Please try again.";
+                try {
+                    const errData = await res.json();
+                    errorMsg = errData?.error || errData?.message || (typeof errData === "string" ? errData : errorMsg);
+                } catch {
+                    const text = await res.text().catch(() => "");
+                    if (text) errorMsg = text;
+                }
+                setError(errorMsg);
             }
-            else setError("Failed to save. Please try again.");
         } catch {
             setError("Network error. Please try again.");
         } finally {
@@ -229,10 +238,20 @@ export default function ConductObservationPage() {
             if (res.ok) {
                 const d = await res.json();
                 setData(d);
+                window.dispatchEvent(new CustomEvent("lamas:refresh-data"));
+            } else {
+                let errorMsg = "Failed to update schedule.";
+                try {
+                    const errData = await res.json();
+                    errorMsg = errData?.error || errData?.message || (typeof errData === "string" ? errData : errorMsg);
+                } catch {
+                    const text = await res.text().catch(() => "");
+                    if (text) errorMsg = text;
+                }
+                setError(errorMsg);
             }
-            else setError("Failed to update schedule.");
         } catch {
-            setError("Network error.");
+            setError("Network error. Please check your connection.");
         } finally {
             setScheduling(false);
         }
@@ -356,7 +375,7 @@ export default function ConductObservationPage() {
                     </div>
                 </div>
                 <div className="flex flex-col items-end gap-3 mt-4 md:mt-0">
-                    <button onClick={() => router.back()} className="px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors font-bold flex items-center gap-2 shadow-sm text-sm border border-slate-200 dark:border-slate-700">
+                    <button onClick={() => router.back()} className="print:hidden px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors font-bold flex items-center gap-2 shadow-sm text-sm border border-slate-200 dark:border-slate-700">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                         Go Back
                     </button>
@@ -405,19 +424,19 @@ export default function ConductObservationPage() {
                         </div>
                         <div className="flex-1">
                             <label className="block text-xs font-bold mb-1.5 text-blue-700/70 dark:text-blue-400/70 uppercase tracking-widest">Venue/Location</label>
-                            <select
+                            <input
+                                type="text"
+                                list="hod-venues-list"
                                 value={scheduleVenue}
                                 onChange={e => setScheduleVenue(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 border-blue-200 dark:border-slate-700 font-semibold cursor-pointer text-slate-800 dark:text-slate-100"
-                            >
-                                <option value="" disabled>Select Venue...</option>
+                                placeholder="Type or select venue (e.g. AVIC LAB)..."
+                                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 border border-blue-200 dark:border-slate-700 font-semibold text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
+                            />
+                            <datalist id="hod-venues-list">
                                 {INSTITUTIONAL_VENUES.map(v => (
                                     <option key={v.value} value={v.value}>{v.label}</option>
                                 ))}
-                                {scheduleVenue && !INSTITUTIONAL_VENUES.some(v => v.value === scheduleVenue) && (
-                                    <option value={scheduleVenue}>{scheduleVenue}</option>
-                                )}
-                            </select>
+                            </datalist>
                         </div>
                         <button onClick={handleSchedule} disabled={scheduling} className="w-full md:w-auto px-6 py-2.5 rounded-xl text-white font-bold text-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm cursor-pointer">
                             {scheduling ? "Saving..." : "Lock Schedule"}

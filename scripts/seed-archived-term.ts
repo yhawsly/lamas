@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { prisma } from "../lib/prisma";
-import { SubmissionType, SubmissionStatus } from "@prisma/client";
+import { SubmissionType, SubmissionStatus, ObservationStatus } from "@prisma/client";
 
 async function main() {
     console.log("🚀 POPULATING ARCHIVED SEMESTER (Term ID: 1) WITH COMPREHENSIVE DATA...");
@@ -243,7 +243,7 @@ async function main() {
                     termId: term1.id,
                     venue: a.venue,
                     sessionDate: a.sessionDate,
-                    status: a.status,
+                    status: a.status as ObservationStatus,
                     feedback: a.feedback,
                     reviewData: {
                         criteria: {
@@ -335,7 +335,7 @@ async function main() {
                     deoId: (deo?.id || admin?.id || 1) as number,
                     venue: b.venue,
                     sessionDate: b.sessionDate,
-                    status: b.status,
+                    status: b.status as ObservationStatus,
                     formBData: {
                         metadata: {
                             programme: "B.Tech Computer Science",
@@ -406,7 +406,7 @@ async function main() {
                     moderatorId: c.moderatorId,
                     termId: term1.id,
                     deoId: (deo?.id || admin?.id || 1) as number,
-                    status: c.status,
+                    status: c.status as ObservationStatus,
                     reviewData: {
                         comments: c.comments,
                         isApproved: true,

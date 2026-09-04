@@ -72,7 +72,7 @@ export default function HoDDashboard() {
     const [error, setError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
     const ALLOWED_TYPES = [".pdf", ".pptx", ".ppt", ".doc", ".docx", ".zip", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".csv", ".xlsx", ".xls", ".txt"];
 
     async function sendBroadcast() {
@@ -88,7 +88,7 @@ export default function HoDDashboard() {
                 return;
             }
             if (file.size > MAX_FILE_SIZE) {
-                showWarning("File Too Large", `File too large (${(file.size/1024/1024).toFixed(1)}MB). Maximum allowed size is 20MB.`);
+                showWarning("File Too Large", `File too large (${(file.size/1024/1024).toFixed(1)}MB). Maximum allowed size is 10MB.`);
                 return;
             }
             const formData = new FormData();
@@ -360,7 +360,7 @@ export default function HoDDashboard() {
                                                         {uploading ? (
                                                             <><RefreshCw className="w-5 h-5 text-blue-500 animate-spin" /> <span className="text-xs font-bold text-blue-600 dark:text-blue-400">Uploading...</span></>
                                                         ) : (
-                                                            <><Upload className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" /> <span className="text-xs font-bold text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Click to attach a document</span> <span className="text-[10px] text-slate-400">PDF, Word, PPT, Excel, Images, CSV, ZIP, TXT – up to 20MB</span></>
+                                                            <><Upload className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" /> <span className="text-xs font-bold text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Click to attach a document</span> <span className="text-[10px] text-slate-400">PDF, Word, PPT, Excel, Images, CSV, ZIP, TXT – up to 10MB</span></>
                                                         )}
                                                     </button>
                                                 )}
@@ -377,7 +377,7 @@ export default function HoDDashboard() {
                                                     // validate
                                                     const ext = '.' + file.name.split('.').pop()?.toLowerCase();
                                                     if (!ALLOWED_TYPES.includes(ext)) { setError(`File type ${ext} not allowed.`); return; }
-                                                    if (file.size > MAX_FILE_SIZE) { setError(`File too large (${(file.size/1024/1024).toFixed(1)}MB). Max 20MB.`); return; }
+                                                    if (file.size > MAX_FILE_SIZE) { setError(`File too large (${(file.size/1024/1024).toFixed(1)}MB). Max 10MB.`); return; }
                                                     setUploading(true);
                                                     const formData = new FormData();
                                                     formData.append('file', file);

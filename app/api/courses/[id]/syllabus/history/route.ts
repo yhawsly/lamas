@@ -21,13 +21,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             return NextResponse.json({ error: "Invalid Course ID" }, { status: 400 });
         }
 
-        // Fetch all historical submissions of type COURSE_TOPICS for this course
+        // Fetch all historical submissions of type COURSE_TOPICS for this course from past terms or approved baselines
         const submissions = await prisma.submission.findMany({
             where: {
                 type: "COURSE_TOPICS",
                 OR: [
-                    { lecturerId: userId },
-                    { status: "APPROVED" }
+                    { term: { isActive: false } },
+                    { status: "APPROVED", term: { isActive: false } }
                 ]
             },
             include: {

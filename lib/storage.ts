@@ -78,7 +78,7 @@ export interface SaveFileOptions {
     buffer: Buffer;
     mimeType: string;
     folder?: string;
-    maxBase64FallbackSize?: number; // default: 2MB
+    maxBase64FallbackSize?: number; // default: 10MB
 }
 
 export interface SaveFileResult {
@@ -99,7 +99,7 @@ export async function saveUploadedFile({
     buffer,
     mimeType,
     folder = "uploads",
-    maxBase64FallbackSize = 2 * 1024 * 1024,
+    maxBase64FallbackSize = 10 * 1024 * 1024,
 }: SaveFileOptions): Promise<SaveFileResult> {
     const fileExt = path.extname(originalFilename).toLowerCase();
     const format = getFileFormat(mimeType, fileExt);
@@ -163,7 +163,7 @@ export async function saveUploadedFile({
             }
 
             throw new Error(
-                "Production serverless filesystem is read-only. Please set the BLOB_READ_WRITE_TOKEN environment variable in your Vercel/production settings to support files larger than 2MB."
+                "File size exceeds the allowed limit (maximum 10MB). Please upload a file smaller than 10MB."
             );
         }
 

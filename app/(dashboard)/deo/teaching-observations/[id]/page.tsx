@@ -300,25 +300,21 @@ export default function ConductTeachingObservationPage() {
                     </div>
                     <div>
                         <p className="text-sm font-medium mb-1" style={{ color: "var(--text-muted)" }}>Lesson Venue:</p>
-                        <select
+                        <input
+                            type="text"
+                            list="deo-form-b-venues-list"
                             disabled={isCompleted}
                             value={reviewData.metadata.venue}
-                            onChange={e => setReviewData(p => ({...p, metadata: {...p.metadata, venue: e.target.value.toUpperCase()}}))}
-                            className="w-full bg-transparent border-b outline-none px-2 py-1 cursor-pointer font-medium text-slate-800 dark:text-slate-100"
+                            onChange={e => setReviewData(p => ({ ...p, metadata: { ...p.metadata, venue: e.target.value } }))}
+                            placeholder="Type or select venue (e.g. AVIC LAB)..."
+                            className="w-full bg-transparent border-b outline-none px-2 py-1 font-medium text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
                             style={{ borderColor: "var(--bg-border)", color: "var(--text-primary)" }}
-                        >
-                            <option value="" disabled className="bg-white dark:bg-slate-900 text-slate-500">Select Venue...</option>
+                        />
+                        <datalist id="deo-form-b-venues-list">
                             {INSTITUTIONAL_VENUES.map(v => (
-                                <option key={v.value} value={v.value} className="bg-white dark:bg-slate-900" style={{ color: "var(--text-primary)" }}>
-                                    {v.label}
-                                </option>
+                                <option key={v.value} value={v.value}>{v.label}</option>
                             ))}
-                            {reviewData.metadata.venue && !INSTITUTIONAL_VENUES.some(v => v.value === reviewData.metadata.venue) && (
-                                <option value={reviewData.metadata.venue} className="bg-white dark:bg-slate-900">
-                                    {reviewData.metadata.venue}
-                                </option>
-                            )}
-                        </select>
+                        </datalist>
                     </div>
 
                     <div className="flex gap-4">

@@ -40,7 +40,6 @@ async function main() {
         console.log(`Observation Form A: ${a10}`);
         console.log(`Observation Form B: ${b10}`);
         console.log(`Exam Moderations: ${e10}`);
-        console.log(`Educational Resources: ${r10}`);
 
     } catch (err) {
         console.error(err);

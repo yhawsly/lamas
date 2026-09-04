@@ -52,7 +52,7 @@ export async function PATCH(
     const { id } = await params;
     try {
         const session = await auth();
-        if (!session || !session.user) return new NextResponse("Unauthorized", { status: 401 });
+        if (!session || !session.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const userId = parseInt(session.user.id!);
         const role = (session.user as any).role;
@@ -61,35 +61,46 @@ export async function PATCH(
             where: { id: parseInt(id) },
         });
 
-        if (!observation) return new NextResponse("Not Found", { status: 404 });
-
-        const isAssigned = await prisma.courseSection.findFirst({
-            where: {
-                lecturerId: observation.lecturerId,
-                course: {
-                    code: observation.courseCode
-                }
-            }
-        });
-
-        if (!isAssigned) {
-            return new NextResponse("Review blocked: Lecturer is not assigned to this course.", { status: 400 });
-        }
-
-        // Security: Only the assigned observer or an HOD/DEO/Admin can update
-        if (observation.observerId !== userId && !["HOD", "DEO", "ADMIN", "SUPER_ADMIN"].includes(role)) {
-            return new NextResponse("Forbidden", { status: 403 });
-        }
+        if (!observation) return NextResponse.json({ error: "Observation not found" }, { status: 404 });
 
         const body = await req.json();
-        
-        // Mark COMPLETED when:
-        // - feedback text is provided, OR
-        // - reviewData (Form A) is submitted (form filled with radio buttons etc.)
-        let status = observation.status;
-        const hasFeedback = body.feedback && body.feedback.trim() !== "";
+
+        const hasFeedback = body.feedback !== undefined && body.feedback !== null && body.feedback.trim() !== "";
         const hasReviewData = body.reviewData !== undefined && body.reviewData !== null;
-        if (hasFeedback || hasReviewData) {
+        const isSubmittingReview = hasFeedback || hasReviewData;
+
+        // Security check:
+        if (isSubmittingReview) {
+            const isAssigned = await prisma.courseSection.findFirst({
+                where: {
+                    lecturerId: observation.lecturerId,
+                    course: {
+                        code: observation.courseCode
+                    }
+                }
+            });
+
+            if (!isAssigned) {
+                return NextResponse.json({ error: "Review blocked: Lecturer is not assigned to this course." }, { status: 400 });
+            }
+
+            // Only the assigned observer or an HOD/DEO/Admin can submit evaluation review
+            if (observation.observerId !== userId && !["HOD", "DEO", "ADMIN", "SUPER_ADMIN"].includes(role)) {
+                return NextResponse.json({ error: "Forbidden: Only the assigned observer may submit this review." }, { status: 403 });
+            }
+        } else {
+            // For scheduling / session date / venue updates:
+            // Allowed: the assigned observer, the observed lecturer, or administrative roles
+            const canSchedule = observation.observerId === userId ||
+                                observation.lecturerId === userId ||
+                                ["HOD", "DEO", "ADMIN", "SUPER_ADMIN"].includes(role);
+            if (!canSchedule) {
+                return NextResponse.json({ error: "Forbidden: You do not have permission to update this observation schedule." }, { status: 403 });
+            }
+        }
+
+        let status = observation.status;
+        if (isSubmittingReview) {
             status = "COMPLETED";
         }
 
@@ -97,16 +108,29 @@ export async function PATCH(
             body.reviewData.metadata.venue = body.reviewData.metadata.venue.toUpperCase();
         }
 
+        let sessionDate: Date | undefined = undefined;
+        if (body.sessionDate) {
+            sessionDate = new Date(body.sessionDate);
+            if (isNaN(sessionDate.getTime())) {
+                return NextResponse.json({ error: "Invalid date or time provided for schedule." }, { status: 400 });
+            }
+        }
+
+        const venue = body.venue !== undefined ? (body.venue && body.venue.trim() !== "" ? body.venue.trim().toUpperCase() : null) : undefined;
+
         const updated = await prisma.observation.update({
             where: { id: parseInt(id) },
             data: {
-                feedback: body.feedback,
+                ...(body.feedback !== undefined && { feedback: body.feedback }),
                 status,
                 ...(body.reviewData !== undefined && { reviewData: body.reviewData }),
-                ...(body.sessionDate && { sessionDate: new Date(body.sessionDate) }),
-                ...(body.venue !== undefined && { venue: (body.venue && body.venue.trim() !== "") ? body.venue.toUpperCase() : null }),
+                ...(sessionDate && { sessionDate }),
+                ...(venue !== undefined && { venue }),
             },
-            include: { lecturer: { select: { email: true, name: true } } }
+            include: { 
+                lecturer: { select: { email: true, name: true } },
+                observer: { select: { email: true, name: true } }
+            }
         });
 
         // Trigger Resend Email Alerts if status is COMPLETED
@@ -124,9 +148,21 @@ export async function PATCH(
             });
         }
 
-        return NextResponse.json(updated);
+        const isAssigned = await prisma.courseSection.findFirst({
+            where: {
+                lecturerId: observation.lecturerId,
+                course: {
+                    code: observation.courseCode
+                }
+            }
+        });
+
+        return NextResponse.json({
+            ...updated,
+            isObserveeAssigned: !!isAssigned
+        });
     } catch (error) {
         console.error("Observation Update Error:", error);
-        return new NextResponse("Internal Error", { status: 500 });
+        return NextResponse.json({ error: "Failed to update observation" }, { status: 500 });
     }
 }

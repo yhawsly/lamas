@@ -232,8 +232,20 @@ export default function ConductTeachingObservationPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ formBData: reviewData }),
             });
-            if (res.ok) router.push("/lecturer/appraisals");
-            else setError("Failed to save. Please try again.");
+            if (res.ok) {
+                window.dispatchEvent(new CustomEvent("lamas:refresh-data"));
+                router.push("/lecturer/appraisals");
+            } else {
+                let errorMsg = "Failed to save. Please try again.";
+                try {
+                    const errData = await res.json();
+                    errorMsg = errData?.error || errData?.message || (typeof errData === "string" ? errData : errorMsg);
+                } catch {
+                    const text = await res.text().catch(() => "");
+                    if (text) errorMsg = text;
+                }
+                setError(errorMsg);
+            }
         } catch {
             setError("Network error. Please try again.");
         } finally {
@@ -263,10 +275,20 @@ export default function ConductTeachingObservationPage() {
             if (res.ok) {
                 const d = await res.json();
                 setData(d);
+                window.dispatchEvent(new CustomEvent("lamas:refresh-data"));
+            } else {
+                let errorMsg = "Failed to update schedule.";
+                try {
+                    const errData = await res.json();
+                    errorMsg = errData?.error || errData?.message || (typeof errData === "string" ? errData : errorMsg);
+                } catch {
+                    const text = await res.text().catch(() => "");
+                    if (text) errorMsg = text;
+                }
+                setError(errorMsg);
             }
-            else setError("Failed to update schedule.");
         } catch {
-            setError("Network error.");
+            setError("Network error. Please check your connection.");
         } finally {
             setScheduling(false);
         }
@@ -426,25 +448,21 @@ export default function ConductTeachingObservationPage() {
                     </div>
                     <div>
                         <p className="text-sm font-medium mb-1" style={{ color: "var(--text-muted)" }}>Lesson Venue:</p>
-                        <select
+                        <input
+                            type="text"
+                            list="form-b-venues-list"
                             disabled={isDisabled}
                             value={reviewData.metadata.venue}
-                            onChange={e => setReviewData(p => ({ ...p, metadata: { ...p.metadata, venue: e.target.value.toUpperCase() } }))}
-                            className="w-full bg-transparent border-b outline-none px-2 py-1 cursor-pointer font-medium text-slate-800 dark:text-slate-100"
+                            onChange={e => setReviewData(p => ({ ...p, metadata: { ...p.metadata, venue: e.target.value } }))}
+                            placeholder="Type or select venue (e.g. AVIC LAB)..."
+                            className="w-full bg-transparent border-b outline-none px-2 py-1 font-medium text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
                             style={{ borderColor: "var(--bg-border)", color: "var(--text-primary)" }}
-                        >
-                            <option value="" disabled className="bg-white dark:bg-slate-900 text-slate-500">Select Venue...</option>
+                        />
+                        <datalist id="form-b-venues-list">
                             {INSTITUTIONAL_VENUES.map(v => (
-                                <option key={v.value} value={v.value} className="bg-white dark:bg-slate-900" style={{ color: "var(--text-primary)" }}>
-                                    {v.label}
-                                </option>
+                                <option key={v.value} value={v.value}>{v.label}</option>
                             ))}
-                            {reviewData.metadata.venue && !INSTITUTIONAL_VENUES.some(v => v.value === reviewData.metadata.venue) && (
-                                <option value={reviewData.metadata.venue} className="bg-white dark:bg-slate-900">
-                                    {reviewData.metadata.venue}
-                                </option>
-                            )}
-                        </select>
+                        </datalist>
                     </div>
 
                     <div className="flex gap-4">
@@ -503,19 +521,19 @@ export default function ConductTeachingObservationPage() {
                         </div>
                         <div className="flex-1">
                             <label className="block text-xs font-bold mb-1.5 text-blue-700/70 dark:text-blue-400/70 uppercase tracking-widest">Venue/Location</label>
-                            <select
+                            <input
+                                type="text"
+                                list="teaching-obs-venues-list"
                                 value={scheduleVenue}
                                 onChange={e => setScheduleVenue(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 border-blue-200 dark:border-slate-700 font-semibold cursor-pointer text-slate-800 dark:text-slate-100"
-                            >
-                                <option value="" disabled>Select Venue...</option>
+                                placeholder="Type or select venue (e.g. AVIC LAB)..."
+                                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 border border-blue-200 dark:border-slate-700 font-semibold text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
+                            />
+                            <datalist id="teaching-obs-venues-list">
                                 {INSTITUTIONAL_VENUES.map(v => (
                                     <option key={v.value} value={v.value}>{v.label}</option>
                                 ))}
-                                {scheduleVenue && !INSTITUTIONAL_VENUES.some(v => v.value === scheduleVenue) && (
-                                    <option value={scheduleVenue}>{scheduleVenue}</option>
-                                )}
-                            </select>
+                            </datalist>
                         </div>
                         <button onClick={handleSchedule} disabled={scheduling} className="w-full md:w-auto px-6 py-2.5 rounded-xl text-white font-bold text-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm cursor-pointer">
                             {scheduling ? "Saving..." : "Lock Schedule"}

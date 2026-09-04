@@ -67,7 +67,7 @@ export default function AdminNotifyPage() {
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
     const ALLOWED_TYPES = [".pdf", ".pptx", ".ppt", ".doc", ".docx", ".zip", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".csv", ".xlsx", ".xls", ".txt"];
 
     useEffect(() => {
@@ -129,7 +129,7 @@ export default function AdminNotifyPage() {
             return;
         }
         if (file.size > MAX_FILE_SIZE) {
-            setError(`File is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is 20MB.`);
+            setError(`File is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is 10MB.`);
             return;
         }
 
@@ -429,7 +429,7 @@ export default function AdminNotifyPage() {
                                 {/* 3. File Attachment */}
                                 <div>
                                     <label className="block text-xs font-black uppercase tracking-wider mb-2.5" style={{ color: "var(--text-muted)" }}>
-                                        3. Attach Document <span className="font-semibold normal-case tracking-normal text-slate-400">(Optional — Max 20MB)</span>
+                                        3. Attach Document <span className="font-semibold normal-case tracking-normal text-slate-400">(Optional — Max 10MB)</span>
                                     </label>
 
                                     {attachmentUrl && attachmentName ? (
@@ -465,7 +465,7 @@ export default function AdminNotifyPage() {
                                                 <>
                                                     <Upload className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" />
                                                     <span className="text-xs font-bold text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Click to attach a document</span>
-                                                    <span className="text-[10px] text-slate-400">PDF, Word, PPT, Excel, Images, CSV, ZIP, TXT — up to 20MB</span>
+                                                    <span className="text-[10px] text-slate-400">PDF, Word, PPT, Excel, Images, CSV, ZIP, TXT — up to 10MB</span>
                                                 </>
                                             )}
                                         </button>

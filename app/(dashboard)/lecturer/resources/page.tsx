@@ -177,7 +177,13 @@ export default function LecturerResourcesPage() {
     }, [sharedPagination.page]);
 
     // Handle file drop & selection
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
     const handleFileSelection = (selectedFile: File) => {
+        if (selectedFile.size > MAX_FILE_SIZE) {
+            showAlert("File Too Large", `Selected file (${(selectedFile.size / (1024 * 1024)).toFixed(1)}MB) exceeds the maximum allowed limit of 10MB.`);
+            return;
+        }
         setFile(selectedFile);
         // Default title to filename without extension
         const nameWithoutExt = selectedFile.name.substring(0, selectedFile.name.lastIndexOf('.')) || selectedFile.name;
@@ -487,7 +493,7 @@ export default function LecturerResourcesPage() {
                                         </label>
                                     </p>
                                     <p className="text-xs text-slate-400 dark:text-slate-500">
-                                        Supports PDFs, PPTX, Docx, Code, Sheets, images and Text files (Max 20MB)
+                                        Supports PDFs, PPTX, Docx, Code, Sheets, images and Text files (Max 10MB)
                                     </p>
                                 </div>
                             </div>
