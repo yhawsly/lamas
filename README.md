@@ -7,22 +7,26 @@ LAMAS is a comprehensive, enterprise-grade academic management, monitoring, and 
 ## 🌟 Key Features & Role Portals
 
 ### 👑 SuperAdmin & Administrator
+
 * **Academic Term & Calendar Management:** Configure active terms, academic years, calculate semester week slots, and enforce deadlines.
 * **Department & Course Registry:** Manage academic faculties, departments, courses, sections, and lecturer course assignments.
 * **User & Role Administration:** Multi-role user creation, status toggling, password reset enforcement, and role permissions (`ADMIN`, `HOD`, `DEO`, `LECTURER`).
 * **Compliance & Audit Logging:** Comprehensive activity logs, KPI tracking, and system performance monitoring.
 
 ### 🏛️ Head of Department (HOD)
+
 * **Appraisal Review Center:** Review and approve exam moderations, teaching observations, and course syllabi compliance.
 * **Faculty & Course Oversight:** Monitor lecturer workload, assigned sections, and syllabus progress.
 * **At-Risk Lecturer Detection:** Identify lagging course syllabi, missed deadlines, and trigger alert notifications.
 * **Department Analytics & Reports:** Generate comprehensive compliance reports with Excel and PDF exports.
 
 ### 📋 Data Entry Officer (DEO)
+
 * **Appraisal Dispatch Center:** Fast dispatch and assignment of evaluation workflows (Form A, Form B, Form C).
 * **Assignments Registry:** Live search, filtering, and assignment tracking with responsive skeleton loaders.
 
 ### 🎓 Lecturer Portal
+
 * **Course Workspaces:** Manage course topics, syllabus completion, and learning resource uploads.
 * **Appraisal Submissions:** Submit syllabus compliance reports, course files, and appraisal self-evaluations.
 * **Peer Reviews & Moderations:** Perform assigned internal exam moderation and teaching observation reviews.
@@ -33,7 +37,7 @@ LAMAS is a comprehensive, enterprise-grade academic management, monitoring, and 
 ## 🛠️ Technology Stack
 
 | Layer | Technology |
-|---|---|
+| --- | --- |
 | **Framework** | [Next.js 15](https://nextjs.org/) (App Router, Server Components & Server Actions) |
 | **Frontend** | [React 19](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [Tailwind CSS v4](https://tailwindcss.com/) |
 | **Icons & UI** | [Lucide React](https://lucide.dev/), SWR (Client-side Data Fetching), Recharts |
@@ -49,6 +53,7 @@ LAMAS is a comprehensive, enterprise-grade academic management, monitoring, and 
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 * **Node.js**: `v20+` or `v22+` recommended
 * **Database**: PostgreSQL (e.g., [Neon](https://neon.tech/), local PostgreSQL instance, or Supabase)
 
@@ -114,7 +119,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## 📜 Available Scripts
 
 | Command | Description |
-|---|---|
+| --- | --- |
 | `npm run dev` | Starts the Next.js development server with hot reload |
 | `npm run build` | Builds the production bundle |
 | `npm run start` | Runs the production build |
@@ -132,7 +137,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 📂 Project Architecture
 
-```
+```text
 ├── app/                      # Next.js App Router
 │   ├── (auth)/               # Authentication pages (login, reset password)
 │   ├── (dashboard)/          # Role-based dashboard layouts & routes

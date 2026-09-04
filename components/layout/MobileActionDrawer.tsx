@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import TermSwitcher from "@/components/workspace/TermSwitcher";
+import PWAInstallButton from "@/components/pwa/PWAInstallButton";
 
 interface MobileActionDrawerProps {
     isOpen: boolean;
@@ -173,6 +174,11 @@ export default function MobileActionDrawer({ isOpen, onClose }: MobileActionDraw
                                 </>
                             )}
                         </button>
+                    </div>
+
+                    {/* PWA Install Button for Mobile */}
+                    <div>
+                        <PWAInstallButton variant="sidebar" />
                     </div>
 
                     {/* Quick App Navigation Links */}

@@ -4,8 +4,9 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
     RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend,
 } from "recharts";
-import { Compass, BarChart2, Shield, Eye, CheckCircle2, Check, AlertTriangle } from "lucide-react";
+import { Compass, BarChart2, Shield, Eye, CheckCircle2, Check, AlertTriangle, Lock } from "lucide-react";
 import RefreshButton from "@/components/ui/RefreshButton";
+import { useTerm } from "@/context/TermContext";
 
 interface ClearanceItem {
     done: boolean;
@@ -41,6 +42,7 @@ interface PortfolioData {
 }
 
 export default function InstitutionalIntelligenceSuite({ role }: { role: string }) {
+    const { selectedTermId, isArchiveMode } = useTerm();
     const [data, setData] = useState<PortfolioData | null>(null);
     const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState<"dossier" | "department" | "audit">(role === "LECTURER" ? "dossier" : "department");
@@ -49,7 +51,8 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
     const fetchPortfolio = useCallback(async () => {
         setLoading(true);
         try {
-            const r = await fetch("/api/reports/portfolio");
+            const url = selectedTermId ? `/api/reports/portfolio?termId=${selectedTermId}` : "/api/reports/portfolio";
+            const r = await fetch(url);
             if (r.ok) {
                 const d = await r.json();
                 if (d) setData(d);
@@ -59,10 +62,13 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [selectedTermId]);
 
     useEffect(() => {
         fetchPortfolio();
+        const onLiveRefresh = () => fetchPortfolio();
+        window.addEventListener("lamas:refresh-data", onLiveRefresh);
+        return () => window.removeEventListener("lamas:refresh-data", onLiveRefresh);
     }, [fetchPortfolio]);
 
     const showToast = (msg: string) => {
@@ -233,10 +239,17 @@ export default function InstitutionalIntelligenceSuite({ role }: { role: string 
                             </div>
                         </div>
                         <div className="relative z-10 flex items-center gap-4">
-                            <div className="px-4 py-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                Active Term
-                            </div>
+                            {isArchiveMode ? (
+                                <div className="px-4 py-2 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                                    <Lock className="w-3.5 h-3.5" />
+                                    Archived Snapshot
+                                </div>
+                            ) : (
+                                <div className="px-4 py-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                    Active Term
+                                </div>
+                            )}
                             <button 
                                 onClick={() => handleExport("Lecturer Performance Report")}
                                 className="px-6 py-2.5 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-500/20 active:scale-95 transition-all flex items-center gap-2"

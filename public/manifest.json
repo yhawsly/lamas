@@ -1,18 +1,28 @@
 {
-  "name": "Lecturer Academic Management System",
-  "short_name": "LAMAS",
-  "description": "Academic accountability and monitoring platform for higher education",
+  "id": "/",
+  "name": "HTU LAMAS — Academic & Lecture Management System",
+  "short_name": "HTU LAMAS",
+  "description": "Ho Technical University academic accountability and monitoring platform for higher education.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
   "background_color": "#15202b",
   "theme_color": "#2563eb",
-  "orientation": "portrait-primary",
+  "categories": ["education", "productivity", "management"],
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icon-512.png",
@@ -25,6 +35,28 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "/htu-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Academic Workspace",
+      "short_name": "Workspace",
+      "description": "Access current semester courses and dashboard",
+      "url": "/",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Appraisals & Observations",
+      "short_name": "Appraisals",
+      "description": "View peer observations and moderations",
+      "url": "/lecturer/appraisals",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

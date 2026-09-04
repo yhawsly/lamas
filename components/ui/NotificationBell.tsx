@@ -87,7 +87,7 @@ export default function NotificationBell() {
                     />
                     
                     <div
-                        className="absolute inset-y-0 right-0 w-[380px] shadow-2xl flex flex-col pointer-events-auto transform transition-transform"
+                        className="absolute inset-y-0 right-0 w-[380px] max-w-full shadow-2xl flex flex-col pointer-events-auto transform transition-transform"
                         style={{ backgroundColor: "var(--bg-surface)", borderLeft: "1px solid var(--bg-border)" }}
                     >
                         {/* Premium Header */}

@@ -14,7 +14,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     await cookies();
     try {
         const session = await auth();
-        if (!session || !["ADMIN", "SUPER_ADMIN"].includes((session.user as any)?.role as string)) {
+        const role = (session?.user as any)?.role as string;
+        if (!session || !["ADMIN", "SUPER_ADMIN", "HOD"].includes(role)) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -56,5 +57,36 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     } catch (error) {
         console.error("Failed to activate term:", error);
         return NextResponse.json({ error: "Failed to activate term" }, { status: 500 });
+    }
+}
+
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+    await headers();
+    await cookies();
+    try {
+        const session = await auth();
+        const role = (session?.user as any)?.role as string;
+        if (!session || !["ADMIN", "SUPER_ADMIN"].includes(role)) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const resolvedParams = await params;
+        const termId = parseInt(resolvedParams.id);
+        if (isNaN(termId)) return NextResponse.json({ error: "Invalid Term ID" }, { status: 400 });
+
+        const term = await prisma.academicTerm.findUnique({ where: { id: termId } });
+        if (!term) return NextResponse.json({ error: "Term not found" }, { status: 404 });
+
+        if (term.isActive) {
+            return NextResponse.json({ error: "Cannot delete an active academic term. Activate another term first." }, { status: 400 });
+        }
+
+        // Delete term
+        await prisma.academicTerm.delete({ where: { id: termId } });
+
+        return NextResponse.json({ success: true, message: `Academic term "${term.name}" deleted successfully.` });
+    } catch (error: any) {
+        console.error("Failed to delete term:", error);
+        return NextResponse.json({ error: error.message || "Failed to delete term" }, { status: 500 });
     }
 }

@@ -12,7 +12,8 @@ export async function GET() {
     await cookies();
     try {
         const session = await auth();
-        if (!session || !["ADMIN", "SUPER_ADMIN"].includes((session.user as any)?.role as string)) {
+        const role = (session?.user as any)?.role as string;
+        if (!session || !["ADMIN", "SUPER_ADMIN", "HOD", "DEO"].includes(role)) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -33,7 +34,8 @@ export async function POST(req: Request) {
     await cookies();
     try {
         const session = await auth();
-        if (!session || !["ADMIN", "SUPER_ADMIN"].includes((session.user as any)?.role as string)) {
+        const role = (session?.user as any)?.role as string;
+        if (!session || !["ADMIN", "SUPER_ADMIN", "HOD"].includes(role)) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 

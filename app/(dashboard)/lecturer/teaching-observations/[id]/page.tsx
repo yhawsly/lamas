@@ -1,12 +1,22 @@
 "use client";
 import { useState, useEffect } from "react"; 
+import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { AlertTriangle, AlertCircle, Calendar } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
-import { ReviewDossierViewer } from "@/features/observations";
 import { getCourseTitle } from "@/features/curriculum";
 import { INSTITUTIONAL_VENUES } from "@/lib/venues";
+
+const ReviewDossierViewer = dynamic(
+    () => import("@/features/observations").then(mod => mod.ReviewDossierViewer),
+    {
+        ssr: false,
+        loading: () => (
+            <div className="w-full h-32 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 animate-pulse bg-slate-50 dark:bg-slate-900/40" />
+        )
+    }
+);
 
 const DetailWorkspaceSkeleton = () => (
     <div className="max-w-4xl mx-auto space-y-8 animate-pulse pb-20 pt-6 px-4">

@@ -27,9 +27,16 @@ export const metadata: Metadata = {
   description: "Ho Technical University academic accountability and monitoring platform",
   manifest: "/manifest.json",
   icons: {
-    icon: "/htu-logo.png",
-    shortcut: "/htu-logo.png",
-    apple: "/htu-logo.png",
+    icon: [
+      { url: "/htu-logo.png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: "/icon-192.png",
+    apple: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
   },
   appleWebApp: {
     capable: true,
@@ -37,6 +44,10 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
   },
 };
+
+import { PWAProvider } from "@/context/PWAContext";
+import PWAInstallModal from "@/components/pwa/PWAInstallModal";
+import PWAInstallBanner from "@/components/pwa/PWAInstallBanner";
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -75,7 +86,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-        <meta name="theme-color" content="#ffffff" id="theme-color-meta" />
+        <meta name="theme-color" content="#2563eb" id="theme-color-meta" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="HTU LAMAS" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body style={{ fontFamily: "'Inter', sans-serif" }}>
         <PWARegister />
@@ -83,7 +97,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <SessionProvider session={session}>
             <SWRProvider>
               <ThemeProvider>
-                <ModalProvider>{children}</ModalProvider>
+                <PWAProvider>
+                  <ModalProvider>{children}</ModalProvider>
+                  <PWAInstallModal />
+                  <PWAInstallBanner />
+                </PWAProvider>
               </ThemeProvider>
             </SWRProvider>
           </SessionProvider>

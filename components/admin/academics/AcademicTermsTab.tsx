@@ -29,16 +29,27 @@ export default function AcademicTermsTab() {
             const res = await fetch("/api/admin/terms");
             if (res.ok) {
                 const data = await res.json();
-                setTerms(data);
+                setTerms(Array.isArray(data) ? data : []);
+            } else {
+                // Fallback to public terms endpoint if role lacks admin routes
+                const fallbackRes = await fetch("/api/terms");
+                if (fallbackRes.ok) {
+                    const fallbackData = await fallbackRes.json();
+                    setTerms(Array.isArray(fallbackData) ? fallbackData : []);
+                }
             }
         } catch (e) {
             console.error(e);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     useEffect(() => {
         fetchTerms();
+        const onLiveRefresh = () => fetchTerms();
+        window.addEventListener("lamas:refresh-data", onLiveRefresh);
+        return () => window.removeEventListener("lamas:refresh-data", onLiveRefresh);
     }, []);
 
     const createTerm = async (e: React.FormEvent) => {
@@ -54,6 +65,7 @@ export default function AcademicTermsTab() {
                 setMsg("Academic Term created successfully");
                 setForm({ name: "", startDate: "", endDate: "" });
                 fetchTerms();
+                window.dispatchEvent(new CustomEvent("lamas:refresh-data"));
             } else {
                 const data = await res.json();
                 setMsg("Error: " + (data.error || "Failed to create term"));
@@ -72,6 +84,7 @@ export default function AcademicTermsTab() {
                 if (res.ok) {
                     setMsg("Term activated successfully.");
                     fetchTerms();
+                    window.dispatchEvent(new CustomEvent("lamas:refresh-data"));
                 } else {
                     setMsg("Failed to activate term.");
                 }

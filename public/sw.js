@@ -1,19 +1,24 @@
-const CACHE_NAME = "lamas-cache-v3";
+const CACHE_NAME = "lamas-pwa-v4";
 const STATIC_ASSETS = [
-  "/",
-  "/login",
   "/manifest.json",
-  "/icon.svg",
   "/htu-logo.png",
-  "/favicon.ico"
+  "/icon-192.png",
+  "/icon-512.png",
+  "/login"
 ];
 
-// Install Event - Pre-cache essential shells and assets
+// Install Event - Pre-cache essential shells and assets safely
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
+    caches.open(CACHE_NAME).then(async (cache) => {
       console.log("[Service Worker] Pre-caching offline resources");
-      return cache.addAll(STATIC_ASSETS);
+      await Promise.allSettled(
+        STATIC_ASSETS.map((asset) =>
+          cache.add(asset).catch((err) => {
+            console.warn(`[Service Worker] Non-blocking cache skip for ${asset}:`, err);
+          })
+        )
+      );
     }).then(() => self.skipWaiting())
   );
 });

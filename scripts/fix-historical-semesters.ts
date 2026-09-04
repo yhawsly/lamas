@@ -18,30 +18,10 @@ async function main() {
         return;
     }
 
-    // Prior Academic Year Term: Semester 2 2024/2025
-    let termPriorYear = await prisma.academicTerm.findFirst({
-        where: { name: "Semester 2 2024/2025" }
-    });
-    if (!termPriorYear) {
-        termPriorYear = await prisma.academicTerm.create({
-            data: {
-                name: "Semester 2 2024/2025",
-                startDate: new Date("2025-02-03T00:00:00Z"),
-                endDate: new Date("2025-06-27T23:59:59Z"),
-                isActive: false,
-                createdBy: admin!.id
-            }
-        });
-        console.log(`✓ Created Historical Term: "${termPriorYear.name}" (ID: ${termPriorYear.id})`);
-    } else {
-        console.log(`Found Historical Term: "${termPriorYear.name}" (ID: ${termPriorYear.id})`);
-    }
-
     // 2. Fetch all courses
     const courses = await prisma.course.findMany({ orderBy: { id: "asc" } });
 
     // 3. For each course, ensure Term 1 (Semester 1 2025/2026) has an APPROVED historical outline
-    // And TermPriorYear (Semester 2 2024/2025) has an APPROVED historical outline
     
     // Specifically for CS101:
     // We want Card 1: Semester 1 2025/2026 [APPROVED] By Redeemer (7 Topics, 7 Weeks, 0 Files)
@@ -63,20 +43,20 @@ async function main() {
         console.log(`✓ Updated Submission 107 (Redeemer CS101) -> Term 1 ("${term1.name}")`);
     }
 
-    // Update Submission 106 (Sylvester's 14-week CS101 Outline) -> move to TermPriorYear (Semester 2 2024/2025) and mark APPROVED
+    // Update Submission 106 (Sylvester's 14-week CS101 Outline) -> move to Term 1 (Semester 1 2025/2026) and mark APPROVED
     const sub106 = await prisma.submission.findUnique({ where: { id: 106 } });
     if (sub106) {
         await prisma.submission.update({
             where: { id: 106 },
             data: {
-                termId: termPriorYear.id,
+                termId: term1.id,
                 title: "[CS101] Introduction to Computer Science & Systems — Course Outline & Syllabus",
                 status: SubmissionStatus.APPROVED,
                 submittedAt: new Date("2025-02-14T14:30:00Z"),
                 feedback: "Approved by Curriculum Committee for 2024/2025 academic session."
             }
         });
-        console.log(`✓ Updated Submission 106 (Sylvester CS101) -> TermPriorYear ("${termPriorYear.name}")`);
+        console.log(`✓ Updated Submission 106 (Sylvester CS101) -> Term 1 ("${term1.name}")`);
     }
 
     // Update other course outlines that were seeded as APPROVED reference outlines:
@@ -149,7 +129,7 @@ async function main() {
         }
     }
 
-    console.log("\n🎉 HISTORICAL OUTLINES ASSIGNED TO GENUINE PREVIOUS SEMESTERS (Semester 1 2025/2026 & Semester 2 2024/2025)!");
+    console.log("\n🎉 HISTORICAL OUTLINES ASSIGNED TO GENUINE PREVIOUS SEMESTERS (Semester 1 2025/2026)!");
 }
 
 main()

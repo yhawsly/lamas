@@ -94,20 +94,10 @@ export default function TermSwitcher() {
                     </span>
                 )}
 
-                {/* Term Name Label & Date of Commencement */}
-                <div className="flex flex-col text-left max-w-[190px] sm:max-w-[270px] truncate">
-                    <div className="flex items-center gap-1.5 truncate">
-                        <span className="text-[10px] uppercase tracking-wider font-extrabold opacity-70">
-                            {isArchiveMode ? "ARCHIVE:" : "ACTIVE:"}
-                        </span>
-                        <span className="truncate font-bold">{selectedTerm?.name || liveTerm?.name || "Select Workspace"}</span>
-                    </div>
-                    {(selectedTerm?.startDate || liveTerm?.startDate) && (
-                        <div className="text-[10px] opacity-90 truncate font-semibold flex items-center gap-1 text-emerald-700 dark:text-emerald-300">
-                            <span>Commenced: {formatDate((selectedTerm?.startDate || liveTerm?.startDate)!)}</span>
-                        </div>
-                    )}
-                </div>
+                {/* Term Name Label */}
+                <span className="font-bold text-xs whitespace-nowrap">
+                    {isArchiveMode ? (selectedTerm?.name || "Archived semester") : "Active semester"}
+                </span>
 
                 <ChevronDown
                     className={`w-3.5 h-3.5 opacity-60 transition-transform duration-200 ${
@@ -118,7 +108,7 @@ export default function TermSwitcher() {
 
             {/* Dropdown Menu */}
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 shadow-2xl z-50 overflow-hidden transform transition-all duration-200 animate-in fade-in zoom-in-95">
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 shadow-2xl z-50 overflow-hidden transform transition-all duration-200 animate-in fade-in zoom-in-95">
                     {/* Header */}
                     <div className="px-4 py-3 bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200/60 dark:border-slate-800 flex items-center justify-between">
                         <div>

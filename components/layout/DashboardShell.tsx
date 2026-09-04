@@ -12,6 +12,8 @@ import NotificationBell from "@/components/ui/NotificationBell";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import TermSwitcher from "@/components/workspace/TermSwitcher";
 
+import PWAInstallButton from "@/components/pwa/PWAInstallButton";
+
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
@@ -154,6 +156,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
                     {/* Right side global actions */}
                     <div className="flex items-center gap-2 sm:gap-2.5">
+                        <PWAInstallButton variant="header" />
                         <TermSwitcher />
                         <ThemeToggle />
                         <NotificationBell />

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { computeComplianceScores } from "@/features/submissions/server";
@@ -6,7 +6,7 @@ import { SubmissionType, SubmissionStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
         const session = await auth();
         if (!session || !session.user) {
@@ -17,8 +17,20 @@ export async function GET() {
         const role = (session.user as any).role;
         const deptId = (session.user as any).departmentId;
 
-        const activeTerm = await prisma.academicTerm.findFirst({ where: { isActive: true } });
-        const termId = activeTerm?.id;
+        const url = new URL(req.url);
+        const termIdParam = url.searchParams.get("termId");
+
+        let currentTerm = null;
+        if (termIdParam) {
+            const parsedTermId = parseInt(termIdParam);
+            if (!isNaN(parsedTermId)) {
+                currentTerm = await prisma.academicTerm.findUnique({ where: { id: parsedTermId } });
+            }
+        }
+        if (!currentTerm) {
+            currentTerm = await prisma.academicTerm.findFirst({ where: { isActive: true } });
+        }
+        const termId = currentTerm?.id;
 
         // 1. Compute Base Stats
         let complianceScore = 0;
@@ -37,6 +49,7 @@ export async function GET() {
         const obsWhere: any = {};
         if (role === "LECTURER") obsWhere.lecturerId = userId;
         else if (role === "HOD" && deptId) obsWhere.lecturer = { departmentId: deptId };
+        if (termId) obsWhere.termId = termId;
 
         const [formAObservations, formBObservations] = await Promise.all([
             prisma.observation.findMany({
@@ -162,22 +175,22 @@ export async function GET() {
             }
         });
 
-        const calcDimensionAvg = (key: string, fallback: number = 85) => {
+        const calcDimensionAvg = (key: string) => {
             const arr = scoresMap[key] || [];
-            if (arr.length === 0) return fallback;
+            if (arr.length === 0) return 0;
             const avg = arr.reduce((a, b) => a + b, 0) / arr.length;
             return Math.min(100, Math.max(10, Math.round((avg / 5) * 100)));
         };
 
         const totalRatingCount = Object.values(scoresMap).reduce((sum, arr) => sum + arr.length, 0);
 
-        const radarData = (totalRatingCount > 0 || formBObservations.length > 0 || formAObservations.length > 0) ? [
-            { subject: 'Engagement',    A: calcDimensionAvg('Engagement', 88),    fullMark: 100 },
-            { subject: 'Knowledge',     A: calcDimensionAvg('Knowledge', 92),     fullMark: 100 },
-            { subject: 'Organization',  A: calcDimensionAvg('Organization', 90),  fullMark: 100 },
-            { subject: 'Delivery',      A: calcDimensionAvg('Delivery', 86),      fullMark: 100 },
-            { subject: 'Activities',    A: calcDimensionAvg('Activities', 84),    fullMark: 100 },
-            { subject: 'Technology',    A: calcDimensionAvg('Technology', 85),    fullMark: 100 },
+        const radarData = totalRatingCount > 0 ? [
+            { subject: 'Engagement',    A: calcDimensionAvg('Engagement'),    fullMark: 100 },
+            { subject: 'Knowledge',     A: calcDimensionAvg('Knowledge'),     fullMark: 100 },
+            { subject: 'Organization',  A: calcDimensionAvg('Organization'),  fullMark: 100 },
+            { subject: 'Delivery',      A: calcDimensionAvg('Delivery'),      fullMark: 100 },
+            { subject: 'Activities',    A: calcDimensionAvg('Activities'),    fullMark: 100 },
+            { subject: 'Technology',    A: calcDimensionAvg('Technology'),    fullMark: 100 },
         ] : null;
 
         // 3. Syllabus Velocity (Real data based on Registry Weeks)
@@ -213,7 +226,6 @@ export async function GET() {
             { week: 'Wk 20', planned: 100, actual: Math.min(100, Math.round((Array.from(filledWeeks).filter(w => w <= 20).length / 20) * 100)) },
         ];
 
-
         // 4. Audit Trail
         const auditHistory = await prisma.activityLog.findMany({
             where: {
@@ -226,23 +238,23 @@ export async function GET() {
         });
 
         // 5. Dynamic Audit Artifacts
-        const auditArtifacts = activeTerm ? [
+        const auditArtifacts = currentTerm ? [
             { 
                 title: "Pre-Cycle Audit", 
                 desc: "Course Outline Verification", 
-                date: new Date(activeTerm.startDate).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }), 
+                date: new Date(currentTerm.startDate).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }), 
                 iconType: "SHIELD" 
             },
             { 
                 title: "Mid-Term Review", 
                 desc: "Observational Consistency", 
-                date: new Date(activeTerm.startDate.getTime() + (activeTerm.endDate.getTime() - activeTerm.startDate.getTime()) / 2).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }), 
+                date: new Date(new Date(currentTerm.startDate).getTime() + (new Date(currentTerm.endDate).getTime() - new Date(currentTerm.startDate).getTime()) / 2).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }), 
                 iconType: "EYE" 
             },
             { 
                 title: "Final Compliance", 
                 desc: "Institutional Alignment", 
-                date: new Date(activeTerm.endDate).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }), 
+                date: new Date(currentTerm.endDate).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }), 
                 iconType: "CHECK" 
             }
         ] : [
@@ -261,113 +273,104 @@ export async function GET() {
                 .map(s => ({ name: s.lecturerName, score: s.score }));
         }
 
-        // 7. Expanded Lecturer Specific Metrics for Dossier
-        let courseCount = 0;
-        let resourceCount = 0;
-        let moderationCount = 0;
+        // 7. Expanded Metrics for Dossier
+        const assignedSections = await prisma.courseSection.findMany({
+            where: { lecturerId: userId, ...(termId ? { termId } : {}) },
+            select: { courseId: true }
+        });
+        const distinctCourseIds = Array.from(new Set(assignedSections.map(s => s.courseId)));
+        const courseCount = distinctCourseIds.length;
 
-        // 8. End of Semester Clearance — real data per item
+        const resourceCount = await prisma.resource.count({
+            where: { lecturerId: userId }
+        });
+
+        const moderationCount = await prisma.examModeration.count({
+            where: {
+                ...(termId ? { termId } : {}),
+                OR: [
+                    { moderatorId: userId },
+                    { lecturerId: userId }
+                ]
+            }
+        });
+
+        // 8. End of Semester Clearance — computed from live database records
+        // ── Clearance Item 1: Course Syllabuses / Outlines ──
+        const totalCourses = distinctCourseIds.length;
+        const outlineSubmissions = await prisma.submission.findMany({
+            where: {
+                lecturerId: userId,
+                type: { in: [SubmissionType.COURSE_TOPICS, SubmissionType.WEEKLY_TOPICS] },
+                status: { in: [SubmissionStatus.SUBMITTED, SubmissionStatus.LATE, SubmissionStatus.APPROVED, SubmissionStatus.REVIEWED] },
+                ...(termId ? { termId } : {}),
+            },
+            select: { content: true }
+        });
+
+        const coveredCourseIds = new Set<number>();
+        outlineSubmissions.forEach(sub => {
+            const parsed: any = typeof sub.content === "string" ? JSON.parse(sub.content) : sub.content;
+            if (parsed?.courseId) {
+                coveredCourseIds.add(Number(parsed.courseId));
+            }
+        });
+
+        const distinctCoveredCourses = distinctCourseIds.filter(id => coveredCourseIds.has(id)).length;
+        const syllabusSubmitted = Math.min(totalCourses, Math.max(distinctCoveredCourses, outlineSubmissions.length));
+        const pendingSyllabus = totalCourses - syllabusSubmitted;
+
+        const syllabusesDone = totalCourses > 0 ? syllabusSubmitted >= totalCourses : true;
+        const syllabusesDetail = totalCourses === 0
+            ? "No courses assigned this term"
+            : syllabusSubmitted >= totalCourses
+            ? `All ${totalCourses} course outlines submitted (covers all assigned classes)`
+            : `${syllabusSubmitted} of ${totalCourses} course outlines submitted (${pendingSyllabus} pending)`;
+
+        // ── Clearance Item 2: Teaching Observations ──
+        const totalObs = await prisma.teachingObservation.count({
+            where: { lecturerId: userId, ...(termId ? { termId } : {}) }
+        });
+        const completedObs = await prisma.teachingObservation.count({
+            where: {
+                lecturerId: userId,
+                status: { in: ["COMPLETED", "REVIEWED"] },
+                ...(termId ? { termId } : {})
+            }
+        });
+        const pendingObs = totalObs - completedObs;
+        const obsDone = totalObs > 0 ? completedObs >= totalObs : true;
+        const obsDetail = totalObs === 0
+            ? "No observations scheduled"
+            : completedObs >= totalObs
+            ? `All ${totalObs} observations completed`
+            : `${completedObs} of ${totalObs} observations completed (${pendingObs} pending)`;
+
+        // ── Clearance Item 3: Exam Moderations ──
+        const totalMods = moderationCount;
+        const finalizedMods = await prisma.examModeration.count({
+            where: {
+                status: { in: ["COMPLETED", "REVIEWED"] },
+                ...(termId ? { termId } : {}),
+                OR: [
+                    { moderatorId: userId },
+                    { lecturerId: userId }
+                ]
+            }
+        });
+        const pendingMods = totalMods - finalizedMods;
+        const modsDone = totalMods > 0 ? finalizedMods >= totalMods : true;
+        const modsDetail = totalMods === 0
+            ? "No moderation duties assigned"
+            : finalizedMods >= totalMods
+            ? `All ${totalMods} exams moderated`
+            : `${finalizedMods} of ${totalMods} exams moderated (${pendingMods} pending)`;
+
         const clearance = {
-            syllabuses: { done: false, submitted: 0, total: 0, detail: "" },
-            observations: { done: false, completed: 0, total: 0, detail: "" },
-            moderations: { done: false, finalized: 0, total: 0, detail: "" },
+            syllabuses: { done: syllabusesDone, submitted: syllabusSubmitted, total: totalCourses, detail: syllabusesDetail },
+            observations: { done: obsDone, completed: completedObs, total: totalObs, detail: obsDetail },
+            moderations: { done: modsDone, finalized: finalizedMods, total: totalMods, detail: modsDetail },
         };
-
-        if (role === "LECTURER") {
-            const assignedSections = await prisma.courseSection.findMany({
-                where: { lecturerId: userId, ...(termId ? { termId } : {}) },
-                select: { courseId: true }
-            });
-            const distinctCourseIds = Array.from(new Set(assignedSections.map(s => s.courseId)));
-            courseCount = distinctCourseIds.length;
-
-            resourceCount = await prisma.resource.count({
-                where: { lecturerId: userId }
-            });
-
-            moderationCount = await prisma.examModeration.count({
-                where: {
-                    ...(termId ? { termId } : {}),
-                    OR: [
-                        { moderatorId: userId },
-                        { lecturerId: userId }
-                    ]
-                }
-            });
-
-            // ── Clearance Item 1: Course Syllabuses / Outlines ──
-            const totalCourses = distinctCourseIds.length;
-            const outlineSubmissions = await prisma.submission.findMany({
-                where: {
-                    lecturerId: userId,
-                    type: { in: [SubmissionType.COURSE_TOPICS, SubmissionType.WEEKLY_TOPICS] },
-                    status: { in: [SubmissionStatus.SUBMITTED, SubmissionStatus.LATE, SubmissionStatus.APPROVED, SubmissionStatus.REVIEWED] },
-                    ...(termId ? { termId } : {}),
-                },
-                select: { content: true }
-            });
-
-            const coveredCourseIds = new Set<number>();
-            outlineSubmissions.forEach(sub => {
-                const parsed: any = typeof sub.content === "string" ? JSON.parse(sub.content) : sub.content;
-                if (parsed?.courseId) {
-                    coveredCourseIds.add(Number(parsed.courseId));
-                }
-            });
-
-            const distinctCoveredCourses = distinctCourseIds.filter(id => coveredCourseIds.has(id)).length;
-            const syllabusSubmitted = Math.min(totalCourses, Math.max(distinctCoveredCourses, outlineSubmissions.length));
-
-            clearance.syllabuses = {
-                done: totalCourses > 0 && syllabusSubmitted >= totalCourses,
-                submitted: syllabusSubmitted,
-                total: totalCourses,
-                detail: totalCourses === 0
-                    ? "No courses assigned this term"
-                    : `${syllabusSubmitted} of ${totalCourses} course outlines submitted (covers all assigned classes)`,
-            };
-
-            // ── Clearance Item 2: Teaching Observations ──
-            const totalObs = await prisma.teachingObservation.count({
-                where: { lecturerId: userId, ...(termId ? { termId } : {}) }
-            });
-            const completedObs = await prisma.teachingObservation.count({
-                where: {
-                    lecturerId: userId,
-                    status: { in: ["COMPLETED", "REVIEWED"] },
-                    ...(termId ? { termId } : {})
-                }
-            });
-            clearance.observations = {
-                done: totalObs === 0 || completedObs >= totalObs,
-                completed: completedObs,
-                total: totalObs,
-                detail: totalObs === 0
-                    ? "No observations scheduled"
-                    : `${completedObs} of ${totalObs} observations completed`,
-            };
-
-            // ── Clearance Item 3: Exam Moderations ──
-            const totalMods = moderationCount;
-            const finalizedMods = await prisma.examModeration.count({
-                where: {
-                    status: { in: ["COMPLETED", "REVIEWED"] },
-                    ...(termId ? { termId } : {}),
-                    OR: [
-                        { moderatorId: userId },
-                        { lecturerId: userId }
-                    ]
-                }
-            });
-            clearance.moderations = {
-                done: totalMods === 0 || finalizedMods >= totalMods,
-                finalized: finalizedMods,
-                total: totalMods,
-                detail: totalMods === 0
-                    ? "No moderation duties assigned"
-                    : `${finalizedMods} of ${totalMods} exams moderated`,
-            };
-        }
 
         const metrics = {
             outlines: weeklySubmissions.length,
@@ -382,7 +385,7 @@ export async function GET() {
         return NextResponse.json({
             stats: {
                 compliance: complianceScore,
-                activeTerm: activeTerm?.name ?? "No Active Term",
+                activeTerm: currentTerm?.name ?? "No Active Term",
                 institution: "HO Technical University",
             },
             radarData,
