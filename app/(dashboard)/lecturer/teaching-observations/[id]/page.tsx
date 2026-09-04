@@ -6,6 +6,7 @@ import { AlertTriangle, AlertCircle, Calendar } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 import { ReviewDossierViewer } from "@/features/observations";
 import { getCourseTitle } from "@/features/curriculum";
+import { INSTITUTIONAL_VENUES } from "@/lib/venues";
 
 const DetailWorkspaceSkeleton = () => (
     <div className="max-w-4xl mx-auto space-y-8 animate-pulse pb-20 pt-6 px-4">
@@ -425,7 +426,25 @@ export default function ConductTeachingObservationPage() {
                     </div>
                     <div>
                         <p className="text-sm font-medium mb-1" style={{ color: "var(--text-muted)" }}>Lesson Venue:</p>
-                        <input type="text" disabled={isDisabled} value={reviewData.metadata.venue} onChange={e => setReviewData(p => ({ ...p, metadata: { ...p.metadata, venue: e.target.value.toUpperCase() } }))} className="w-full bg-transparent border-b outline-none px-2 py-1" style={{ borderColor: "var(--bg-border)", color: "var(--text-primary)" }} />
+                        <select
+                            disabled={isDisabled}
+                            value={reviewData.metadata.venue}
+                            onChange={e => setReviewData(p => ({ ...p, metadata: { ...p.metadata, venue: e.target.value.toUpperCase() } }))}
+                            className="w-full bg-transparent border-b outline-none px-2 py-1 cursor-pointer font-medium text-slate-800 dark:text-slate-100"
+                            style={{ borderColor: "var(--bg-border)", color: "var(--text-primary)" }}
+                        >
+                            <option value="" disabled className="bg-white dark:bg-slate-900 text-slate-500">Select Venue...</option>
+                            {INSTITUTIONAL_VENUES.map(v => (
+                                <option key={v.value} value={v.value} className="bg-white dark:bg-slate-900" style={{ color: "var(--text-primary)" }}>
+                                    {v.label}
+                                </option>
+                            ))}
+                            {reviewData.metadata.venue && !INSTITUTIONAL_VENUES.some(v => v.value === reviewData.metadata.venue) && (
+                                <option value={reviewData.metadata.venue} className="bg-white dark:bg-slate-900">
+                                    {reviewData.metadata.venue}
+                                </option>
+                            )}
+                        </select>
                     </div>
 
                     <div className="flex gap-4">
@@ -484,12 +503,42 @@ export default function ConductTeachingObservationPage() {
                         </div>
                         <div className="flex-1">
                             <label className="block text-xs font-bold mb-1.5 text-blue-700/70 dark:text-blue-400/70 uppercase tracking-widest">Venue/Location</label>
-                            <input type="text" value={scheduleVenue} onChange={e => setScheduleVenue(e.target.value.toUpperCase())} placeholder="e.g. Room 101"
-                                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 border-blue-200 dark:border-slate-700" />
+                            <select
+                                value={scheduleVenue}
+                                onChange={e => setScheduleVenue(e.target.value)}
+                                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 border-blue-200 dark:border-slate-700 font-semibold cursor-pointer text-slate-800 dark:text-slate-100"
+                            >
+                                <option value="" disabled>Select Venue...</option>
+                                {INSTITUTIONAL_VENUES.map(v => (
+                                    <option key={v.value} value={v.value}>{v.label}</option>
+                                ))}
+                                {scheduleVenue && !INSTITUTIONAL_VENUES.some(v => v.value === scheduleVenue) && (
+                                    <option value={scheduleVenue}>{scheduleVenue}</option>
+                                )}
+                            </select>
                         </div>
-                        <button onClick={handleSchedule} disabled={scheduling} className="w-full md:w-auto px-6 py-2.5 rounded-xl text-white font-bold text-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm">
+                        <button onClick={handleSchedule} disabled={scheduling} className="w-full md:w-auto px-6 py-2.5 rounded-xl text-white font-bold text-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm cursor-pointer">
                             {scheduling ? "Saving..." : "Lock Schedule"}
                         </button>
+                    </div>
+
+                    {/* Quick Pick Venues */}
+                    <div className="mt-3 pt-3 border-t border-blue-200/60 dark:border-blue-800/60 flex items-center gap-2 flex-wrap">
+                        <span className="text-[11px] font-bold text-blue-700/70 dark:text-blue-400/70 uppercase tracking-wider">Quick Pick:</span>
+                        {INSTITUTIONAL_VENUES.map(v => (
+                            <button
+                                key={v.value}
+                                type="button"
+                                onClick={() => setScheduleVenue(v.value)}
+                                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
+                                    scheduleVenue === v.value
+                                        ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                                        : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-blue-200 dark:border-slate-700 hover:border-blue-400 hover:text-blue-600"
+                                }`}
+                            >
+                                {v.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
             )}

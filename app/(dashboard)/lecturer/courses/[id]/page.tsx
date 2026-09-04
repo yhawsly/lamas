@@ -17,6 +17,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useTerm } from "@/context/TermContext";
 import { useModal } from "@/context/ModalContext";
 import RefreshButton from "@/components/ui/RefreshButton";
+import { INSTITUTIONAL_VENUES } from "@/lib/venues";
 
 const fetcher = (url: string) => fetch(url).then(res => res.ok ? res.json() : null);
 
@@ -1787,13 +1788,19 @@ export default function CourseOutlinePrototype() {
 
                                   <div className="flex flex-col gap-1.5">
                                     <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Venue / Room</label>
-                                    <input
-                                      type="text"
-                                      placeholder="e.g. Computer Lab 1, LT 2"
+                                    <select
                                       value={form.venue}
                                       onChange={e => setSectionSchedules(prev => ({ ...prev, [cls.id]: { ...form, venue: e.target.value } }))}
-                                      className="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800 dark:text-slate-200 transition"
-                                    />
+                                      className="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800 dark:text-slate-200 transition cursor-pointer"
+                                    >
+                                      <option value="">Select Venue...</option>
+                                      {INSTITUTIONAL_VENUES.map(v => (
+                                        <option key={v.value} value={v.value}>{v.label}</option>
+                                      ))}
+                                      {form.venue && !INSTITUTIONAL_VENUES.some(v => v.value === form.venue) && (
+                                        <option value={form.venue}>{form.venue}</option>
+                                      )}
+                                    </select>
                                   </div>
                                 </div>
 
