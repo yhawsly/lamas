@@ -191,61 +191,6 @@ export default function LecturerDashboard() {
                 </div>
             </div>
 
-            {/* ── Mobile-Only Quick Action Hub ── */}
-            <div className="grid grid-cols-2 gap-2.5 sm:hidden">
-                <Link 
-                    href="/lecturer/courses"
-                    className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs flex items-center gap-3 active:scale-[0.98] transition"
-                >
-                    <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                        <BookOpen className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                        <div className="text-xs font-black text-slate-900 dark:text-white leading-tight">My Courses</div>
-                        <div className="text-[10px] text-slate-400 font-semibold mt-0.5">{lecturerCourses.length} Assigned</div>
-                    </div>
-                </Link>
-
-                <Link 
-                    href="/lecturer/appraisals"
-                    className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs flex items-center gap-3 active:scale-[0.98] transition"
-                >
-                    <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-                        <Eye className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                        <div className="text-xs font-black text-slate-900 dark:text-white leading-tight">Peer Reviews</div>
-                        <div className="text-[10px] text-slate-400 font-semibold mt-0.5">APR Form A</div>
-                    </div>
-                </Link>
-
-                <Link 
-                    href="/lecturer/resources"
-                    className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs flex items-center gap-3 active:scale-[0.98] transition"
-                >
-                    <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
-                        <Library className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                        <div className="text-xs font-black text-slate-900 dark:text-white leading-tight">Resources</div>
-                        <div className="text-[10px] text-slate-400 font-semibold mt-0.5">{resources.length} Files</div>
-                    </div>
-                </Link>
-
-                <Link 
-                    href="/notifications"
-                    className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs flex items-center gap-3 active:scale-[0.98] transition"
-                >
-                    <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                        <Bell className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                        <div className="text-xs font-black text-slate-900 dark:text-white leading-tight">Alerts</div>
-                        <div className="text-[10px] text-slate-400 font-semibold mt-0.5">{unreadNotifs.length} Unread</div>
-                    </div>
-                </Link>
-            </div>
-
             {/* ── KPI Strip ── */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
                 <KPICard
@@ -284,8 +229,8 @@ export default function LecturerDashboard() {
             {/* ── Reorganized Split Grid Layout ── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                {/* Left Side (2/3 width) - Workspaces & Submissions Planner */}
-                <div className="lg:col-span-2 space-y-8">
+                {/* Left Side (2/3 width) - Workspaces & Submissions Planner (order-2 on mobile, order-1 on desktop) */}
+                <div className="lg:col-span-2 space-y-6 sm:space-y-8 order-2 lg:order-1">
 
                     {/* My Assigned Courses Section */}
                     <div className="space-y-4">
@@ -348,14 +293,14 @@ export default function LecturerDashboard() {
                                 </h3>
                             </div>
 
-                            <div className="flex gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 w-fit shrink-0">
+                            <div className="flex gap-1 p-0.5 sm:p-1 rounded-lg bg-slate-100 dark:bg-slate-800 w-fit shrink-0">
                                 {(["all", "submitted", "pending", "draft"] as const).map(tab => (
                                     <button
                                         key={tab}
                                         onClick={() => setActiveSubTab(tab)}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${
+                                        className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-md text-[11px] sm:text-xs font-bold capitalize transition-all ${
                                             activeSubTab === tab
-                                                ? "bg-white dark:bg-slate-955 text-blue-600 dark:text-blue-400 shadow-sm"
+                                                ? "bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs"
                                                 : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                                         }`}
                                     >
@@ -402,8 +347,8 @@ export default function LecturerDashboard() {
                     </div>
                 </div>
 
-                {/* Right Side (1/3 width) - Today Class Calendar & Shortcuts */}
-                <div className="space-y-6">
+                {/* Right Side (1/3 width) - Today Class Calendar & Shortcuts (order-1 on mobile, order-2 on desktop) */}
+                <div className="space-y-6 order-1 lg:order-2">
 
                     {/* Today Class Weekly Timeline Widget (New Image Style) */}
                     <div className="rounded-[2rem] border p-6 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
@@ -420,7 +365,7 @@ export default function LecturerDashboard() {
                         </div>
 
                         {/* Weekly Days Strip */}
-                        <div className="grid grid-cols-7 gap-2 p-3 rounded-2xl bg-slate-50/60 dark:bg-slate-950/60 text-center mb-6">
+                        <div className="grid grid-cols-7 gap-1.5 p-2 rounded-xl bg-slate-50/60 dark:bg-slate-950/60 text-center mb-4">
                             {weeklyDays.map((day, index) => {
                                 const isSelected = selectedDate && day.getDate() === selectedDate.getDate() && day.getMonth() === selectedDate.getMonth();
                                 const isTodayDate = day.getDate() === new Date().getDate() && day.getMonth() === new Date().getMonth() && day.getFullYear() === new Date().getFullYear();
@@ -430,15 +375,15 @@ export default function LecturerDashboard() {
                                     <button
                                         key={index}
                                         onClick={() => setSelectedDate(day)}
-                                        className={`py-2 px-1 rounded-xl flex flex-col items-center gap-1 transition-all ${
+                                        className={`py-1.5 px-0.5 rounded-lg flex flex-col items-center gap-0.5 transition-all ${
                                             isSelected 
-                                                ? "bg-blue-600 text-white font-extrabold shadow-md shadow-blue-500/25"
+                                                ? "bg-blue-600 text-white font-extrabold shadow-xs"
                                                 : isTodayDate
                                                     ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-extrabold"
                                                     : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                                         }`}
                                     >
-                                        <span className="text-[10px] opacity-75 font-semibold">
+                                        <span className="text-[9px] opacity-75 font-semibold">
                                             {dayLabels[day.getDay()]}
                                         </span>
                                         <span className="text-xs font-black">

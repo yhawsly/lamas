@@ -111,8 +111,8 @@ export default function ScheduleTab({
       ) : (
         <div className="space-y-6">
           {/* ── Interactive Stream Tabs ── */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
               {streamTabs.map(tab => {
                 const TabIcon = tab.icon;
                 const isActive = scheduleStreamTab === tab.id;
@@ -121,15 +121,15 @@ export default function ScheduleTab({
                     key={tab.id}
                     type="button"
                     onClick={() => setScheduleStreamTab(tab.id)}
-                    className={`px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-2 transition-all shrink-0 cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${
                       isActive
-                        ? "bg-blue-600 text-white shadow-md shadow-blue-500/25 ring-2 ring-blue-500/20"
+                        ? "bg-blue-600 text-white shadow-xs"
                         : "bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
                     }`}
                   >
                     <TabIcon className={`w-3.5 h-3.5 ${isActive ? "opacity-100" : "opacity-60"}`} />
                     <span>{tab.label}</span>
-                    <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black ${
+                    <span className={`px-1.5 py-0.2 rounded text-[10px] font-black ${
                       isActive 
                         ? "bg-white/20 text-white" 
                         : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
@@ -167,8 +167,8 @@ export default function ScheduleTab({
           </div>
 
           {/* ── Secondary Day / Status Filter Pills ── */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mr-1">Filter:</span>
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
+            <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400 shrink-0 mr-1">Filter:</span>
             {[
               { id: "all", label: "All Sessions", icon: null },
               { id: "regular", label: "Mon–Fri (Regular)", icon: Calendar },
@@ -184,9 +184,9 @@ export default function ScheduleTab({
                   key={pill.id}
                   type="button"
                   onClick={() => setScheduleDayTab(pill.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
                     isActive
-                      ? "bg-amber-500 text-white shadow-xs shadow-amber-500/25"
+                      ? "bg-amber-500 text-white shadow-xs"
                       : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700/80"
                   }`}
                 >
@@ -219,9 +219,9 @@ export default function ScheduleTab({
                     className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xs overflow-hidden transition-all hover:border-slate-300 dark:hover:border-slate-700"
                   >
                     {/* Card Header with Badges */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/40 dark:bg-slate-900/40">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/40 dark:bg-slate-900/40">
                       <div className="flex items-center gap-3">
-                        <div className={`w-2.5 h-8 rounded-full ${
+                        <div className={`w-2.5 h-8 rounded-full shrink-0 ${
                           isTopUp 
                             ? "bg-indigo-600" 
                             : isWeekend 
@@ -229,8 +229,8 @@ export default function ScheduleTab({
                             : "bg-blue-600"
                         }`} />
                         <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">{cls.name}</h3>
+                          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                            <h3 className="font-extrabold text-sm text-slate-900 dark:text-white leading-tight">{cls.name}</h3>
                             {isTopUp && (
                               <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
                                 Top-Up
@@ -248,7 +248,7 @@ export default function ScheduleTab({
                       </div>
 
                       {/* Current Live Status Pill */}
-                      <div>
+                      <div className="self-start sm:self-auto">
                         {form.dayOfWeek ? (
                           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-2xs">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -264,13 +264,13 @@ export default function ScheduleTab({
                     </div>
 
                     {/* Form Fields */}
-                    <div className="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="px-4 sm:px-6 py-4 sm:py-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
                       <div className="flex flex-col gap-1.5">
                         <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Day of Week</label>
                         <select
                           value={form.dayOfWeek}
                           onChange={e => setSectionSchedules(prev => ({ ...prev, [cls.id]: { ...form, dayOfWeek: e.target.value } }))}
-                          className="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800 dark:text-slate-200 transition cursor-pointer"
+                          className="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm sm:text-xs font-semibold bg-slate-50 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800 dark:text-slate-200 transition cursor-pointer min-h-[44px]"
                         >
                           <option value="">— Select day —</option>
                           {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(d => (
@@ -286,7 +286,7 @@ export default function ScheduleTab({
                           placeholder="e.g. 08:30 AM"
                           value={form.startTime}
                           onChange={e => setSectionSchedules(prev => ({ ...prev, [cls.id]: { ...form, startTime: e.target.value } }))}
-                          className="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800 dark:text-slate-200 transition"
+                          className="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm sm:text-xs font-semibold bg-slate-50 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800 dark:text-slate-200 transition min-h-[44px]"
                         />
                       </div>
 
@@ -297,7 +297,7 @@ export default function ScheduleTab({
                           placeholder="e.g. 10:30 AM"
                           value={form.endTime}
                           onChange={e => setSectionSchedules(prev => ({ ...prev, [cls.id]: { ...form, endTime: e.target.value } }))}
-                          className="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800 dark:text-slate-200 transition"
+                          className="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm sm:text-xs font-semibold bg-slate-50 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800 dark:text-slate-200 transition min-h-[44px]"
                         />
                       </div>
 
@@ -309,7 +309,7 @@ export default function ScheduleTab({
                           value={form.venue}
                           onChange={e => setSectionSchedules(prev => ({ ...prev, [cls.id]: { ...form, venue: e.target.value } }))}
                           placeholder="Type or select venue (e.g. AVIC LAB)..."
-                          className="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold bg-slate-50 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 transition"
+                          className="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm sm:text-xs font-semibold bg-slate-50 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 transition min-h-[44px]"
                         />
                         <datalist id={`course-venue-list-${cls.id}`}>
                           {INSTITUTIONAL_VENUES.map(v => (
@@ -319,13 +319,13 @@ export default function ScheduleTab({
                       </div>
                     </div>
 
-                    <div className="px-6 pb-4 pt-1 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
+                    <div className="px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/40">
                       <span className="text-[11px] text-slate-400">Updates sync in real-time with your timetable and dashboard timeline.</span>
                       <button
                         type="button"
                         onClick={() => handleSaveSchedule(cls.id)}
                         disabled={isSavingThis || !form.dayOfWeek}
-                        className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50 shadow-sm shadow-blue-600/20 cursor-pointer"
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition disabled:opacity-50 shadow-sm shadow-blue-600/20 cursor-pointer min-h-[44px] active:scale-[0.98]"
                       >
                         <Check className="w-4 h-4" />
                         {isSavingThis ? "Saving..." : "Save Schedule"}

@@ -109,13 +109,13 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             {/* ── Main content area (pushed right by fixed sidebar on desktop) ── */}
             <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isCollapsed ? "lg:ml-20" : "lg:ml-64"} print:!ml-0 print:!p-0 print:!m-0 print:!w-full`}>
                 {/* Top bar (Hidden on print) */}
-                <header className="flex items-center justify-between px-4 lg:px-8 py-3 lg:py-4 border-b sticky top-0 z-30 print:hidden"
+                <header className="flex items-center justify-between px-3 sm:px-6 lg:px-8 py-2.5 lg:py-4 border-b sticky top-0 z-30 print:hidden"
                     style={{ background: "var(--bg-base)", borderColor: "var(--bg-border)" }}>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                         {/* Mobile hamburger menu */}
                         <button
                             onClick={() => setSidebarOpen(true)}
-                            className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center transition-all"
+                            className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer"
                             style={{ color: "var(--text-primary)" }}
                             onMouseEnter={(e) => {
                                 e.currentTarget.style.background = "var(--bg-hover)";
@@ -145,28 +145,28 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                         </button>
 
                         {/* Brand on mobile */}
-                        <div className="flex items-center gap-2.5 lg:hidden">
-                            <div className="w-8 h-8 rounded-lg bg-white p-0.5 flex items-center justify-center shadow-xs border border-slate-200 dark:border-slate-800">
+                        <div className="flex items-center gap-2 lg:hidden">
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white p-0.5 flex items-center justify-center shadow-xs border border-slate-200 dark:border-slate-800 shrink-0">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src="/htu-logo.png" alt="HTU Logo" className="w-full h-full object-contain" />
                             </div>
-                            <span className="font-extrabold text-sm tracking-wide" style={{ color: "var(--text-primary)" }}>HTU LAMAS</span>
+                            <span className="font-black text-xs sm:text-sm tracking-wide hidden min-[360px]:inline" style={{ color: "var(--text-primary)" }}>LAMAS</span>
                         </div>
                     </div> {/* End left side flex */}
 
                     {/* Right side global actions */}
-                    <div className="flex items-center gap-2 sm:gap-2.5">
+                    <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
                         <PWAInstallButton variant="header" />
                         <TermSwitcher />
                         <ThemeToggle />
                         <NotificationBell />
                         
-                        <div className="relative profile-dropdown ml-1 sm:ml-2">
+                        <div className="relative profile-dropdown ml-0.5 sm:ml-2 shrink-0">
                             <button 
                                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                                className="flex items-center gap-3 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                                className="flex items-center gap-2 sm:gap-3 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                             >
-                                <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center text-sm border border-blue-200 dark:border-blue-500/30">
+                                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center text-xs sm:text-sm border border-blue-200 dark:border-blue-500/30 shrink-0">
                                     {initials}
                                 </div>
                                 <div className="hidden sm:block text-left">

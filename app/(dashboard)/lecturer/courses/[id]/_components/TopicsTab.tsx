@@ -78,15 +78,15 @@ export default function TopicsTab({
 
   return (
     <section id="topics" className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Course Topics</h2>
-          <p className="text-slate-500 dark:text-slate-400">Define the main subjects covered in this course.</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100">Course Topics</h2>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Define the main subjects covered in this course.</p>
         </div>
         <button 
           onClick={handleExport}
           disabled={isExporting}
-          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition shadow-sm flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+          className="w-full sm:w-auto px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm font-semibold rounded-xl transition shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer min-h-[44px]"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
           {isExporting ? "Exporting..." : "Export to Excel"}
@@ -199,11 +199,11 @@ export default function TopicsTab({
                     </div>
                   </div>
                   {!isArchiveMode && (
-                    <div className="opacity-0 group-hover:opacity-100 transition flex items-center gap-1">
-                      <button onClick={() => startEditTopic(t)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-md transition cursor-pointer" title="Edit">
+                    <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center gap-1 shrink-0 ml-2">
+                      <button onClick={() => startEditTopic(t)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center" title="Edit">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                       </button>
-                      <button onClick={() => deleteTopic(t.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-slate-800 rounded-md transition cursor-pointer" title="Delete">
+                      <button onClick={() => deleteTopic(t.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center" title="Delete">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     </div>

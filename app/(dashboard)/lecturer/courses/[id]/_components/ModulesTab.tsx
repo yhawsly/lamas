@@ -136,16 +136,16 @@ export default function ModulesTab({
                 }`}
               >
                 {editingModuleId !== m.id && (
-                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-lg flex items-center overflow-hidden z-10">
+                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-sm rounded-lg flex items-center overflow-hidden z-10">
                      <button 
                       onClick={() => updateModule(activeClass.id, m.id, { completed: !m.completed })} 
-                      className={`p-2 transition ${m.completed ? 'text-green-600 hover:bg-green-50 dark:hover:bg-slate-700' : 'text-slate-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-slate-700'}`} 
+                      className={`p-2.5 sm:p-2 min-w-[36px] min-h-[36px] flex items-center justify-center transition ${m.completed ? 'text-green-600 hover:bg-green-50 dark:hover:bg-slate-700' : 'text-slate-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-slate-700'}`} 
                       title={m.completed ? "Mark incomplete" : "Mark complete"}
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                     </button>
                     <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
-                    <button onClick={() => setEditingModuleId(m.id)} className="p-2 text-slate-500 dark:text-slate-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 transition" title="Edit">
+                    <button onClick={() => setEditingModuleId(m.id)} className="p-2.5 sm:p-2 min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 transition" title="Edit">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                     </button>
                   </div>

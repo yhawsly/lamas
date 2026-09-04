@@ -620,18 +620,18 @@ export default function CourseOutlinePrototype() {
               </div>
             </div>
 
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 relative z-10">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 sm:gap-6 mb-6 sm:mb-8 relative z-10">
               <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-blue-600 text-xs font-black tracking-widest uppercase">
+                <div className="flex items-center gap-3 mb-1.5 sm:mb-2">
+                  <span className="text-blue-600 dark:text-blue-400 text-xs font-black tracking-widest uppercase">
                     Course Workspace
                   </span>
                 </div>
-                <h1 className="text-4xl font-black text-slate-800 dark:text-slate-100 tracking-tight">{basicInfo.courseCode}</h1>
-                <p className="text-slate-500 dark:text-slate-400 text-lg mt-1">{basicInfo.title}</p>
+                <h1 className="text-2xl sm:text-4xl font-black text-slate-800 dark:text-slate-100 tracking-tight">{basicInfo.courseCode}</h1>
+                <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-lg mt-0.5 sm:mt-1">{basicInfo.title}</p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-3 w-full md:w-auto">
                 <RefreshButton
                   onClick={async () => {
                     if (!courseId) return;
@@ -650,51 +650,61 @@ export default function CourseOutlinePrototype() {
                   type="button"
                   onClick={openHistoryModal} 
                   disabled={isArchiveMode} 
-                  className="flex-1 md:flex-none px-4 py-2.5 rounded-xl bg-blue-50/80 hover:bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:hover:bg-blue-900/60 dark:text-blue-300 transition-all font-bold flex items-center justify-center gap-2 shadow-xs text-sm border border-blue-200 dark:border-blue-800/80 disabled:opacity-50 cursor-pointer"
+                  className="px-3 sm:px-4 py-2.5 rounded-xl bg-blue-50/80 hover:bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:hover:bg-blue-900/60 dark:text-blue-300 transition-all font-bold flex items-center justify-center gap-1.5 sm:gap-2 shadow-xs text-xs sm:text-sm border border-blue-200 dark:border-blue-800/80 disabled:opacity-50 cursor-pointer min-h-[42px]"
                   title="Import approved topics and weekly outline from previous semesters"
                 >
-                  <History className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  Import Past Outline
+                  <History className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                  <span className="truncate">History</span>
                 </button>
                 <button 
                   onClick={() => handleSaveToDB(false)} 
                   disabled={isSaving || isArchiveMode} 
-                  className="flex-1 md:flex-none px-5 py-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-all font-bold flex items-center justify-center gap-2 shadow-sm text-sm border border-slate-200 dark:border-slate-700 disabled:opacity-50 cursor-pointer"
+                  className="px-3.5 sm:px-5 py-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-all font-bold flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm text-xs sm:text-sm border border-slate-200 dark:border-slate-700 disabled:opacity-50 cursor-pointer min-h-[42px]"
                 >
                   {isSaving ? "Saving..." : "Save Draft"}
                 </button>
                 <button 
                   onClick={() => handleSaveToDB(true)} 
                   disabled={isSaving || submissionStatus === "SUBMITTED" || isArchiveMode} 
-                  className={`flex-1 md:flex-none px-5 py-2.5 rounded-xl ${submissionStatus === "SUBMITTED" ? "bg-green-100 dark:bg-green-950/60 text-green-700 dark:text-green-400 border-green-200 cursor-not-allowed" : isArchiveMode ? "bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30 cursor-pointer"} transition-all font-bold flex items-center justify-center gap-2 text-sm border border-transparent`}
+                  className={`px-3.5 sm:px-5 py-2.5 rounded-xl ${
+                    submissionStatus === "SUBMITTED" 
+                      ? "bg-green-100 dark:bg-green-950/60 text-green-700 dark:text-green-400 border-green-200 cursor-not-allowed" 
+                      : isArchiveMode 
+                      ? "bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200 cursor-not-allowed" 
+                      : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30 cursor-pointer"
+                  } transition-all font-bold flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm border border-transparent min-h-[42px]`}
                 >
-                  {isArchiveMode ? "Archive (Read Only)" : submissionStatus === "SUBMITTED" ? "Submitted" : "Submit"}
+                  {isArchiveMode ? "Read-Only" : submissionStatus === "SUBMITTED" ? "Submitted" : "Submit"}
                 </button>
               </div>
             </div>
           
-            <nav className="flex items-center gap-6 border-b border-slate-200 dark:border-slate-800 overflow-x-auto relative z-10">
+            {/* ── Compact & Refined Responsive Tab Navigation ── */}
+            <nav className="flex items-center gap-4 sm:gap-8 border-b border-slate-200 dark:border-slate-800 overflow-x-auto relative z-10 scrollbar-none -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
               {[
                 { id: "topics", label: "Course Topics" },
                 { id: "classes", label: "My Classes" },
                 { id: "assessments", label: "Assessments" },
                 { id: "schedule", label: "My Schedule" },
-              ].map(tab => (
-                <button 
-                  key={tab.id}
-                  onClick={() => {
-                    setActiveTab(tab.id);
-                    if (tab.id !== "classes") setSelectedClassId(null);
-                  }}
-                  className={`whitespace-nowrap py-3 px-1 text-sm font-semibold transition-colors border-b-2 -mb-px cursor-pointer ${
-                    activeTab === tab.id 
-                      ? "border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400" 
-                      : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:border-slate-300"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+              ].map(tab => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button 
+                    key={tab.id}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      if (tab.id !== "classes") setSelectedClassId(null);
+                    }}
+                    className={`whitespace-nowrap py-2.5 sm:py-3 px-1 text-xs sm:text-sm transition-all shrink-0 cursor-pointer border-b-2 -mb-px flex items-center gap-1.5 ${
+                      isActive 
+                        ? "border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400 font-extrabold" 
+                        : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 font-semibold"
+                    }`}
+                  >
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
             </nav>
           </header>
 

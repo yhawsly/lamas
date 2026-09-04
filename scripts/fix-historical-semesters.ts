@@ -24,9 +24,6 @@ async function main() {
     // 3. For each course, ensure Term 1 (Semester 1 2025/2026) has an APPROVED historical outline
     
     // Specifically for CS101:
-    // We want Card 1: Semester 1 2025/2026 [APPROVED] By Redeemer (7 Topics, 7 Weeks, 0 Files)
-    // We want Card 2: Semester 2 2024/2025 [APPROVED] By Sylvester Yhaw (7 Topics, 14 Weeks, 1 Files)
-    
     // Update Submission 107 (Redeemer's CS101 Approved Outline) -> move to Term 1 (Semester 1 2025/2026)
     const sub107 = await prisma.submission.findUnique({ where: { id: 107 } });
     if (sub107) {
@@ -36,7 +33,7 @@ async function main() {
                 termId: term1.id,
                 title: "CS101 - Approved Course Outline & Syllabus",
                 status: SubmissionStatus.APPROVED,
-                submittedAt: new Date("2025-09-15T10:00:00Z"),
+                submittedAt: new Date("2026-01-18T10:00:00Z"),
                 feedback: "Approved by Head of Department for Semester 1 teaching."
             }
         });
@@ -52,8 +49,8 @@ async function main() {
                 termId: term1.id,
                 title: "[CS101] Introduction to Computer Science & Systems — Course Outline & Syllabus",
                 status: SubmissionStatus.APPROVED,
-                submittedAt: new Date("2025-02-14T14:30:00Z"),
-                feedback: "Approved by Curriculum Committee for 2024/2025 academic session."
+                submittedAt: new Date("2026-01-22T14:30:00Z"),
+                feedback: "Approved by Curriculum Committee for 2025/2026 academic session."
             }
         });
         console.log(`✓ Updated Submission 106 (Sylvester CS101) -> Term 1 ("${term1.name}")`);
@@ -74,7 +71,7 @@ async function main() {
                 where: { id: item.id },
                 data: {
                     termId: term1.id,
-                    submittedAt: new Date("2025-09-18T11:00:00Z"),
+                    submittedAt: new Date("2026-01-25T11:00:00Z"),
                     status: SubmissionStatus.APPROVED
                 }
             });
@@ -83,7 +80,6 @@ async function main() {
     }
 
     // For all remaining courses, ensure at least one APPROVED historical outline exists in Term 1 (Semester 1 2025/2026)
-    // and one in Semester 2 2024/2025
     for (const course of courses) {
         const existingInTerm1 = await prisma.submission.findFirst({
             where: {
@@ -118,7 +114,7 @@ async function main() {
                         deadlineId: null,
                         type: SubmissionType.COURSE_TOPICS,
                         status: SubmissionStatus.APPROVED,
-                        submittedAt: new Date("2025-09-12T09:00:00Z"),
+                        submittedAt: new Date("2026-02-02T09:00:00Z"),
                         termId: term1.id,
                         feedback: "Approved by Department Board.",
                         content: sampleContent
@@ -129,7 +125,7 @@ async function main() {
         }
     }
 
-    console.log("\n🎉 HISTORICAL OUTLINES ASSIGNED TO GENUINE PREVIOUS SEMESTERS (Semester 1 2025/2026)!");
+    console.log("\n🎉 HISTORICAL OUTLINES ASSIGNED TO GENUINE PREVIOUS SEMESTER (Semester 1 2025/2026)!");
 }
 
 main()

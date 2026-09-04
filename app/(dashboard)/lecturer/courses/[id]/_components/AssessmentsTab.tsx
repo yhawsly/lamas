@@ -100,11 +100,11 @@ export default function AssessmentsTab({
                     <span className="font-medium text-slate-800 dark:text-slate-200">{a.name}</span>
                   </div>
                   {!isArchiveMode && (
-                    <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition">
-                      <button onClick={() => startEditAssessment(a)} className="text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 transition p-1.5 rounded-md cursor-pointer" title="Edit">
+                    <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex items-center gap-1 transition-opacity shrink-0 ml-2">
+                      <button onClick={() => startEditAssessment(a)} className="text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 transition p-2 rounded-lg cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center" title="Edit">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                       </button>
-                      <button onClick={() => deleteAssessment(a.id)} className="text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-slate-700 transition p-1.5 rounded-md cursor-pointer" title="Delete">
+                      <button onClick={() => deleteAssessment(a.id)} className="text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-slate-700 transition p-2 rounded-lg cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center" title="Delete">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     </div>

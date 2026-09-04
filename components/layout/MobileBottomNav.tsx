@@ -114,27 +114,26 @@ export default function MobileBottomNav({ onOpenDrawer }: MobileBottomNavProps) 
                         <Link
                             key={tab.id}
                             href={tab.href!}
-                            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all relative group ${
+                            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all relative group ${
                                 isActive
-                                    ? "text-blue-600 dark:text-blue-400 font-black"
-                                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white font-bold"
+                                    ? "text-blue-600 dark:text-blue-400 font-bold"
+                                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white font-medium"
                             }`}
                         >
                             <div className="relative flex items-center justify-center">
-                                {/* Active Indicator Glow Background */}
-                                {isActive && (
-                                    <div className="absolute inset-0 -m-1.5 rounded-xl bg-blue-500/15 dark:bg-blue-500/20 -z-10 animate-in zoom-in-90 duration-200" />
-                                )}
-                                <Icon className={`w-5 h-5 transition-transform group-active:scale-90 ${isActive ? "stroke-[2.5]" : "stroke-[2]"}`} />
+                                <Icon className={`w-5 h-5 transition-transform group-active:scale-90 ${isActive ? "stroke-[2.2]" : "stroke-[1.8]"}`} />
                                 {!!tab.badge && tab.badge > 0 && (
                                     <span className="absolute -top-1 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center border-2 border-white dark:border-slate-900 animate-pulse">
                                         {tab.badge > 9 ? "9+" : tab.badge}
                                     </span>
                                 )}
                             </div>
-                            <span className={`text-[10px] mt-1 tracking-tight ${isActive ? "font-extrabold text-blue-600 dark:text-blue-400" : "font-bold"}`}>
+                            <span className="text-[10px] mt-0.5 tracking-tight">
                                 {tab.label}
                             </span>
+                            {isActive && (
+                                <span className="w-1 h-1 rounded-full bg-blue-600 dark:bg-blue-400 mt-0.5" />
+                            )}
                         </Link>
                     );
                 })}
