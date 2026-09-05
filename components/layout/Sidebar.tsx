@@ -21,7 +21,6 @@ import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useTheme } from "@/components/ThemeProvider";
 import useSWR from "swr";
-import PWAInstallButton from "@/components/pwa/PWAInstallButton";
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
@@ -227,11 +226,6 @@ export default function Sidebar({ isOpen = false, onClose, isCollapsed = false, 
                     );
                 })}
             </nav>
-
-            {/* PWA Install Button (Shown on mobile and expanded desktop) */}
-            <div className={`p-3 border-t ${isCollapsed ? "lg:hidden" : "block"}`} style={{ borderColor: "var(--bg-border)" }}>
-                <PWAInstallButton variant="sidebar" />
-            </div>
 
             {/* Desktop Collapse / Expand Toggle Button at Footer */}
             <div className="hidden lg:block p-3 border-t mt-auto" style={{ borderColor: "var(--bg-border)" }}>

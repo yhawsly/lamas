@@ -33,7 +33,7 @@ export default function DeadlinesTab() {
     const { isArchiveMode, selectedTermId } = useTerm();
     const [deadlines, setDeadlines] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [form, setForm] = useState({ type: "SEMESTER_CALENDAR", label: "", dueDate: "" });
+    const [form, setForm] = useState({ type: "COURSE_TOPICS", label: "", dueDate: "" });
     const [saving, setSaving] = useState(false);
     const [msg, setMsg] = useState("");
 
@@ -41,7 +41,7 @@ export default function DeadlinesTab() {
         setLoading(true);
         const termParam = selectedTermId ? `?termId=${selectedTermId}` : "";
         const r = await fetch(`/api/deadlines${termParam}`);
-        const d = await r.ok ? r.json().catch(() => []) : [];
+        const d = r.ok ? await r.json().catch(() => []) : [];
         setDeadlines(Array.isArray(d) ? d : []);
         setLoading(false);
     }, [selectedTermId]);
@@ -63,7 +63,7 @@ export default function DeadlinesTab() {
             const d = await res.json().catch(() => ({}));
             setDeadlines(p => [d, ...p]);
             setMsg("Deadline created and lecturers notified!");
-            setForm({ type: "SEMESTER_CALENDAR", label: "", dueDate: "" });
+            setForm({ type: "COURSE_TOPICS", label: "", dueDate: "" });
         }
         else setMsg("Failed to create deadline.");
         setSaving(false); setTimeout(() => setMsg(""), 3000);
@@ -104,7 +104,7 @@ export default function DeadlinesTab() {
                 // Reload deadlines
                 const termParam = selectedTermId ? `?termId=${selectedTermId}` : "";
                 const r = await fetch(`/api/deadlines${termParam}`);
-                const d = await r.ok ? r.json().catch(() => []) : [];
+                const d = r.ok ? await r.json().catch(() => []) : [];
                 setDeadlines(Array.isArray(d) ? d : []);
             } else {
                 setMsg(`Error: ${data.error || "Failed to auto-generate milestones"}`);
@@ -132,7 +132,7 @@ export default function DeadlinesTab() {
                     className="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 transition shadow-md shadow-blue-500/20 flex items-center gap-2 cursor-pointer disabled:opacity-50 shrink-0"
                 >
                     <Zap className="w-3.5 h-3.5" />
-                    <span>{isAutoGenerating ? "Generating..." : "Auto-Populate 4 Active Milestones"}</span>
+                    <span>{isAutoGenerating ? "Generating..." : "Auto-Populate 3 Active Milestones"}</span>
                 </button>
             </div>
 
@@ -145,7 +145,7 @@ export default function DeadlinesTab() {
                     <div>
                         <h4 className="text-xs font-extrabold text-blue-900 dark:text-blue-300">Automated Milestone Engine Active</h4>
                         <p className="text-[11px] text-blue-700/80 dark:text-blue-400 mt-0.5">
-                            Standard active milestones: <strong>Wk 2</strong> (Calendar) · <strong>Wk 3</strong> (Topics) · <strong>Wk 8</strong> (Mid-Term Log) · <strong>Wk 9</strong> (Observation)
+                            Standard active milestones: <strong>Wk 3</strong> (Topics) · <strong>Wk 8</strong> (Mid-Term Log) · <strong>Wk 9</strong> (Observation)
                         </p>
                     </div>
                 </div>
@@ -188,10 +188,9 @@ export default function DeadlinesTab() {
                                 value={form.type}
                                 onChange={val => setForm({ ...form, type: String(val) })}
                                 options={[
-                                    { label: "Semester Calendar", value: "SEMESTER_CALENDAR" },
                                     { label: "Course Topics", value: "COURSE_TOPICS" },
-                                    { label: "Observation Report", value: "OBSERVATION_REPORT" },
                                     { label: "Weekly Topics", value: "WEEKLY_TOPICS" },
+                                    { label: "Observation Report", value: "OBSERVATION_REPORT" },
                                 ]}
                             />
                         </div>
@@ -207,7 +206,7 @@ export default function DeadlinesTab() {
                                 onChange={e => setForm({ ...form, label: e.target.value })} 
                                 required 
                                 disabled={isArchiveMode}
-                                placeholder="e.g. Semester 2 Calendar Submission"
+                                placeholder="e.g. Course Topics & Syllabus Submission"
                                 className="w-full px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition shadow-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 disabled:opacity-50" 
                                 style={{ color: "var(--text-primary)" }} 
                             />

@@ -191,8 +191,8 @@ export default function AppraisalsTab() {
                             onChange={(val) => setFilter(prev => ({ ...prev, type: String(val) }))}
                             options={[
                                 { label: "All Types", value: "" },
-                                { label: "Semester Calendar", value: "SEMESTER_CALENDAR" },
                                 { label: "Course Topics", value: "COURSE_TOPICS" },
+                                { label: "Weekly Topics", value: "WEEKLY_TOPICS" },
                                 { label: "Observation Report", value: "OBSERVATION_REPORT" },
                             ]}
                         />

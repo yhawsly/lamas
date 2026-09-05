@@ -10,18 +10,11 @@ export interface AutomatedMilestoneConfig {
 
 /**
  * Currently implemented academic milestones in LAMAS:
- * 1. Week 2: Semester Teaching Plan & Calendar (SEMESTER_CALENDAR)
- * 2. Week 3: Course Topics & Syllabus Outline (COURSE_TOPICS)
- * 3. Week 8: Mid-Semester Continuous Assessment & Topics Log (WEEKLY_TOPICS)
- * 4. Week 9: Peer Teaching Observation APR Form A (OBSERVATION_REPORT)
+ * 1. Week 3: Course Topics & Syllabus Outline (COURSE_TOPICS)
+ * 2. Week 8: Mid-Semester Continuous Assessment & Topics Log (WEEKLY_TOPICS)
+ * 3. Week 9: Peer Teaching Observation APR Form A (OBSERVATION_REPORT)
  */
 export const ACTIVE_MILESTONES: AutomatedMilestoneConfig[] = [
-    {
-        type: "SEMESTER_CALENDAR",
-        label: "Semester Teaching Plan & Calendar (Week 2)",
-        targetWeek: 2,
-        description: "Course schedules, teaching weeks outline, and lecture timetable confirmation.",
-    },
     {
         type: "COURSE_TOPICS",
         label: "Course Topics & Syllabus Outline (Week 3)",

@@ -34,7 +34,7 @@ export default function PWAInstallButton({ variant = "header" }: { variant?: "he
                 </div>
                 <div className="text-left flex-1 min-w-0">
                     <div className="leading-none">Install App</div>
-                    <div className="text-[10px] font-normal opacity-75 mt-0.5 truncate">Fast offline access</div>
+                    <div className="text-[10px] font-normal opacity-75 mt-0.5 truncate">Fast access</div>
                 </div>
             </button>
         );

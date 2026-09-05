@@ -65,7 +65,7 @@ export default function PWAInstallBanner() {
                         </span>
                     </div>
                     <p className="text-xs mt-1 leading-snug line-clamp-2" style={{ color: "var(--text-muted)" }}>
-                        Install as a standalone app for fast offline access and instant launching.
+                        Install as a standalone app for fast access and instant launching.
                     </p>
 
                     <div className="flex items-center gap-2 mt-3.5">
