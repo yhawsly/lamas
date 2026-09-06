@@ -88,6 +88,21 @@ export async function PATCH(
             if (observation.observerId !== userId && !["HOD", "DEO", "ADMIN", "SUPER_ADMIN"].includes(role)) {
                 return NextResponse.json({ error: "Forbidden: Only the assigned observer may submit this review." }, { status: 403 });
             }
+
+            // Schedule Date Validation: if observation has a scheduled session date, cannot be submitted beforehand
+            const targetSessionDate = body.sessionDate ? new Date(body.sessionDate) : observation.sessionDate;
+            if (targetSessionDate && new Date() < new Date(targetSessionDate)) {
+                const formattedDate = new Date(targetSessionDate).toLocaleString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                });
+                return NextResponse.json({
+                    error: `Review blocked: Review cannot be submitted before the scheduled session date (${formattedDate}).`
+                }, { status: 400 });
+            }
         } else {
             // For scheduling / session date / venue updates:
             // Allowed: the assigned observer, the observed lecturer, or administrative roles

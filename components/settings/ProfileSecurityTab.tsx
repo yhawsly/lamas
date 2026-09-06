@@ -27,7 +27,7 @@ const ROLE_LABELS: Record<string, string> = {
     SUPER_ADMIN: "Super Admin",
     HOD: "Head of Department",
     LECTURER: "Lecturer",
-    DEO: "Data Entry Officer",
+    DEO: "Department Examination Officer",
 };
 
 function StatusBanner({ status }: { status: { type: "success" | "error"; msg: string } | null }) {

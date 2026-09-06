@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { AlertTriangle, AlertCircle } from "lucide-react";
+import { AlertTriangle, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 import { ReviewDossierViewer } from "@/features/observations";
 import { getCourseTitle } from "@/features/curriculum";
@@ -174,6 +174,8 @@ export default function ConductModerationPage() {
             .catch(() => setLoading(false));
     }, [id]);
 
+    const [justSubmitted, setJustSubmitted] = useState(false);
+
     const handleSave = async () => {
         if (isArchiveMode) {
             setError("Action Disabled: You are viewing a read-only historical archive.");
@@ -188,8 +190,16 @@ export default function ConductModerationPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ reviewData }),
             });
-            if (res.ok) router.push("/lecturer/appraisals");
-            else setError("Failed to save. Please try again.");
+            if (res.ok) {
+                const updated = await res.json().catch(() => null);
+                if (updated) setData(updated);
+                else setData((prev: any) => ({ ...prev, status: "COMPLETED", reviewData }));
+                setJustSubmitted(true);
+                window.dispatchEvent(new CustomEvent("lamas:refresh-data"));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            } else {
+                setError("Failed to save. Please try again.");
+            }
         } catch {
             setError("Network error. Please try again.");
         } finally {
@@ -308,6 +318,32 @@ export default function ConductModerationPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Success Banner when just submitted */}
+            {justSubmitted && (
+                <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-3 duration-500">
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                            <CheckCircle2 className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-base text-emerald-800 dark:text-emerald-300">
+                                Moderation Report Submitted Successfully!
+                            </h3>
+                            <p className="text-xs text-emerald-700/90 dark:text-emerald-400 mt-0.5">
+                                Your examination moderation assessment has been finalized and recorded. All evaluation criteria and remarks are displayed below in read-only view.
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => router.push("/lecturer/appraisals")}
+                        className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm shrink-0 flex items-center gap-1.5 cursor-pointer self-end sm:self-auto"
+                    >
+                        <span>Return to Appraisals</span>
+                        <span>→</span>
+                    </button>
+                </div>
+            )}
 
             {/* Warning Banner */}
             {isBlocked && (
@@ -534,7 +570,24 @@ export default function ConductModerationPage() {
             )}
             
             {isCompleted && (
-                <p className="text-center text-sm font-bold opacity-50 uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>This report has been finalized</p>
+                <div className="p-6 rounded-2xl border text-center space-y-3 bg-slate-50 dark:bg-slate-900/60" style={{ borderColor: "var(--bg-border)" }}>
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>This moderation report has been finalized and recorded</span>
+                    </div>
+                    <p className="text-xs max-w-md mx-auto" style={{ color: "var(--text-muted)" }}>
+                        All moderated examination questions and marking scheme appraisal ratings are permanently archived.
+                    </p>
+                    <div className="pt-2">
+                        <button
+                            type="button"
+                            onClick={() => router.push("/lecturer/appraisals")}
+                            className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-200/80 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 transition cursor-pointer"
+                        >
+                            ← Back to Appraisals
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );

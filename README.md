@@ -1,6 +1,6 @@
 # LAMAS — Lecturer Academic Monitoring & Appraisal System
 
-LAMAS is a comprehensive, enterprise-grade academic management, monitoring, and appraisal platform built with **Next.js 15**, **React 19**, **TypeScript**, **Prisma ORM**, and **PostgreSQL**. It streamlines institutional workflows between System Administrators, Heads of Department (HOD), Data Entry Officers (DEO), and Lecturers.
+LAMAS is a comprehensive, enterprise-grade academic management, monitoring, and appraisal platform built with **Next.js 15**, **React 19**, **TypeScript**, **Prisma ORM**, and **PostgreSQL**. It streamlines institutional workflows between System Administrators, Heads of Department (HOD), Department Examination Officers (DEO), and Lecturers.
 
 ---
 
@@ -20,7 +20,7 @@ LAMAS is a comprehensive, enterprise-grade academic management, monitoring, and 
 * **At-Risk Lecturer Detection:** Identify lagging course syllabi, missed deadlines, and trigger alert notifications.
 * **Department Analytics & Reports:** Generate comprehensive compliance reports with Excel and PDF exports.
 
-### 📋 Data Entry Officer (DEO)
+### 📋 Department Examination Officer (DEO)
 
 * **Appraisal Dispatch Center:** Fast dispatch and assignment of evaluation workflows (Form A, Form B, Form C).
 * **Assignments Registry:** Live search, filtering, and assignment tracking with responsive skeleton loaders.
@@ -143,7 +143,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 │   ├── (dashboard)/          # Role-based dashboard layouts & routes
 │   │   ├── admin/            # SuperAdmin portal
 │   │   ├── hod/              # Head of Department portal
-│   │   ├── deo/              # Data Entry Officer portal
+│   │   ├── deo/              # Department Examination Officer portal
 │   │   └── lecturer/         # Lecturer portal
 │   ├── api/                  # Backend REST API route handlers
 │   ├── globals.css           # Design tokens, theme variables, and Tailwind base

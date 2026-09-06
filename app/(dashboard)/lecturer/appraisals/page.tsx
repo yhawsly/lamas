@@ -311,7 +311,7 @@ export default function AppraisalsPage() {
                                                             : "bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 shadow-none"
                                                     }`}
                                                 >
-                                                    {isObserver && o.status === "PENDING" ? "Conduct →" : "View Artifact →"}
+                                                    {isObserver && o.status === "PENDING" ? "Conduct →" : "View Form →"}
                                                 </button>
                                             </div>
                                         </div>

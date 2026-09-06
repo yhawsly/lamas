@@ -75,6 +75,27 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
             if (existingObs.observerId !== userId && !["HOD", "DEO", "ADMIN", "SUPER_ADMIN"].includes(role)) {
                 return NextResponse.json({ error: "Forbidden: Only the assigned observer may submit this form." }, { status: 403 });
             }
+
+            // Schedule Date Validation: Observation must be scheduled and cannot be submitted before scheduled session date
+            const targetSessionDate = body.sessionDate ? new Date(body.sessionDate) : existingObs.sessionDate;
+            if (!targetSessionDate) {
+                return NextResponse.json({
+                    error: "Review blocked: Observation session must be scheduled with a date and time before the review can be conducted and submitted."
+                }, { status: 400 });
+            }
+
+            if (new Date() < new Date(targetSessionDate)) {
+                const formattedDate = new Date(targetSessionDate).toLocaleString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                });
+                return NextResponse.json({
+                    error: `Review blocked: Review cannot be submitted before the scheduled session date (${formattedDate}).`
+                }, { status: 400 });
+            }
         } else {
             // For scheduling / session date / venue updates:
             // Allowed: the assigned observer, the observed lecturer, or administrative roles (HOD, DEO, ADMIN, SUPER_ADMIN)
@@ -106,7 +127,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
                 ...(formBData !== undefined && { formBData }),
                 ...(sessionDate && { sessionDate }),
                 ...(venue !== undefined && { venue }),
-                ...(body.status && { status: body.status }),
+                status: body.status || (isSubmittingReview ? "COMPLETED" : undefined),
             },
             include: { lecturer: true, observer: true, deo: true }
         });

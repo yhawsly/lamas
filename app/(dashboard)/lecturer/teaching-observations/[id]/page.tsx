@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
-import { AlertTriangle, AlertCircle, Calendar } from "lucide-react";
+import { AlertTriangle, AlertCircle, Calendar, CheckCircle2, Clock } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 import { getCourseTitle } from "@/features/curriculum";
 import { INSTITUTIONAL_VENUES } from "@/lib/venues";
@@ -146,7 +146,9 @@ export default function ConductTeachingObservationPage() {
     const [scheduleTime, setScheduleTime] = useState("");
     const [scheduleVenue, setScheduleVenue] = useState("");
     const [scheduling, setScheduling] = useState(false);
+    const [showReschedule, setShowReschedule] = useState(false);
 
+    const [justSubmitted, setJustSubmitted] = useState(false);
     const [reviewData, setReviewData] = useState<FormBReviewData>(DEFAULT_FORM_B);
 
     useEffect(() => {
@@ -166,17 +168,16 @@ export default function ConductTeachingObservationPage() {
                         setScheduleTime(`${hh}:${min}`);
                     }
                     if (d.venue) setScheduleVenue(d.venue);
+                    
                     const defaultMeta = {
                         ...DEFAULT_FORM_B.metadata,
+                        lessonTopic: d.course?.title || d.lessonTopic || "",
                         venue: d.venue || ""
                     };
+
                     if (d.formBData) {
                         setReviewData({
-                            metadata: { 
-                                ...defaultMeta, 
-                                ...(d.formBData.metadata || {}),
-                                venue: d.formBData.metadata?.venue || d.venue || ""
-                            },
+                            metadata: { ...defaultMeta, ...(d.formBData.metadata || {}) },
                             criteria: {
                                 startOfLesson: { ...DEFAULT_FORM_B.criteria.startOfLesson, ...(d.formBData.criteria?.startOfLesson || {}) },
                                 delivery: { ...DEFAULT_FORM_B.criteria.delivery, ...(d.formBData.criteria?.delivery || {}) },
@@ -202,6 +203,21 @@ export default function ConductTeachingObservationPage() {
     const handleSave = async () => {
         if (isArchiveMode) {
             setError("Action Disabled: You are viewing a read-only historical archive.");
+            return;
+        }
+        if (!data.sessionDate) {
+            setError("Observation Schedule Required: Please set the session date, time, and venue before submitting.");
+            return;
+        }
+        if (new Date() < new Date(data.sessionDate)) {
+            const formattedDate = new Date(data.sessionDate).toLocaleString("en-GB", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+            setError(`Review Blocked: Observation cannot be submitted before the scheduled session date (${formattedDate}).`);
             return;
         }
         setError("");
@@ -240,11 +256,15 @@ export default function ConductTeachingObservationPage() {
             const res = await fetch(`/api/teaching-observations/${id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ formBData: reviewData }),
+                body: JSON.stringify({ formBData: reviewData, status: "COMPLETED" }),
             });
             if (res.ok) {
+                const updated = await res.json().catch(() => null);
+                if (updated) setData(updated);
+                else setData((prev: any) => ({ ...prev, status: "COMPLETED", formBData: reviewData }));
+                setJustSubmitted(true);
                 window.dispatchEvent(new CustomEvent("lamas:refresh-data"));
-                router.push("/lecturer/appraisals");
+                window.scrollTo({ top: 0, behavior: "smooth" });
             } else {
                 let errorMsg = "Failed to save. Please try again.";
                 try {
@@ -285,6 +305,7 @@ export default function ConductTeachingObservationPage() {
             if (res.ok) {
                 const d = await res.json();
                 setData(d);
+                setShowReschedule(false);
                 window.dispatchEvent(new CustomEvent("lamas:refresh-data"));
             } else {
                 let errorMsg = "Failed to update schedule.";
@@ -310,7 +331,12 @@ export default function ConductTeachingObservationPage() {
     const isCompleted = data.status !== "PENDING";
     const isBlocked = data.isObserveeAssigned === false;
     const isObserverUser = parseInt(session?.user?.id || "0") === data.observerId;
-    const isDisabled = isCompleted || isBlocked || !isObserverUser || isArchiveMode;
+
+    const isUnscheduled = !data.sessionDate;
+    const isPremature = Boolean(data.sessionDate && new Date() < new Date(data.sessionDate));
+    const isDateLocked = !isCompleted && (isUnscheduled || isPremature);
+
+    const isDisabled = isCompleted || isBlocked || !isObserverUser || isArchiveMode || isDateLocked;
 
     const renderRadioGroup = (section: keyof FormBReviewData["criteria"], field: string, sn: number, text: string) => {
         const sectionCriteria = (reviewData?.criteria?.[section] || DEFAULT_FORM_B.criteria[section]) as any;
@@ -391,6 +417,32 @@ export default function ConductTeachingObservationPage() {
                 </div>
             </div>
 
+            {/* Success Banner when just submitted */}
+            {justSubmitted && (
+                <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-3 duration-500">
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                            <CheckCircle2 className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-base text-emerald-800 dark:text-emerald-300">
+                                Teaching Observation Report Submitted Successfully!
+                            </h3>
+                            <p className="text-xs text-emerald-700/90 dark:text-emerald-400 mt-0.5">
+                                Your classroom evaluation has been finalized and recorded. All scores and comments are displayed below in read-only view.
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => router.push("/lecturer/appraisals")}
+                        className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm shrink-0 flex items-center gap-1.5 cursor-pointer self-end sm:self-auto"
+                    >
+                        <span>Return to Appraisals</span>
+                        <span>→</span>
+                    </button>
+                </div>
+            )}
+
             {/* Warning Banner */}
             {isBlocked && (
                 <div className="p-6 rounded-3xl border flex gap-4 items-start shadow-sm mb-6" style={{ backgroundColor: "rgba(239, 68, 68, 0.08)", borderColor: "rgba(239, 68, 68, 0.2)", color: "#ef4444" }}>
@@ -401,6 +453,61 @@ export default function ConductTeachingObservationPage() {
                         <h3 className="font-bold text-[15px] mb-1.5">Review Blocked</h3>
                         <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
                             The observed lecturer ({lecturer}) is not assigned to course {data.courseCode}. The DEO has been notified, and you are not allowed to conduct this review.
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            {/* Future Scheduled Notice Banner */}
+            {!isCompleted && !isBlocked && isPremature && data.sessionDate && (
+                <div className="p-6 rounded-3xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm mb-6" style={{ backgroundColor: "rgba(59, 130, 246, 0.08)", borderColor: "rgba(59, 130, 246, 0.25)", color: "var(--text-primary)" }}>
+                    <div className="flex gap-3.5 items-start">
+                        <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-blue-500/20 text-blue-600 dark:text-blue-400 mt-0.5">
+                            <Clock className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="font-bold text-base text-blue-900 dark:text-blue-300">
+                                    Observation Scheduled for Future Session
+                                </h3>
+                                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/20">
+                                    Locked Until Session
+                                </span>
+                            </div>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">
+                                This classroom teaching evaluation is scheduled for <strong className="text-slate-800 dark:text-slate-200">{new Date(data.sessionDate).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</strong>{data.venue ? ` at ${data.venue}` : ""}. Form evaluation inputs and submission will unlock automatically when the scheduled session date arrives.
+                            </p>
+                        </div>
+                    </div>
+                    {isObserverUser && (
+                        <button
+                            type="button"
+                            onClick={() => setShowReschedule(!showReschedule)}
+                            className="px-4 py-2 rounded-xl text-xs font-bold border border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-100/50 dark:hover:bg-blue-900/30 transition shrink-0 cursor-pointer self-end sm:self-auto"
+                        >
+                            {showReschedule ? "Close Reschedule" : "Reschedule Session"}
+                        </button>
+                    )}
+                </div>
+            )}
+
+            {/* Unscheduled Warning Banner */}
+            {!isCompleted && !isBlocked && isUnscheduled && (
+                <div className="p-6 rounded-3xl border flex gap-3.5 items-start shadow-sm mb-6" style={{ backgroundColor: "rgba(245, 158, 11, 0.08)", borderColor: "rgba(245, 158, 11, 0.25)", color: "var(--text-primary)" }}>
+                    <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-amber-500/20 text-amber-600 dark:text-amber-400 mt-0.5">
+                        <Calendar className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-bold text-base text-amber-900 dark:text-amber-300">
+                                Observation Session Not Scheduled
+                            </h3>
+                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                                Schedule Required
+                            </span>
+                        </div>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">
+                            Please set the observation date, time, and venue in the scheduling card below before conducting the evaluation. The review form will unlock on the scheduled session date.
                         </p>
                     </div>
                 </div>
@@ -512,12 +619,23 @@ export default function ConductTeachingObservationPage() {
             </div>
 
             {/* Scheduling Card */}
-            {(!data.sessionDate || !data.venue) && !isCompleted && !isBlocked && (
+            {(!data.sessionDate || !data.venue || showReschedule) && !isCompleted && !isBlocked && (
                 <div className="rounded-2xl shadow-sm border p-6 bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800">
-                    <h4 className="font-bold mb-4 text-blue-800 dark:text-blue-300 flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                        <span>Schedule Observation</span>
-                    </h4>
+                    <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-bold text-blue-800 dark:text-blue-300 flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            <span>{data.sessionDate ? "Update Observation Schedule" : "Schedule Observation"}</span>
+                        </h4>
+                        {showReschedule && (
+                            <button
+                                type="button"
+                                onClick={() => setShowReschedule(false)}
+                                className="text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                        )}
+                    </div>
                     <div className="flex flex-col md:flex-row gap-4 items-end">
                         <div className="flex-1">
                             <label className="block text-xs font-bold mb-1.5 text-blue-700/70 dark:text-blue-400/70 uppercase tracking-widest">Date</label>
@@ -689,9 +807,27 @@ export default function ConductTeachingObservationPage() {
 
             {/* Save Button */}
             {!isCompleted && !isBlocked && isObserverUser && (
-                <button onClick={handleSave} disabled={saving} className="w-full py-4 rounded-2xl text-white font-bold text-sm uppercase tracking-widest shadow-xl transition-all disabled:opacity-50 hover:opacity-90 active:scale-[0.99]" style={{ background: "linear-gradient(to right, var(--primary), #10b981)", boxShadow: "0 8px 24px -4px rgba(59,130,246,0.3)" }}>
-                    {saving ? "Saving Report..." : "Submit Review Report"}
-                </button>
+                isDateLocked ? (
+                    <div className="p-6 rounded-2xl border text-center space-y-2 bg-amber-500/10 border-amber-500/20 text-amber-800 dark:text-amber-300">
+                        <div className="inline-flex items-center gap-2 font-bold text-sm">
+                            <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                            <span>
+                                {isUnscheduled
+                                    ? "Submission Locked: Observation Session Not Scheduled"
+                                    : `Submission Locked: Scheduled for ${new Date(data.sessionDate).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}`}
+                            </span>
+                        </div>
+                        <p className="text-xs max-w-lg mx-auto text-amber-700/90 dark:text-amber-400/90">
+                            {isUnscheduled
+                                ? "Please set the observation date, time, and venue in the schedule section above. The evaluation form can only be completed and submitted once scheduled."
+                                : "This peer review cannot be submitted before the scheduled session date arrives. Please conduct the observation at the scheduled time."}
+                        </p>
+                    </div>
+                ) : (
+                    <button onClick={handleSave} disabled={saving} className="w-full py-4 rounded-2xl text-white font-bold text-sm uppercase tracking-widest shadow-xl transition-all disabled:opacity-50 hover:opacity-90 active:scale-[0.99] cursor-pointer" style={{ background: "linear-gradient(to right, var(--primary), #10b981)", boxShadow: "0 8px 24px -4px rgba(59,130,246,0.3)" }}>
+                        {saving ? "Saving Report..." : "Submit Review Report"}
+                    </button>
+                )
             )}
 
             {isBlocked && (
@@ -701,7 +837,24 @@ export default function ConductTeachingObservationPage() {
             )}
 
             {isCompleted && (
-                <p className="text-center text-sm font-bold opacity-50 uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>This report has been finalized</p>
+                <div className="p-6 rounded-2xl border text-center space-y-3 bg-slate-50 dark:bg-slate-900/60" style={{ borderColor: "var(--bg-border)" }}>
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>This report has been finalized and recorded</span>
+                    </div>
+                    <p className="text-xs max-w-md mx-auto" style={{ color: "var(--text-muted)" }}>
+                        All classroom observation criteria ratings, recommendations, and observed teacher feedback are permanently recorded.
+                    </p>
+                    <div className="pt-2">
+                        <button
+                            type="button"
+                            onClick={() => router.push("/lecturer/appraisals")}
+                            className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-200/80 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 transition cursor-pointer"
+                        >
+                            ← Back to Appraisals
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );
