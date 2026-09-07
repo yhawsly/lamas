@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Calendar } from "lucide-react";
+import { Calendar, Award, CheckCircle2 } from "lucide-react";
 import { ReviewDossierViewer } from "@/features/observations";
 import { INSTITUTIONAL_VENUES } from "@/lib/venues";
+import OfficialAppraisalLetterModal from "@/components/reviews/OfficialAppraisalLetterModal";
 
 const DetailWorkspaceSkeleton = () => (
     <div className="max-w-4xl mx-auto space-y-8 animate-pulse pb-20 pt-6 px-4">
@@ -126,7 +127,11 @@ export default function ConductTeachingObservationPage() {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [scheduleDate, setScheduleDate] = useState("");
+    const [scheduleTime, setScheduleTime] = useState("");
     const [scheduleVenue, setScheduleVenue] = useState("");
+    const [showReschedule, setShowReschedule] = useState(false);
+    const [scheduling, setScheduling] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
     const [reviewData, setReviewData] = useState<FormBReviewData>(DEFAULT_FORM_B);
 
     useEffect(() => {
@@ -135,7 +140,16 @@ export default function ConductTeachingObservationPage() {
             .then(d => {
                 if (d) {
                     setData(d);
-                    if (d.sessionDate) setScheduleDate(new Date(d.sessionDate).toISOString().split('T')[0]);
+                    if (d.sessionDate) {
+                        const dt = new Date(d.sessionDate);
+                        const yyyy = dt.getFullYear();
+                        const mm = String(dt.getMonth() + 1).padStart(2, '0');
+                        const dd = String(dt.getDate()).padStart(2, '0');
+                        setScheduleDate(`${yyyy}-${mm}-${dd}`);
+                        const hh = String(dt.getHours()).padStart(2, '0');
+                        const min = String(dt.getMinutes()).padStart(2, '0');
+                        setScheduleTime(`${hh}:${min}`);
+                    }
                     if (d.venue) setScheduleVenue(d.venue);
                     const defaultMeta = {
                         ...DEFAULT_FORM_B.metadata,
@@ -170,7 +184,33 @@ export default function ConductTeachingObservationPage() {
             });
     }, [id]);
 
-    const isCompleted = true; // DEO view is strictly read-only
+    const handleSchedule = async () => {
+        if (!scheduleDate || !scheduleTime) return;
+        setScheduling(true);
+        try {
+            const dateObj = new Date(scheduleDate);
+            const [hrs, mins] = scheduleTime.split(":");
+            dateObj.setHours(parseInt(hrs), parseInt(mins));
+            const combinedDateTime = dateObj.toISOString();
+
+            const res = await fetch(`/api/teaching-observations/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ sessionDate: combinedDateTime, venue: scheduleVenue }),
+            });
+            if (res.ok) {
+                const d = await res.json();
+                setData(d);
+                setShowReschedule(false);
+                window.dispatchEvent(new CustomEvent("lamas:refresh-data"));
+            }
+        } catch {
+        } finally {
+            setScheduling(false);
+        }
+    };
+
+    const isCompleted = true; // DEO view is strictly read-only for evaluation rubrics
 
     if (loading || !data) return <DetailWorkspaceSkeleton />;
 
@@ -251,10 +291,32 @@ export default function ConductTeachingObservationPage() {
                     </div>
                 </div>
                 <div className="flex flex-col items-end gap-3 mt-4 md:mt-0">
-                    <button onClick={() => router.back()} className="px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors font-bold flex items-center gap-2 shadow-sm text-sm border border-slate-200 dark:border-slate-700">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                        Go Back
-                    </button>
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
+                        {data.status !== "PENDING" && (
+                            <button
+                                type="button"
+                                onClick={() => setShowReportModal(true)}
+                                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+                            >
+                                <Award className="w-4 h-4" />
+                                <span>Official Letter (HOD & DEO)</span>
+                            </button>
+                        )}
+                        {data.status === "PENDING" && (
+                            <button
+                                type="button"
+                                onClick={() => setShowReschedule(!showReschedule)}
+                                className="px-4 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-bold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                            >
+                                <Calendar className="w-4 h-4" />
+                                <span>{showReschedule ? "Close Reschedule" : "Reschedule Session / Edit Date"}</span>
+                            </button>
+                        )}
+                        <button onClick={() => router.back()} className="px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors font-bold flex items-center gap-2 shadow-sm text-sm border border-slate-200 dark:border-slate-700">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                            Go Back
+                        </button>
+                    </div>
                     <div className={`px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase border ${
                         data.status === "PENDING"
                             ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
@@ -354,24 +416,101 @@ export default function ConductTeachingObservationPage() {
             </div>
 
             {/* Scheduling Card */}
-            {data.sessionDate && data.venue && (
+            {data.sessionDate && data.venue && !showReschedule ? (
                 <div className="rounded-2xl shadow-sm border p-6 bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800">
-                    <h4 className="font-bold mb-4 text-blue-800 dark:text-blue-300 flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                        <span>Observation Schedule</span>
-                    </h4>
+                    <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-bold text-blue-800 dark:text-blue-300 flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            <span>Observation Schedule</span>
+                        </h4>
+                        {data.status === "PENDING" && (
+                            <button
+                                type="button"
+                                onClick={() => setShowReschedule(true)}
+                                className="text-xs font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer"
+                            >
+                                Reschedule Session / Edit Date
+                            </button>
+                        )}
+                    </div>
                     <div className="flex flex-col md:flex-row gap-4 items-end">
                         <div className="flex-1">
                             <label className="block text-xs font-bold mb-1.5 text-blue-700/70 dark:text-blue-400/70 uppercase tracking-widest">Date</label>
-                            <div className="w-full px-4 py-2.5 rounded-xl text-sm bg-white dark:bg-slate-800 border-blue-200 dark:border-slate-700">{scheduleDate}</div>
+                            <div className="w-full px-4 py-2.5 rounded-xl text-sm bg-white dark:bg-slate-800 border border-blue-200 dark:border-slate-700 font-medium">{scheduleDate}</div>
+                        </div>
+                        <div className="flex-1">
+                            <label className="block text-xs font-bold mb-1.5 text-blue-700/70 dark:text-blue-400/70 uppercase tracking-widest">Time</label>
+                            <div className="w-full px-4 py-2.5 rounded-xl text-sm bg-white dark:bg-slate-800 border border-blue-200 dark:border-slate-700 font-medium">{scheduleTime || "Not specified"}</div>
                         </div>
                         <div className="flex-1">
                             <label className="block text-xs font-bold mb-1.5 text-blue-700/70 dark:text-blue-400/70 uppercase tracking-widest">Venue</label>
-                            <div className="w-full px-4 py-2.5 rounded-xl text-sm bg-white dark:bg-slate-800 border-blue-200 dark:border-slate-700">{scheduleVenue}</div>
+                            <div className="w-full px-4 py-2.5 rounded-xl text-sm bg-white dark:bg-slate-800 border border-blue-200 dark:border-slate-700 font-medium">{scheduleVenue}</div>
                         </div>
                     </div>
                 </div>
-            )}
+            ) : (!data.sessionDate || !data.venue || showReschedule) && data.status === "PENDING" ? (
+                <div className="rounded-2xl shadow-sm border p-6 bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800">
+                    <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-bold text-blue-800 dark:text-blue-300 flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            <span>{data.sessionDate ? "Reschedule Observation Session" : "Schedule Observation Session"}</span>
+                        </h4>
+                        {showReschedule && (
+                            <button
+                                type="button"
+                                onClick={() => setShowReschedule(false)}
+                                className="text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                        )}
+                    </div>
+                    <div className="flex flex-col md:flex-row gap-4 items-end">
+                        <div className="flex-1">
+                            <label className="block text-xs font-bold mb-1.5 text-blue-700/70 dark:text-blue-400/70 uppercase tracking-widest">Date</label>
+                            <input 
+                                type="date" 
+                                value={scheduleDate} 
+                                onChange={e => setScheduleDate(e.target.value)}
+                                className="w-full px-4 py-2.5 rounded-xl text-sm bg-white dark:bg-slate-800 border border-blue-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <label className="block text-xs font-bold mb-1.5 text-blue-700/70 dark:text-blue-400/70 uppercase tracking-widest">Time</label>
+                            <input 
+                                type="time" 
+                                value={scheduleTime} 
+                                onChange={e => setScheduleTime(e.target.value)}
+                                className="w-full px-4 py-2.5 rounded-xl text-sm bg-white dark:bg-slate-800 border border-blue-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <label className="block text-xs font-bold mb-1.5 text-blue-700/70 dark:text-blue-400/70 uppercase tracking-widest">Venue</label>
+                            <input 
+                                type="text"
+                                list="deo-schedule-venues"
+                                placeholder="e.g. AVIC LAB"
+                                value={scheduleVenue} 
+                                onChange={e => setScheduleVenue(e.target.value)}
+                                className="w-full px-4 py-2.5 rounded-xl text-sm bg-white dark:bg-slate-800 border border-blue-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                            <datalist id="deo-schedule-venues">
+                                {INSTITUTIONAL_VENUES.map(v => (
+                                    <option key={v.value} value={v.value}>{v.label}</option>
+                                ))}
+                            </datalist>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleSchedule}
+                            disabled={scheduling || !scheduleDate || !scheduleTime}
+                            className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-sm shadow-md transition whitespace-nowrap cursor-pointer"
+                        >
+                            {scheduling ? "Saving..." : "Save Schedule"}
+                        </button>
+                    </div>
+                </div>
+            ) : null}
 
             <p className="text-sm font-medium italic text-center" style={{ color: "var(--text-secondary)" }}>
                 Respond to the following statements as fairly as possible. Your frank and constructive comments would assist to improve course quality.<br/>
@@ -479,14 +618,36 @@ export default function ConductTeachingObservationPage() {
                 <textarea disabled={isCompleted} value={reviewData.teacherComments} onChange={e => setReviewData(p => ({...p, teacherComments: e.target.value}))} placeholder="Only the observed teacher should fill this out..." className="w-full h-24 bg-transparent border rounded-lg p-4 outline-none resize-none" style={{ borderColor: "var(--bg-border)", color: "var(--text-primary)", backgroundColor: "var(--bg-surface)" }} />
             </div>
 
-            {/* Error */}
+            {/* Finalized Action & Official Appraisal Memorandum Trigger */}
+            {data.status !== "PENDING" && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700">
+                    <div>
+                        <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Official Evaluation Dossier Finalized</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">This review has been approved and recorded. You can inspect or print the official appraisal memorandum letter.</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setShowReportModal(true)}
+                        className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md transition flex items-center gap-2 cursor-pointer shrink-0"
+                    >
+                        <Award className="w-4 h-4" />
+                        <span>View Official Appraisal Letter (HOD & DEO)</span>
+                    </button>
+                </div>
+            )}
+
+            {/* Pending Notice */}
             {data.status === "PENDING" && (
                 <p className="text-center text-sm font-bold opacity-50 uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>This report is pending completion by the assigned observer.</p>
             )}
-            
-            {data.status !== "PENDING" && (
-                <p className="text-center text-sm font-bold opacity-50 uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>This report has been finalized</p>
-            )}
+
+            {/* Official Appraisal Letter Modal */}
+            <OfficialAppraisalLetterModal
+                isOpen={showReportModal}
+                onClose={() => setShowReportModal(false)}
+                reviewType="B"
+                data={data}
+            />
         </div>
     );
 }

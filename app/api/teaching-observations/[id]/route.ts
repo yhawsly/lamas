@@ -96,6 +96,67 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
                     error: `Review blocked: Review cannot be submitted before the scheduled session date (${formattedDate}).`
                 }, { status: 400 });
             }
+
+            // All field completeness validation before submission
+            const meta = formBData.metadata || {};
+            const missingMeta: string[] = [];
+            if (!meta.programme?.trim()) missingMeta.push("Programme");
+            if (!meta.lessonTopic?.trim()) missingMeta.push("Lesson Topic");
+            if (!meta.modeOfDelivery?.trim()) missingMeta.push("Mode of Delivery");
+            if (!meta.venue?.trim()) missingMeta.push("Venue");
+            if (!meta.lessonPeriodFrom?.trim() || !meta.lessonPeriodTo?.trim()) missingMeta.push("Lesson Period (From/To)");
+            if (!meta.observationPeriodFrom?.trim() || !meta.observationPeriodTo?.trim()) missingMeta.push("Observation Period (From/To)");
+            if (!meta.natureOfTeaching?.trim()) missingMeta.push("Nature of Teaching");
+
+            if (missingMeta.length > 0) {
+                return NextResponse.json({
+                    error: `Submission rejected: All metadata fields must be filled before submission. Missing: ${missingMeta.join(", ")}.`
+                }, { status: 400 });
+            }
+
+            // Validate all 21 criteria across 4 sections
+            const requiredCriteria: Record<string, string[]> = {
+                startOfLesson: ["suitablyDressed", "punctual", "rapport", "reviewedPrevious", "explainedObjectives"],
+                delivery: ["audible", "modeAppropriate", "paceAppropriate", "movementEquitable", "sustainedAttention", "allowedContributions", "allowedQuestions", "deliveryEthical"],
+                conclusion: ["summarizedSatisfactorily", "encouragedExploration", "gaveAssignment"],
+                contentKnowledge: ["knowledgeable", "connectedRealLife", "deliveredClearly", "usedRelevantMaterials", "respondedQuestions"],
+            };
+
+            const unratedCriteria: string[] = [];
+            for (const [section, fields] of Object.entries(requiredCriteria)) {
+                const secObj = formBData.criteria?.[section] || {};
+                for (const f of fields) {
+                    const val = secObj[f];
+                    if (typeof val !== "number" || val < 1 || val > 3) {
+                        unratedCriteria.push(`${section}.${f}`);
+                    }
+                }
+            }
+
+            if (unratedCriteria.length > 0) {
+                return NextResponse.json({
+                    error: `Submission rejected: All 21 evaluation criteria must be rated before submission (${21 - unratedCriteria.length}/21 completed). Missing ${unratedCriteria.length} rating(s).`
+                }, { status: 400 });
+            }
+
+            const sw = formBData.strengthsWeaknesses || {};
+            if (!sw.strengths?.trim() || !sw.weaknesses?.trim()) {
+                return NextResponse.json({
+                    error: "Submission rejected: Observed Strengths and Weaknesses must both be completed before submission."
+                }, { status: 400 });
+            }
+
+            if (!formBData.recommendations?.trim()) {
+                return NextResponse.json({
+                    error: "Submission rejected: Actionable recommendations must be provided before submission."
+                }, { status: 400 });
+            }
+
+            if (!formBData.overallRating || !["Excellent", "Very Good", "Good", "Fair", "Poor"].includes(formBData.overallRating)) {
+                return NextResponse.json({
+                    error: "Submission rejected: An Overall Performance Rating must be selected."
+                }, { status: 400 });
+            }
         } else {
             // For scheduling / session date / venue updates:
             // Allowed: the assigned observer, the observed lecturer, or administrative roles (HOD, DEO, ADMIN, SUPER_ADMIN)

@@ -14,7 +14,8 @@ import {
     Sparkles,
     Tag,
     Info,
-    Users
+    Users,
+    Award
 } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import SearchableSelect from "@/components/ui/SearchableSelect";
@@ -25,6 +26,7 @@ import { useRouter } from "next/navigation";
 import { useTerm } from "@/context/TermContext";
 import { useModal } from "@/context/ModalContext";
 import { getCourseTitle } from "@/features/curriculum";
+import OfficialAppraisalLetterModal from "@/components/reviews/OfficialAppraisalLetterModal";
 
 const RegistrySkeleton = () => (
     <div className="space-y-3 animate-pulse">
@@ -123,6 +125,26 @@ export default function DEOReviewsPage() {
     // Nudge Reminder States
     const [isNudgingAll, setIsNudgingAll] = useState(false);
     const [nudgingId, setNudgingId] = useState<string | null>(null);
+    const [selectedLetterReview, setSelectedLetterReview] = useState<{ reviewType: "A" | "B" | "C"; data: any } | null>(null);
+
+    const handleOpenOfficialLetter = async (o: any) => {
+        try {
+            let endpoint = "";
+            if (o.formType === "A") endpoint = `/api/observations/${o.id}`;
+            else if (o.formType === "B") endpoint = `/api/teaching-observations/${o.id}`;
+            else endpoint = `/api/moderations/${o.id}`;
+
+            const res = await fetch(endpoint);
+            if (res.ok) {
+                const fullData = await res.json();
+                setSelectedLetterReview({ reviewType: o.formType as any, data: fullData });
+            } else {
+                setSelectedLetterReview({ reviewType: o.formType as any, data: o });
+            }
+        } catch {
+            setSelectedLetterReview({ reviewType: o.formType as any, data: o });
+        }
+    };
 
     useEffect(() => {
         loadData();
@@ -813,6 +835,17 @@ export default function DEOReviewsPage() {
                                                                     </button>
                                                                 )}
 
+                                                                {!isPending && (
+                                                                    <button
+                                                                        onClick={() => handleOpenOfficialLetter(o)}
+                                                                        className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                                                                        title="View official institutional appraisal memorandum for HOD & DEO"
+                                                                    >
+                                                                        <Award className="w-3.5 h-3.5" />
+                                                                        <span>Official Letter</span>
+                                                                    </button>
+                                                                )}
+
                                                                 <button 
                                                                     onClick={() => router.push(getRoute(o.formType, o.id))}
                                                                     className="px-4 py-2 rounded-xl text-xs font-bold transition-all border"
@@ -834,6 +867,14 @@ export default function DEOReviewsPage() {
                     </div>
                 </div>
             )}
+
+            {/* Official Institutional Appraisal Letter Modal */}
+            <OfficialAppraisalLetterModal
+                isOpen={Boolean(selectedLetterReview)}
+                onClose={() => setSelectedLetterReview(null)}
+                reviewType={selectedLetterReview?.reviewType || "B"}
+                data={selectedLetterReview?.data}
+            />
         </div>
     );
 }

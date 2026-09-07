@@ -103,6 +103,58 @@ export async function PATCH(
                     error: `Review blocked: Review cannot be submitted before the scheduled session date (${formattedDate}).`
                 }, { status: 400 });
             }
+
+            // All fields must be filled before submission
+            const rd = body.reviewData || {};
+            const requiredFormACriteria: Record<string, string[]> = {
+                courseOutline: ["formatConforms", "descConforms", "objSpecific", "outcomesAchievable", "topicsRelevant"],
+                mainTextbook: ["coversContent", "isCurrent", "isAccessible"],
+                lectureNotes: ["linkedToContent", "clear", "concise", "wellOrganized"],
+                otherTLMs: ["relevant", "suitable"],
+            };
+
+            const unratedCriteria: string[] = [];
+            for (const [section, fields] of Object.entries(requiredFormACriteria)) {
+                const secObj = rd.criteria?.[section] || {};
+                for (const f of fields) {
+                    const val = secObj[f];
+                    if (typeof val !== "number" || val < 1 || val > 3) {
+                        unratedCriteria.push(`${section}.${f}`);
+                    }
+                }
+            }
+
+            if (unratedCriteria.length > 0) {
+                return NextResponse.json({
+                    error: `Submission rejected: All 14 evaluation criteria must be rated before submission (${14 - unratedCriteria.length}/14 completed). Missing ${unratedCriteria.length} rating(s).`
+                }, { status: 400 });
+            }
+
+            const sw = rd.strengthsWeaknesses || {};
+            const missingSW: string[] = [];
+            if (!sw.courseOutline?.strengths?.trim() || !sw.courseOutline?.weaknesses?.trim()) missingSW.push("Course Outline");
+            if (!sw.mainTextbook?.strengths?.trim() || !sw.mainTextbook?.weaknesses?.trim()) missingSW.push("Main Textbook");
+            if (!sw.lectureNotes?.strengths?.trim() || !sw.lectureNotes?.weaknesses?.trim()) missingSW.push("Lecture Notes");
+            if (!sw.otherTLMs?.strengths?.trim() || !sw.otherTLMs?.weaknesses?.trim()) missingSW.push("Other TLMs");
+
+            if (missingSW.length > 0) {
+                return NextResponse.json({
+                    error: `Submission rejected: Observed Strengths and Weaknesses must be completed for all instructional materials. Missing: ${missingSW.join(", ")}.`
+                }, { status: 400 });
+            }
+
+            const finalRecommendations = rd.recommendations?.trim() || body.feedback?.trim();
+            if (!finalRecommendations) {
+                return NextResponse.json({
+                    error: "Submission rejected: Recommendations/feedback must be provided before submission."
+                }, { status: 400 });
+            }
+
+            if (!rd.overallRating || !["Excellent", "Very Good", "Good", "Fair", "Poor"].includes(rd.overallRating)) {
+                return NextResponse.json({
+                    error: "Submission rejected: An Overall Performance Rating must be selected."
+                }, { status: 400 });
+            }
         } else {
             // For scheduling / session date / venue updates:
             // Allowed: the assigned observer, the observed lecturer, or administrative roles

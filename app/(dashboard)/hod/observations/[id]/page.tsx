@@ -3,10 +3,11 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { AlertTriangle, AlertCircle, Calendar, CheckCircle2, Clock } from "lucide-react";
+import { AlertTriangle, AlertCircle, Calendar, CheckCircle2, Clock, Award } from "lucide-react";
 import { useTerm } from "@/context/TermContext";
 import { getCourseTitle } from "@/features/curriculum";
 import { INSTITUTIONAL_VENUES } from "@/lib/venues";
+import OfficialAppraisalLetterModal from "@/components/reviews/OfficialAppraisalLetterModal";
 
 const ReviewDossierViewer = dynamic(
     () => import("@/features/observations").then(mod => mod.ReviewDossierViewer),
@@ -147,6 +148,7 @@ export default function ConductObservationPage() {
     const [scheduleVenue, setScheduleVenue] = useState("");
     const [scheduling, setScheduling] = useState(false);
     const [showReschedule, setShowReschedule] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
 
     useEffect(() => {
         fetch(`/api/observations/${id}`)
@@ -207,9 +209,72 @@ export default function ConductObservationPage() {
             return;
         }
         setError("");
+
+        // All fields must be filled before submission
+        const requiredFormACriteria: Record<string, { label: string; fields: string[] }> = {
+            courseOutline: {
+                label: "Course Outline & Syllabus",
+                fields: ["formatConforms", "descConforms", "objSpecific", "outcomesAchievable", "topicsRelevant"]
+            },
+            mainTextbook: {
+                label: "Main Textbook & References",
+                fields: ["coversContent", "isCurrent", "isAccessible"]
+            },
+            lectureNotes: {
+                label: "Lecture Notes & Modules",
+                fields: ["linkedToContent", "clear", "concise", "wellOrganized"]
+            },
+            otherTLMs: {
+                label: "Supplementary TLMs",
+                fields: ["relevant", "suitable"]
+            }
+        };
+
+        const missingSections: string[] = [];
+        let totalUnrated = 0;
+        for (const [secKey, secInfo] of Object.entries(requiredFormACriteria)) {
+            const secCrit = (reviewData.criteria as any)?.[secKey] || {};
+            let secUnrated = 0;
+            for (const f of secInfo.fields) {
+                if (secCrit[f] == null) {
+                    secUnrated++;
+                    totalUnrated++;
+                }
+            }
+            if (secUnrated > 0) {
+                missingSections.push(`${secInfo.label} (${secUnrated} unrated)`);
+            }
+        }
+
+        if (totalUnrated > 0) {
+            setError(`Incomplete Evaluation: All 14 criteria must be filled before submitting (${14 - totalUnrated}/14 completed). Missing: ${missingSections.join(", ")}.`);
+            return;
+        }
+
+        const sw = reviewData.strengthsWeaknesses;
+        const missingSW: string[] = [];
+        if (!sw.courseOutline.strengths?.trim() || !sw.courseOutline.weaknesses?.trim()) missingSW.push("Course Outline");
+        if (!sw.mainTextbook.strengths?.trim() || !sw.mainTextbook.weaknesses?.trim()) missingSW.push("Main Textbook");
+        if (!sw.lectureNotes.strengths?.trim() || !sw.lectureNotes.weaknesses?.trim()) missingSW.push("Lecture Notes");
+        if (!sw.otherTLMs.strengths?.trim() || !sw.otherTLMs.weaknesses?.trim()) missingSW.push("Other TLMs");
+
+        if (missingSW.length > 0) {
+            setError(`Incomplete Form: Please provide observed Strengths and Weaknesses for all instructional materials. Missing: ${missingSW.join(", ")}.`);
+            return;
+        }
+
+        const finalFeedback = reviewData.recommendations?.trim() || feedback?.trim();
+        if (!finalFeedback) {
+            setError("Incomplete Form: Please provide actionable Recommendations before submitting.");
+            return;
+        }
+
+        if (!reviewData.overallRating) {
+            setError("Incomplete Form: Please select an Overall Performance Rating (Excellent, Very Good, Good, Fair, Poor).");
+            return;
+        }
+
         setSaving(true);
-        // Map recommendation and feedback together for backward compatibility
-        const finalFeedback = reviewData.recommendations || feedback;
         
         try {
             const res = await fetch(`/api/observations/${id}`, {
@@ -404,10 +469,32 @@ export default function ConductObservationPage() {
                     </div>
                 </div>
                 <div className="flex flex-col items-end gap-3 mt-4 md:mt-0">
-                    <button onClick={() => router.back()} className="print:hidden px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors font-bold flex items-center gap-2 shadow-sm text-sm border border-slate-200 dark:border-slate-700">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                        Go Back
-                    </button>
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
+                        {isCompleted && (
+                            <button
+                                type="button"
+                                onClick={() => setShowReportModal(true)}
+                                className="print:hidden px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+                            >
+                                <Award className="w-4 h-4" />
+                                <span>Official Letter (HOD & DEO)</span>
+                            </button>
+                        )}
+                        {!isCompleted && isObserverUser && (
+                            <button
+                                type="button"
+                                onClick={() => setShowReschedule(!showReschedule)}
+                                className="print:hidden px-4 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-bold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                            >
+                                <Calendar className="w-4 h-4" />
+                                <span>{showReschedule ? "Close Reschedule" : data.sessionDate ? "Reschedule Review / Edit Date" : "Set Review Schedule"}</span>
+                            </button>
+                        )}
+                        <button onClick={() => router.back()} className="print:hidden px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors font-bold flex items-center gap-2 shadow-sm text-sm border border-slate-200 dark:border-slate-700">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                            Go Back
+                        </button>
+                    </div>
                     <div className={`px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase border ${
                         data.status === "PENDING"
                             ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
@@ -430,17 +517,27 @@ export default function ConductObservationPage() {
                                 Review Report Submitted Successfully!
                             </h3>
                             <p className="text-xs text-emerald-700/90 dark:text-emerald-400 mt-0.5">
-                                Your evaluation has been finalized and recorded. All submitted ratings and recommendations are displayed below in read-only view.
+                                Your evaluation has been finalized and recorded. The official appraisal memorandum is now accessible for HOD and DEO view.
                             </p>
                         </div>
                     </div>
-                    <button
-                        onClick={() => router.push((session?.user as any)?.role === "LECTURER" ? "/lecturer/appraisals" : "/hod/observations")}
-                        className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm shrink-0 flex items-center gap-1.5 cursor-pointer self-end sm:self-auto"
-                    >
-                        <span>{(session?.user as any)?.role === "LECTURER" ? "Return to Appraisals" : "Return to Observations"}</span>
-                        <span>→</span>
-                    </button>
+                    <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => setShowReportModal(true)}
+                            className="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition shadow-sm flex items-center gap-1.5 cursor-pointer"
+                        >
+                            <Award className="w-4 h-4" />
+                            <span>View Official Letter</span>
+                        </button>
+                        <button
+                            onClick={() => router.push((session?.user as any)?.role === "LECTURER" ? "/lecturer/appraisals" : "/hod/observations")}
+                            className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm flex items-center gap-1.5 cursor-pointer"
+                        >
+                            <span>{(session?.user as any)?.role === "LECTURER" ? "Return to Appraisals" : "Return to Observations"}</span>
+                            <span>→</span>
+                        </button>
+                    </div>
                 </div>
             )}
 
@@ -486,7 +583,40 @@ export default function ConductObservationPage() {
                             onClick={() => setShowReschedule(!showReschedule)}
                             className="px-4 py-2 rounded-xl text-xs font-bold border border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-100/50 dark:hover:bg-blue-900/30 transition shrink-0 cursor-pointer self-end sm:self-auto"
                         >
-                            {showReschedule ? "Close Reschedule" : "Reschedule Session"}
+                            {showReschedule ? "Close Reschedule" : "Reschedule Session / Edit Date"}
+                        </button>
+                    )}
+                </div>
+            )}
+
+            {/* Active Session Notice Banner */}
+            {!isCompleted && !isBlocked && !isPremature && data.sessionDate && (
+                <div className="p-5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm mb-6 bg-emerald-50/70 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/50">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                            <CheckCircle2 className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <h4 className="font-bold text-sm text-emerald-900 dark:text-emerald-200">
+                                    Review Session Active
+                                </h4>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300">
+                                    Unlocked for Evaluation
+                                </span>
+                            </div>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                                Scheduled session: <strong>{new Date(data.sessionDate).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</strong>{data.venue ? ` at ${data.venue}` : ""}. All 14 criteria and recommendations must be filled before submission.
+                            </p>
+                        </div>
+                    </div>
+                    {isObserverUser && (
+                        <button
+                            type="button"
+                            onClick={() => setShowReschedule(!showReschedule)}
+                            className="px-3.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition shrink-0 cursor-pointer self-end sm:self-auto"
+                        >
+                            {showReschedule ? "Close Reschedule" : "Reschedule Session If Postponed"}
                         </button>
                     )}
                 </div>
@@ -538,7 +668,7 @@ export default function ConductObservationPage() {
                             </datalist>
                         </div>
                         <button onClick={handleSchedule} disabled={scheduling} className="w-full md:w-auto px-6 py-2.5 rounded-xl text-white font-bold text-sm bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm cursor-pointer">
-                            {scheduling ? "Saving..." : "Lock Schedule"}
+                            {scheduling ? "Saving..." : (data.sessionDate ? "Save Rescheduled Schedule" : "Lock Schedule")}
                         </button>
                     </div>
 
@@ -752,7 +882,15 @@ export default function ConductObservationPage() {
                     <p className="text-xs max-w-md mx-auto" style={{ color: "var(--text-muted)" }}>
                         All instructional material evaluation rubrics and narrative remarks are archived for academic portfolio reporting.
                     </p>
-                    <div className="pt-2">
+                    <div className="pt-2 flex items-center justify-center gap-3 flex-wrap">
+                        <button
+                            type="button"
+                            onClick={() => setShowReportModal(true)}
+                            className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition flex items-center gap-2 cursor-pointer"
+                        >
+                            <Award className="w-4 h-4" />
+                            <span>View Official Appraisal Letter (HOD & DEO)</span>
+                        </button>
                         <button
                             type="button"
                             onClick={() => router.push((session?.user as any)?.role === "LECTURER" ? "/lecturer/appraisals" : "/hod/observations")}
@@ -763,6 +901,14 @@ export default function ConductObservationPage() {
                     </div>
                 </div>
             )}
+
+            {/* Official Institutional Appraisal Letter Modal */}
+            <OfficialAppraisalLetterModal
+                isOpen={showReportModal}
+                onClose={() => setShowReportModal(false)}
+                reviewType="A"
+                data={data}
+            />
         </div>
     );
 }
