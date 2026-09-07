@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Calendar, Award, CheckCircle2 } from "lucide-react";
+import { Calendar, Award } from "lucide-react";
 import { ReviewDossierViewer } from "@/features/observations";
 import { INSTITUTIONAL_VENUES } from "@/lib/venues";
 import OfficialAppraisalLetterModal from "@/components/reviews/OfficialAppraisalLetterModal";
