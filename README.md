@@ -125,6 +125,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | `npm run start` | Runs the production build |
 | `npm run lint` | Runs ESLint checks |
 | `npm run typecheck` | Validates TypeScript types across the project |
+| `npm run pre-ship` | Runs combined code quality, linting, and type validations before shipping |
 | `npm run seed` | Seeds the PostgreSQL database with demo academic data |
 | `npm run db:push` | Pushes the Prisma schema to the active database |
 | `npm run db:migrate` | Runs database migrations in development |
@@ -179,6 +180,73 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 * **Password Policy:** Enforces bcrypt hashing and requires password changes upon first login.
 * **Sliding Window Rate Limiting:** Prevents API abuse on authentication and submission endpoints.
 * **Type Safety:** Full end-to-end TypeScript typing with Zod schema validation on API payloads.
+
+---
+
+## 📋 Clean Ship & Deployment Directive
+
+> **Objective:** Minimize production bundle size, protect institutional credentials & sensitive data, eliminate development clutter, and ensure that only production-verified code is shipped to company/institutional environments.
+
+### 1. Configure Exclusion Files & Protect Credentials
+Ensure that all non-production files, local environment variables, IDE configurations, and scratch artifacts are strictly ignored:
+* **Version Control (`.gitignore`):**
+  * **Environment & Credentials:** `.env`, `.env.local`, `.env.*.local` (only sanitized `.env.example` is committed).
+  * **IDE & System Junk:** `.vscode/`, `.idea/`, `.DS_Store`, `Thumbs.db`, editor swap files (`*.sw[op]`, `*.suo`).
+  * **Development Scratch & Temp Data:** `scratch/`, `test-results/`, `playwright-report/`, `*.tsbuildinfo`, `*.pem`.
+  * **Local Databases & Dev Artifacts:** `prisma/dev.db`, `prisma/*.db`, `prisma/prisma/`.
+  * **Build Outputs:** `/.next/`, `/out/`, `/build/`, `/coverage/`.
+  * **Uploads & Logs:** `public/uploads/*` (preserving `.gitkeep`), `npm-debug.log*`, `yarn-debug.log*`, `yarn-error.log*`.
+* **Package Distribution:**
+  * Project is configured as `"private": true` in `package.json` to prevent accidental public registry leaks.
+
+### 2. Dependency Audit & Segregation
+* **DevDependencies Separation:**
+  * Testing frameworks (`@playwright/test`, `@axe-core/playwright`), linters (`eslint`, `eslint-config-next`), compilers (`typescript`, `ts-node`), and build/analysis tools (`@next/bundle-analyzer`, `@tailwindcss/postcss`, `cross-env`) are partitioned into `devDependencies`.
+  * Only true runtime dependencies (`next`, `react`, `react-dom`, `@prisma/client`, `next-auth`, `zod`, `lucide-react`, etc.) remain in `dependencies`.
+* **Production Installs:**
+  * When preparing production images, CI/CD runners, or deployment containers, strictly use production-only install flags:
+    ```bash
+    npm ci --omit=dev
+    ```
+* **Dead Code & Bundle Auditing:**
+  * Run periodic dependency and bundle audits to prune unused packages and analyze asset chunks:
+    ```bash
+    npm run analyze
+    ```
+
+### 3. Asset & Build Optimization
+* **Disable Production Source Maps:**
+  * Source maps are disabled in production via `next.config.ts` (`productionBrowserSourceMaps: false`) to safeguard institutional logic and minimize file transfer sizes.
+* **Suppress Framework Fingerprinting:**
+  * `poweredByHeader: false` is enforced to prevent exposing server stack details via `X-Powered-By` headers.
+* **Tree-Shaking & Modular Imports:**
+  * Configured `experimental.optimizePackageImports` in `next.config.ts` for major packages (`lucide-react`, `recharts`, `date-fns`) to prevent bundle bloat.
+* **Asset Compression & Image Delivery:**
+  * Next.js delivers compressed assets (`compress: true`) with dynamic modern format conversion (AVIF / WebP).
+* **Clean the Build Directory:**
+  * Ensure previous build artifacts are cleared before compiling final release bundles:
+    ```bash
+    # Windows PowerShell
+    Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue; npm run build
+
+    # Linux / macOS
+    rm -rf .next && npm run build
+    ```
+
+### 4. Pre-Ship Checklist
+Before marking the project as ready to ship, verify each item on this checklist:
+
+| Check | Item | Requirement / Verification Command |
+| :---: | :--- | :--- |
+| 🔏 | **Zero Leaked Secrets** | Verify no hardcoded passwords, database URLs, or real API keys (`AUTH_SECRET`, `RESEND_API_KEY`) exist in source files. |
+| 🧹 | **No Stray Debugging** | Verify all `console.log`, `debugger`, and temporary testing routes have been removed or stripped. |
+| 🛡️ | **Type Safety Validation** | Run `npm run typecheck` — must exit with code 0 (zero TypeScript errors). |
+| 🔍 | **Linting & Code Quality** | Run `npm run lint` — must pass with zero ESLint errors. |
+| 🚀 | **Unified Pre-Ship Gate** | Run `npm run pre-ship` (runs linting + typechecking concurrently). |
+| 🗄️ | **Prisma Migration Parity** | Verify all database migrations are applied: `npx prisma migrate status` / `npx prisma migrate deploy`. |
+| 🧪 | **E2E & Accessibility Tests**| Execute test suites: `npm run test:e2e` and `npm run test:a11y`. |
+| 📦 | **Production Build Succeeded**| Confirm `npm run build` produces optimal chunks with no missing runtime modules. |
+| 🔒 | **Security Headers Active** | Verify CSP, HSTS, X-Frame-Options, and nosniff policies in `next.config.ts`. |
 
 ---
 
